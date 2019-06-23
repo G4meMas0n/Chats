@@ -111,12 +111,12 @@ public interface IChannel {
      * @param chatter a chatter who should be listed in this channel.
      * @return true if the collection changed as result of this call.
      */
-    boolean addChatter(@NotNull IChatter chatter);
+    boolean addChatter(@NotNull final IChatter chatter);
 
     /**
      * Removes a chatter of this channel.
      * @param chatter a chatter who should be removed from this channel.
      * @return true if the chatter was removed as result of this call.
      */
-    boolean removeChatter(@NotNull IChatter chatter);
+    boolean removeChatter(@NotNull final IChatter chatter);
 }

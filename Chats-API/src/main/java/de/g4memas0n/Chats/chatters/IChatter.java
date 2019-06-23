@@ -85,31 +85,47 @@ public interface IChatter {
     @NotNull Collection<UUID> getIgnoredChatters();
 
     /**
-     * Adds a new player UUID to the list of all ignoring player UUIDs of this chatter.
+     * Adds a new player UUID to the collection of all ignoring player UUIDs of this chatter.
      * Gets the player and the UUID of the given chatter and adds them to the collection.
-     * @param chatter the chatter that should be added to the list.
+     * @param chatter the chatter that should be added to the collection.
      * @return true if the list of all ignored player UUIDs was changed as result of this call.
      */
     boolean addIgnoredChatter(@NotNull final IChatter chatter);
 
     /**
-     * Adds a new player UUID to the list of all ignoring player UUIDs of this chatter.
-     * @param playerUUID the UUID of the chatter that should be added to the list.
+     * Adds a new player UUID to the collection of all ignoring player UUIDs of this chatter.
+     * Gets the UUID of the given player and adds them to the collection.
+     * @param player the player that should be added to the collection.
+     * @return true if the list of all ignored player UUIDs was changed as result of this call.
+     */
+    boolean addIgnoredChatter(@NotNull final Player player);
+
+    /**
+     * Adds a new player UUID to the collection of all ignoring player UUIDs of this chatter.
+     * @param playerUUID the UUID of the chatter that should be added to the collection.
      * @return true if the list of all ignored player UUIDs was changed as result of this call.
      */
     boolean addIgnoredChatter(@NotNull final UUID playerUUID);
 
     /**
-     * Removes a player UUID from the list of all ignoring player UUIDs of this chatter.
+     * Removes a player UUID from the collection of all ignoring player UUIDs of this chatter.
      * Gets the player and the UUID of the given chatter and removes them from the collection.
-     * @param chatter the chatter that should be removed from this list.
+     * @param chatter the chatter that should be removed from this collection.
      * @return true if the list of all ignored player UUIDs was changed as result of this call.
      */
     boolean removeIgnoredChatter(@NotNull final IChatter chatter);
 
     /**
-     * Removes a player UUID from the list of all ignoring player UUIDs of this chatter.
-     * @param playerUUID the UUID of the chatter that should be removed from this list.
+     * Removes a player UUID from the collection of all ignoring player UUIDs of this chatter.
+     * Gets the UUID of the given player and removes them to the collection.
+     * @param player the player that should be removed from the collection.
+     * @return true if the list of all ignored player UUIDs was changed as result of this call.
+     */
+    boolean removeIgnoredChatter(@NotNull final Player player);
+
+    /**
+     * Removes a player UUID from the collection of all ignoring player UUIDs of this chatter.
+     * @param playerUUID the UUID of the chatter that should be removed from this collection.
      * @return true if the list of all ignored player UUIDs was changed as result of this call.
      */
     boolean removeIgnoredChatter(@NotNull final UUID playerUUID);
@@ -117,11 +133,20 @@ public interface IChatter {
     /**
      * Returns if this chatter is ignoring the given chatter.
      * Gets the player und the UUID of the given chatter and checks if this UUID is listed in the ignoring player
-     * UUID list of this chatter.
+     * UUID collection of this chatter.
      * @param chatter the chatter that should be checked.
      * @return true if this chatter is ignoring the given chatter.
      */
     boolean isIgnoring(@NotNull final IChatter chatter);
+
+    /**
+     * Returns if this chatter is ignoring the given Player.
+     * Gets the UUID of the given Player and checks if this UUID is listed in the ignoring player UUID collection of
+     * this chatter.
+     * @param player the player that should be checked.
+     * @return true if this chatter is ignoring the given UUID.
+     */
+    boolean isIgnoring(@NotNull final Player player);
 
     /**
      * Returns if this chatter is ignoring a chatter with the given player UUID.
