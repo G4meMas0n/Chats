@@ -30,6 +30,12 @@ public interface IFileManager {
     @NotNull File getLogsFolder();
 
     /**
+     * Returns the resources folder of this plugin.
+     * @return the file directory of the logs folder.
+     */
+    @NotNull File getResourcesFolder();
+
+    /**
      * Returns the file pattern for the log file.
      * @return the file pattern.
      */

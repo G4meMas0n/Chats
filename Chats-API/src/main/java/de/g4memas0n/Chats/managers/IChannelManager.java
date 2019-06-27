@@ -20,6 +20,12 @@ public interface IChannelManager {
     @NotNull IChannelStorage getChannelStorage();
 
     /**
+     * Returns the default channel of this channel manager.
+     * @return the default channel.
+     */
+    @NotNull IChannel getDefaultChannel();
+
+    /**
      * Sets the default channel of this channel manager and adds them to the listed channels if they currently not
      * contains they.
      * @param channel the new default channel for this channel manager.
@@ -29,10 +35,14 @@ public interface IChannelManager {
     boolean setDefaultChannel(@NotNull final IChannel channel) throws IllegalArgumentException;
 
     /**
-     * Returns the default channel of this channel manager.
-     * @return the default channel.
+     * Sets the default channel of this channel manager.
+     * Gets the channel with the given full name from this channel manager and sets them as default channel.
+     * @param fullName the full name of the new default channel for this channel manager.
+     * @return true if the default channel was changed as result of this call.
+     * @throws IllegalArgumentException Thrown when no channel with the given full name was found in this channel
+     *                                  manager or when the channel isn't a global channel.
      */
-    @NotNull IChannel getDefaultChannel();
+    boolean setDefaultChannel(@NotNull final String fullName) throws IllegalArgumentException;
 
     /**
      * Returns if this channel manager contains the given channel.

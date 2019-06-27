@@ -99,6 +99,63 @@ public interface IChannel {
     boolean removePassword();
 
 
+    // Channel Format Methods:
+    /**
+     * Returns if this channel use custom format or use the default format.
+     * @return true if this channel use a custom format.
+     */
+    boolean isUseCustomFormat();
+
+    /**
+     * Sets the use custom format option for this channel.
+     * @param state if this channel should use a custom format.
+     * @return true if the use custom format option was changed as result of this call.
+     */
+    boolean setUseCustomFormat(final boolean state);
+
+    /**
+     * Returns the channel format of this channel.
+     * @return the channel format of this channel.
+     */
+    @NotNull
+    String getChannelFormat();
+
+    /**
+     * Sets the channel format for this channel.
+     * @param format the new channel format for this channel.
+     * @return true if the channel format was changed as result of this call.
+     */
+    boolean setChannelFormat(@NotNull final String format);
+
+    /**
+     * Returns the announce format of this channel.
+     * @return the announce format of this channel.
+     */
+    @NotNull
+    String getAnnounceFormat();
+
+    /**
+     * Sets the announce format for this channel.
+     * @param format the new announce format for this channel.
+     * @return true if the announce format was changed as result of this call.
+     */
+    boolean setAnnounceFormat(@NotNull final String format);
+
+    /**
+     * Returns the broadcast format of this channel.
+     * @return the broadcast format of this channel.
+     */
+    @NotNull
+    String getBroadcastFormat();
+
+    /**
+     * Sets the broadcast format for this channel.
+     * @param format the new broadcast format for this channel.
+     * @return true if the broadcast format was changed as result of this call.
+     */
+    boolean setBroadcastFormat(@NotNull final String format);
+
+
     // Chatter Collection Methods:
     /**
      * Returns all listed chatters of this channel.
