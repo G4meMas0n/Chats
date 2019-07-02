@@ -4,24 +4,21 @@ import de.g4memas0n.Chats.channels.IChannel;
 import de.g4memas0n.Chats.chatters.IChatter;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class PlayerChatChannelEvent extends PlayerEvent implements Cancellable {
+public final class ChatterChatChannelEvent extends ChatterEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    private final IChatter chatter;
     private final IChannel channel;
-    private boolean cancel;
     private String message;
+    private boolean cancel;
 
-    public PlayerChatChannelEvent(@NotNull final IChatter chatter,
-                                  @NotNull final IChannel channel,
-                                  @NotNull final String message) {
-        super(chatter.getPlayer());
-        this.chatter = chatter;
+    public ChatterChatChannelEvent(@NotNull final IChatter sender,
+                                   @NotNull final IChannel channel,
+                                   @NotNull final String message) {
+        super(sender, false);
         this.channel = channel;
-        this.cancel = false;
         this.message = message;
+        this.cancel = false;
     }
 
     @Override
@@ -32,11 +29,6 @@ public class PlayerChatChannelEvent extends PlayerEvent implements Cancellable {
     @Override
     public void setCancelled(boolean cancel) {
         this.cancel = cancel;
-    }
-
-    @NotNull
-    public IChatter getChatter() {
-        return this.chatter;
     }
 
     @NotNull
