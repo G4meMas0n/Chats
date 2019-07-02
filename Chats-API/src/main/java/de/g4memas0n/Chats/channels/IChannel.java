@@ -1,12 +1,24 @@
 package de.g4memas0n.Chats.channels;
 
 import de.g4memas0n.Chats.chatters.IChatter;
+import de.g4memas0n.Chats.utils.Placeholder;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 public interface IChannel {
+    String DEFAULT_CHANNEL_FORMAT = Placeholder.CHANNEL_COLOR.toString() + Placeholder.CHANNEL_NICK.toString()
+                                    + Placeholder.SENDER.toString() + Placeholder.CHANNEL_COLOR.toString() + ": "
+                                    + Placeholder.MESSAGE.toString();
+    String DEFAULT_ANNOUNCE_FORMAT = Placeholder.CHANNEL_COLOR.toString() + Placeholder.MESSAGE.toString();
+    String DEFAULT_BROADCAST_FORMAT = Placeholder.CHANNEL_COLOR.toString() + "["
+                                      + Placeholder.BROADCAST_PREFIX.toString() + Placeholder.CHANNEL_COLOR.toString()
+                                      + "] " + Placeholder.MESSAGE.toString();
+    String DEFAULT_CONVERSION_FORMAT = Placeholder.CHANNEL_COLOR.toString() + "["
+                                       + Placeholder.CONVERSION_ADDRESS.toString() + " "
+                                       + Placeholder.CONVERSION_PARTNER.toString()
+                                       + Placeholder.CHANNEL_COLOR.toString() + "] " + Placeholder.MESSAGE.toString();
 
     /**
      * Returns the listed full name of this channel.
@@ -176,4 +188,15 @@ public interface IChannel {
      * @return true if the chatter was removed as result of this call.
      */
     boolean removeChatter(@NotNull final IChatter chatter);
+
+
+    // Perform Chat Method:
+    /**
+     * Perform the chat action for this channel.
+     * Checks all conditions to perform the chat action successfully and then sends all listed player in this channel
+     * the given message from the given chatter.
+     * @param chatter the chatter that performed the chat action.
+     * @param message the message from the chatter.
+     */
+    void performChat(@NotNull final IChatter chatter, @NotNull final String message);
 }

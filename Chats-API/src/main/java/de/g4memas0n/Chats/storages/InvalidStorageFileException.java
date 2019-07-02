@@ -2,7 +2,7 @@ package de.g4memas0n.Chats.storages;
 
 import org.jetbrains.annotations.NotNull;
 
-public class InvalidStorageFileException extends Exception {
+public final class InvalidStorageFileException extends Exception {
 
     public InvalidStorageFileException() {
     }

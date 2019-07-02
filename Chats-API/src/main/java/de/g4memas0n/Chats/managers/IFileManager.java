@@ -12,6 +12,12 @@ public interface IFileManager {
     @NotNull File getConfigFile();
 
     /**
+     * Returns the data folder of this plugin.
+     * @return the file directory of the plugins data folder
+     */
+    @NotNull File getDataFolder();
+
+    /**
      * Returns the channels folder of this plugin.
      * @return the file directory of the channels folder.
      */

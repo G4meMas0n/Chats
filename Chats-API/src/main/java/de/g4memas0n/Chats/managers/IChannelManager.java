@@ -5,13 +5,9 @@ import de.g4memas0n.Chats.chatters.IChatter;
 import de.g4memas0n.Chats.storages.IChannelStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 
 public interface IChannelManager {
-    int MIN_CHATTER_COUNT = 2;
-    int MAX_CHATTER_COUNT = 2;
 
     /**
      * Returns the channel storage representation for this channel manager.
@@ -67,20 +63,16 @@ public interface IChannelManager {
     boolean hasConversionChannel(@NotNull final IChannel channel) throws IllegalArgumentException;
 
     /**
-     * Returns if this channel manager contains a conversion channel with the given full name.
-     * @param fullName the full name of the conversion channel.
-     * @return true if a conversion channel with the given full name was found in this channel manager.
-     */
-    boolean hasConversionChannel(@NotNull final String fullName);
-
-    /**
      * Returns if this channel manager contains a conversion channel with the given chatters.
      * Builds the full name of the conversation channel with the given chatters and checks if this channel manager
      * contains a conversion channel with this full name.
-     * @param chatters the chatters that are in the conversion channel.
+     * @param firstChatter the first chatter that are in the conversion channel.
+     * @param secondChatter the second chatter that are in the conversion channel.
      * @return true if a channel with the given chatters was found in this channel manager.
+     * @throws IllegalArgumentException Thrown when both chatters are equals.
      */
-    boolean hasConversionChannel(@NotNull final IChatter... chatters);
+    boolean hasConversionChannel(@NotNull final IChatter firstChatter,
+                                 @NotNull final IChatter secondChatter) throws IllegalArgumentException;
 
     /**
      * Returns a collection of all listed channels in this channel manager.
@@ -97,21 +89,16 @@ public interface IChannelManager {
 
     /**
      * Returns the conversion channel with the given full channel name.
-     * @param fullName the full name of the conversion channel.
-     * @return the conversion channel with the given full name or null if there is no conversion channel with the given
-     *         full name or the channel with the given full name isn't a conversion channel.
-     */
-    @Nullable IChannel getConversionChannel(@NotNull final String fullName);
-
-    /**
-     * Returns the conversion channel with the given full channel name.
      * Builds the full name of the conversion channel with the given chatters and returns the conversion channel with
      * the full name.
-     * @param chatters the chatters that are in the conversion channel.
+     * @param firstChatter the first chatter that are in the conversion channel.
+     * @param secondChatter the second chatter that are in the conversion channel.
      * @return the conversion channel with the full name or null if there is no conversion channel with the full name
      *         or the channel with the full name isn't a conversion channel.
+     * @throws IllegalArgumentException Thrown when both chatters are equals.
      */
-    @Nullable IChannel getConversionChannel(@NotNull final IChatter... chatters);
+    @Nullable IChannel getConversionChannel(@NotNull final IChatter firstChatter,
+                                            @NotNull final IChatter secondChatter) throws IllegalArgumentException;
 
     /**
      * Adds a new channel to this channel manager.
@@ -147,65 +134,13 @@ public interface IChannelManager {
 
     /**
      * Removes a conversion channel from this channel manager.
-     * @param fullName the full name of the conversion channel that should be removed.
-     * @return true if the conversion channel was removed as result of this call.
-     */
-    boolean removeConversionChannel(@NotNull final String fullName);
-
-    /**
-     * Removes a conversion channel from this channel manager.
      * Builds the full name of the conversion channel with the given chatters and removes them from this channel
      * manager.
-     * @param chatters the chatters that are in the conversion channel that should be removed.
+     * @param firstChatter the first chatter that are in the conversion channel that should be removed.
+     * @param secondChatter the second chatter that are in the conversion channel that should be removed.
      * @return true if the conversion channel was removed as result of this call.
+     * @throws IllegalArgumentException Thrown when both chatters are equals.
      */
-    boolean removeConversionChannel(@NotNull final IChatter... chatters);
-
-    /**
-     * Builds the full name for a conversion channel with the given chatters they are in the conversion channel.
-     * Gets the player UUID for all chatters, sorts them and put them together separated by an underscore.
-     * @param chatters the chatters that are in the conversion channel.
-     * @return the full name for the conversion channel.
-     * @throws IllegalArgumentException Thrown when too few or too many chatters are given.
-     */
-    @NotNull
-    static String buildConversionFullName(@NotNull final IChatter... chatters) throws IllegalArgumentException {
-        if (chatters.length < MIN_CHATTER_COUNT || chatters.length > MAX_CHATTER_COUNT) {
-            throw new IllegalArgumentException("too few or too many chatters for a conversion channel.");
-        }
-
-        ArrayList<String> playerUUIDs = new ArrayList<>();
-
-        for (IChatter current : chatters) {
-            playerUUIDs.add(current.getPlayer().getUniqueId().toString());
-        }
-
-        Collections.sort(playerUUIDs);
-
-        return String.join("_", playerUUIDs);
-    }
-
-    /**
-     * Builds the short name for a conversion channel with the given chatters they are in this conversion channel.
-     * Gets the player name for all chatters, sorts them and put them together separated by an underscore.
-     * @param chatters the chatters that are in the conversion channel.
-     * @return the short name for the conversion channel.
-     * @throws IllegalArgumentException Thrown when too few or too many chatters are given.
-     */
-    @NotNull
-    static String buildConversionShortName(@NotNull final IChatter... chatters) throws IllegalArgumentException {
-        if (chatters.length < MIN_CHATTER_COUNT || chatters.length > MAX_CHATTER_COUNT) {
-            throw new IllegalArgumentException("too few or too many chatters for a conversion channel.");
-        }
-
-        ArrayList<String> playerNames = new ArrayList<>();
-
-        for (IChatter current : chatters) {
-            playerNames.add(current.getPlayer().getName());
-        }
-
-        Collections.sort(playerNames);
-
-        return String.join("_", playerNames);
-    }
+    boolean removeConversionChannel(@NotNull final IChatter firstChatter,
+                                    @NotNull final IChatter secondChatter) throws IllegalArgumentException;
 }

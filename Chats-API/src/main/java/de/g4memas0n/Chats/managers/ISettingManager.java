@@ -37,13 +37,6 @@ public interface ISettingManager {
      */
     @NotNull Locale getLocale();
 
-    /**
-     * Sets the locale option for the config.
-     * @param locale the new locale.
-     * @return true if the option was changed as result of this call.
-     */
-    boolean setLocale(@NotNull final Locale locale);
-
 
     // Logs Methods:
     /**
@@ -51,13 +44,6 @@ public interface ISettingManager {
      * @return true if this option is enabled.
      */
     boolean isLogChatToConsole();
-
-    /**
-     * Sets the log-chat-to-console option for the config.
-     * @param state if the chat should be logged to the console.
-     * @return true if the option was changed as result of this call.
-     */
-    boolean setLogChatToConsole(final boolean state);
 
     /**
      * Returns the log-chat-to-file option of the config.
@@ -75,18 +61,11 @@ public interface ISettingManager {
 
     // Format Methods:
     /**
-     * Returns the default-format-channel option of the config.
+     * Returns the default-channel option of the config.
      * @return the default channel format.
      */
     @NotNull
     String getDefaultChannelFormat();
-
-    /**
-     * Sets the default-format-channel option for the config.
-     * @param format the new default channel format.
-     * @return true if the option was changed as result of this call.
-     */
-    boolean setDefaultChannelFormat(@NotNull final String format);
 
     /**
      * Returns the default-format-announce option of the config.
@@ -96,13 +75,6 @@ public interface ISettingManager {
     String getDefaultAnnounceFormat();
 
     /**
-     * Sets the default-format-announce option for the config.
-     * @param format the new default announce format.
-     * @return true if the option was changed as result of this call.
-     */
-    boolean setDefaultAnnounceFormat(@NotNull final String format);
-
-    /**
      * Returns the default-format-broadcast option of the config.
      * @return the default broadcast format.
      */
@@ -110,9 +82,9 @@ public interface ISettingManager {
     String getDefaultBroadcastFormat();
 
     /**
-     * Sets the default-format-broadcast option for the config.
-     * @param format the new default broadcast format.
-     * @return true if the option was changed as result of this call.
+     * Returns the default-format-conversion option of the config.
+     * @return the default conversion format.
      */
-    boolean setDefaultBroadcastFormat(@NotNull final String format);
+    @NotNull
+    String getConversionFormat();
 }

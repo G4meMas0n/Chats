@@ -52,7 +52,7 @@
 
     <build>
         <directory>target</directory>
-        <finalName>Chats_v0.0.1-SNAPSHOT</finalName>
+        <finalName>Chats_v${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -31,7 +31,7 @@ public interface IChatter {
     boolean setActiveChannel(@NotNull final IChannel channel);
 
 
-    // Last Channels Methods:
+    // Last Sources Methods:
     /**
      * Returns the last active global channel of this chatter.
      * @return the last global channel of this chatter.
@@ -39,18 +39,10 @@ public interface IChatter {
     @NotNull IChannel getLastGlobalChannel();
 
     /**
-     * Returns the channel of the last conversion of this chatter.
-     * @return the last conversion channel.
+     * Returns the last conversion partner of this chatter.
+     * @return the chatter of the last conversion.
      */
-    @NotNull IChatter getLastConversionChannel();
-
-    /**
-     * Sets the last conversion channel of this chatter.
-     * @param channel the new last conversion channel for this chatter.
-     * @return true if the last conversion channel was changed as result of this call.
-     * @throws IllegalArgumentException Thrown when the given channel is not a conversion channel.
-     */
-    boolean setLastConversionChannel(@NotNull final IChannel channel) throws IllegalArgumentException;
+    @NotNull IChatter getLastConversionPartner();
 
 
     // Channels Collection Methods:

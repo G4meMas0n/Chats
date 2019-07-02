@@ -50,6 +50,7 @@ public interface IChannelStorage {
      * Updates the file of the given channel or creates a new file for the given channel.
      * @param channel the channel that should be updated or saved.
      * @return true if the file was updated or new created as result of this call.
+     * @throws IllegalArgumentException Thrown when the given channel is non persist channel.
      */
-    boolean update(@NotNull final IChannel channel);
+    boolean update(@NotNull final IChannel channel) throws IllegalArgumentException;
 }
