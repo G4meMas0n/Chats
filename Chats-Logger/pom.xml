@@ -14,4 +14,13 @@
     <name>Chats Logger</name>
     <artifactId>chats-logger</artifactId>
     <version>snapshot</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.13-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
