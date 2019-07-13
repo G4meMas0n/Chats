@@ -18,7 +18,7 @@ public interface IConfigStorage {
     /**
      * Sets a new directory where this storage should save and load all files.
      * @param directory the new directory of this storage.
-     * @return true if the directory was changed as result of this call.
+     * @return true when the directory was changed as result of this call.
      * @throws IllegalArgumentException Thrown when the given file is no directory.
      */
     boolean setDirectory(@NotNull final File directory) throws IllegalArgumentException;
@@ -49,7 +49,7 @@ public interface IConfigStorage {
     /**
      * Updates the file of the given setting manager or creates a new file for the given setting manager.
      * @param settingManager the setting manager that should be updated or saved.
-     * @return true if the file was updated or new created as result of this call.
+     * @return true when the file was updated or new created as result of this call.
      */
     boolean update(@NotNull final ISettingManager settingManager);
 }

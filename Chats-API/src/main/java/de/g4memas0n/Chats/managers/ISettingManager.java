@@ -24,7 +24,7 @@ public interface ISettingManager {
     /**
      * Sets the default-channel option for the config.
      * @param channel the new default channel.
-     * @return true if the option was changed as result of this call.
+     * @return true when the option was changed as result of this call.
      * @throws IllegalArgumentException Thrown when the given channel isn't a global channel.
      */
     boolean setDefaultChannel(@NotNull final IChannel channel) throws IllegalArgumentException;
@@ -40,23 +40,22 @@ public interface ISettingManager {
 
     // Logs Methods:
     /**
-     * Returns the log-chat-to-console option of the config.
-     * @return true if this option is enabled.
+     * Returns the log-to-console option of the config.
+     * @return true when this option is enabled.
      */
-    boolean isLogChatToConsole();
+    boolean isLogToConsole();
 
     /**
-     * Returns the log-chat-to-file option of the config.
-     * @return true if this option is enabled.
+     * Returns the log-to-file option of the config.
+     * @return true when this option is enabled.
      */
-    boolean isLogChatToFile();
+    boolean isLogToFile();
 
     /**
-     * Sets the log-chat-to-file option for the config.
-     * @param state if the chat should be logged into a file.
-     * @return true if the option was changed as result of this call.
+     * Returns the log-color option of the config.
+     * @return true when this option is enabled.
      */
-    boolean setLogChatToFile(final boolean state);
+    boolean isLogWithColor();
 
 
     // Format Methods:
@@ -80,6 +79,11 @@ public interface ISettingManager {
      */
     @NotNull
     String getDefaultBroadcastFormat();
+
+    boolean isUseConversionTwitterFormat();
+
+    @NotNull
+    String getConversionTwitterFormat();
 
     /**
      * Returns the default-format-conversion option of the config.

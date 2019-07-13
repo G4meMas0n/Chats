@@ -19,21 +19,21 @@ public interface IChatterManager {
     /**
      * Returns if this chatter manager contains the given chatter.
      * @param chatter the chatter that should be checked.
-     * @return true if the given chatter was found in this chatter manager.
+     * @return true when the given chatter was found in this chatter manager.
      */
     boolean hasChatter(@NotNull final IChatter chatter);
 
     /**
      * Returns if this chatter manager contains a chatter with the given player.
      * @param player the player that should be checked.
-     * @return true if a chatter with the given player was found in this chatter manager.
+     * @return true when a chatter with the given player was found in this chatter manager.
      */
     boolean hasChatter(@NotNull final Player player);
 
     /**
      * Returns if this chatter manager contains a chatter with the given player UUID.
      * @param playerUUID the player UUID that should be checked.
-     * @return true if a chatter with the given player UUID was found in this chatter manager.
+     * @return true when a chatter with the given player UUID was found in this chatter manager.
      */
     boolean hasChatter(@NotNull final UUID playerUUID);
 
@@ -60,7 +60,7 @@ public interface IChatterManager {
     /**
      * Adds a new chatter to this chatter manager.
      * @param chatter the chatter that should be added.
-     * @return true if the chatter was added as result of this call.
+     * @return true when the chatter was added as result of this call.
      */
     boolean addChatter(@NotNull final IChatter chatter);
 
@@ -69,7 +69,7 @@ public interface IChatterManager {
      * Gets the player UUID of the given chatter and removes them from this chatter manager.
      * When the chatter is in a conversion channel, the conversion channels will be removed from the channel manager.
      * @param chatter the chatter that should be removed.
-     * @return true if the chatter was removed as result of this call.
+     * @return true when the chatter was removed as result of this call.
      */
     boolean removeChatter(@NotNull final IChatter chatter);
 
@@ -78,7 +78,7 @@ public interface IChatterManager {
      * Gets the player UUID of the given player and removes them from this chatter manager.
      * When the chatter is in a conversion channel, the conversion channels will be removed from the channel manager.
      * @param player the player of the chatter that should be removed.
-     * @return true if the chatter was removed as result of this call.
+     * @return true when the chatter was removed as result of this call.
      */
     boolean removeChatter(@NotNull final Player player);
 
@@ -86,7 +86,7 @@ public interface IChatterManager {
      * Removes a chatter from this chatter manager.
      * When the chatter is in a conversion channel, the conversion channels will be removed from the channel manager.
      * @param playerUUID the player UUID of the chatter that should be removed.
-     * @return true if the chatter was removed as result of this call
+     * @return true when the chatter was removed as result of this call
      */
     boolean removeChatter(@NotNull final String playerUUID);
 }

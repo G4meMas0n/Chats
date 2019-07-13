@@ -25,7 +25,7 @@ public interface IChannelManager {
      * Sets the default channel of this channel manager and adds them to the listed channels if they currently not
      * contains they.
      * @param channel the new default channel for this channel manager.
-     * @return true if the default channel was changed as result of this call.
+     * @return true when the default channel was changed as result of this call.
      * @throws IllegalArgumentException Thrown when the given channel isn't a global channel.
      */
     boolean setDefaultChannel(@NotNull final IChannel channel) throws IllegalArgumentException;
@@ -34,7 +34,7 @@ public interface IChannelManager {
      * Sets the default channel of this channel manager.
      * Gets the channel with the given full name from this channel manager and sets them as default channel.
      * @param fullName the full name of the new default channel for this channel manager.
-     * @return true if the default channel was changed as result of this call.
+     * @return true when the default channel was changed as result of this call.
      * @throws IllegalArgumentException Thrown when no channel with the given full name was found in this channel
      *                                  manager or when the channel isn't a global channel.
      */
@@ -43,21 +43,21 @@ public interface IChannelManager {
     /**
      * Returns if this channel manager contains the given channel.
      * @param channel the channel that should be checked.
-     * @return true if the given channel was found in this channel manager.
+     * @return true when the given channel was found in this channel manager.
      */
     boolean hasChannel(@NotNull final IChannel channel);
 
     /**
      * Returns if this channel manager contains a channel with the given full name.
      * @param fullName the full name of the channel that should be checked.
-     * @return true if a channel with the given full name was found in this channel manager.
+     * @return true when a channel with the given full name was found in this channel manager.
      */
     boolean hasChannel(@NotNull final String fullName);
 
     /**
      * Returns if this channel manager contains the given conversion channel.
      * @param channel the conversion channel that should be checked.
-     * @return true if the given conversion channel was found in this channel manager.
+     * @return true when the given conversion channel was found in this channel manager.
      * @throws IllegalArgumentException Thrown when the given channel isn't a conversion channel.
      */
     boolean hasConversionChannel(@NotNull final IChannel channel) throws IllegalArgumentException;
@@ -68,7 +68,7 @@ public interface IChannelManager {
      * contains a conversion channel with this full name.
      * @param firstChatter the first chatter that are in the conversion channel.
      * @param secondChatter the second chatter that are in the conversion channel.
-     * @return true if a channel with the given chatters was found in this channel manager.
+     * @return true when a channel with the given chatters was found in this channel manager.
      * @throws IllegalArgumentException Thrown when both chatters are equals.
      */
     boolean hasConversionChannel(@NotNull final IChatter firstChatter,
@@ -103,7 +103,7 @@ public interface IChannelManager {
     /**
      * Adds a new channel to this channel manager.
      * @param channel the channel that should be added.
-     * @return true if the channel was added as result of this call.
+     * @return true when the channel was added as result of this call.
      */
     boolean addChannel(@NotNull final IChannel channel);
 
@@ -111,7 +111,7 @@ public interface IChannelManager {
      * Removes a channel from this channel manager.
      * Gets the full name of the specified channel and removes them from this channel manager.
      * @param channel the channel that should be removed.
-     * @return true if the channel was removed as result of this call.
+     * @return true when the channel was removed as result of this call.
      * @throws IllegalArgumentException Thrown when the given channel is the default channel of this channel manager.
      */
     boolean removeChannel(@NotNull final IChannel channel) throws IllegalArgumentException;
@@ -119,7 +119,7 @@ public interface IChannelManager {
     /**
      * Removes a channel from this channel manager.
      * @param fullName the full name of the channel that should be removed.
-     * @return true if the channel was removed as result of this call.
+     * @return true when the channel was removed as result of this call.
      * @throws IllegalArgumentException Thrown when the given channel is the default channel of this channel manager.
      */
     boolean removeChannel(@NotNull final String fullName) throws IllegalArgumentException;
@@ -127,7 +127,7 @@ public interface IChannelManager {
     /**
      * Removes a conversion channel from this channel manager.
      * @param channel the conversion channel that should be removed.
-     * @return true if the conversion channel was removed as result of this call.
+     * @return true when the conversion channel was removed as result of this call.
      * @throws IllegalArgumentException Thrown when the given channel isn't a conversion channel.
      */
     boolean removeConversionChannel(@NotNull final IChannel channel) throws IllegalArgumentException;
@@ -138,7 +138,7 @@ public interface IChannelManager {
      * manager.
      * @param firstChatter the first chatter that are in the conversion channel that should be removed.
      * @param secondChatter the second chatter that are in the conversion channel that should be removed.
-     * @return true if the conversion channel was removed as result of this call.
+     * @return true when the conversion channel was removed as result of this call.
      * @throws IllegalArgumentException Thrown when both chatters are equals.
      */
     boolean removeConversionChannel(@NotNull final IChatter firstChatter,

@@ -7,15 +7,15 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ChatterChatConversionEvent extends ChatterEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    private final IChatter target;
+    private final IChatter partner;
     private String message;
     private boolean cancel;
 
     public ChatterChatConversionEvent(@NotNull final IChatter sender,
-                                      @NotNull final IChatter target,
+                                      @NotNull final IChatter partner,
                                       @NotNull final String message) {
         super(sender, false);
-        this.target = target;
+        this.partner = partner;
         this.message = message;
         this.cancel = false;
     }
@@ -31,8 +31,8 @@ public final class ChatterChatConversionEvent extends ChatterEvent implements Ca
     }
 
     @NotNull
-    public IChatter getTarget() {
-        return this.target;
+    public IChatter getPartner() {
+        return this.partner;
     }
 
     @NotNull

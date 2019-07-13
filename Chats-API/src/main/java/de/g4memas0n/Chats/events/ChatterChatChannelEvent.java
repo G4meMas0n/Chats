@@ -10,14 +10,17 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
     private static final HandlerList handlers = new HandlerList();
     private final IChannel channel;
     private String message;
+    private String format;
     private boolean cancel;
 
     public ChatterChatChannelEvent(@NotNull final IChatter sender,
                                    @NotNull final IChannel channel,
-                                   @NotNull final String message) {
+                                   @NotNull final String message,
+                                   @NotNull final String format) {
         super(sender, false);
         this.channel = channel;
         this.message = message;
+        this.format = format;
         this.cancel = false;
     }
 
@@ -43,6 +46,15 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
 
     public void setMessage(@NotNull final String message) {
         this.message = message;
+    }
+
+    @NotNull
+    public String getFormat() {
+        return this.format;
+    }
+
+    public void setFormat(@NotNull final String format) {
+        this.format = format;
     }
 
     @Override
