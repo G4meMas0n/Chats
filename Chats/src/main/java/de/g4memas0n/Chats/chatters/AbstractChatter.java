@@ -12,6 +12,12 @@ public abstract class AbstractChatter implements IChatter {
         this.player = player;
     }
 
+    /*
+     * TODO: Chatter Formatter
+     * Add an Formatter for the chatters to handle the formatting for messages with data of that chatter better.
+     * Use an global chatter format for all messages. the chatter format should be set in the plugin config.
+     */
+
     @Override
     @NotNull
     public Player getPlayer() {
@@ -19,32 +25,32 @@ public abstract class AbstractChatter implements IChatter {
     }
 
     @Override
-    public boolean addIgnoredChatter(@NotNull final IChatter chatter) {
+    public final boolean addIgnoredChatter(@NotNull final IChatter chatter) {
         return this.addIgnoredChatter(chatter.getPlayer().getUniqueId());
     }
 
     @Override
-    public boolean addIgnoredChatter(@NotNull final Player player) {
+    public final boolean addIgnoredChatter(@NotNull final Player player) {
         return this.addIgnoredChatter(player.getUniqueId());
     }
 
     @Override
-    public boolean removeIgnoredChatter(@NotNull final IChatter chatter) {
+    public final boolean removeIgnoredChatter(@NotNull final IChatter chatter) {
         return this.removeIgnoredChatter(chatter.getPlayer().getUniqueId());
     }
 
     @Override
-    public boolean removeIgnoredChatter(@NotNull final Player player) {
+    public final boolean removeIgnoredChatter(@NotNull final Player player) {
         return this.removeIgnoredChatter(player.getUniqueId());
     }
 
     @Override
-    public boolean isIgnoring(@NotNull final IChatter chatter) {
+    public final boolean isIgnoring(@NotNull final IChatter chatter) {
         return this.isIgnoring(chatter.getPlayer().getUniqueId());
     }
 
     @Override
-    public boolean isIgnoring(@NotNull final Player player) {
+    public final boolean isIgnoring(@NotNull final Player player) {
         return this.isIgnoring(player.getUniqueId());
     }
 

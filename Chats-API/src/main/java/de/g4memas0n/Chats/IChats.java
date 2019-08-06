@@ -3,11 +3,10 @@ package de.g4memas0n.Chats;
 import de.g4memas0n.Chats.managers.IChannelManager;
 import de.g4memas0n.Chats.managers.IChatterManager;
 import de.g4memas0n.Chats.managers.IFileManager;
-import de.g4memas0n.Chats.managers.ISettingManager;
-import org.bukkit.plugin.Plugin;
+import de.g4memas0n.Chats.managers.IConfigManager;
 import org.jetbrains.annotations.NotNull;
 
-public interface IChats extends Plugin {
+public interface IChats {
 
     /**
      * Returns the channel manager of this plugin main class.
@@ -31,5 +30,5 @@ public interface IChats extends Plugin {
      * Returns the setting manager of this plugin main class.
      * @return the setting manager.
      */
-    @NotNull ISettingManager getSettingManager();
+    @NotNull IConfigManager getSettingManager();
 }

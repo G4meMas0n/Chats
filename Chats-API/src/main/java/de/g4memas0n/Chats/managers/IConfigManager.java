@@ -5,7 +5,7 @@ import de.g4memas0n.Chats.storages.IConfigStorage;
 import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 
-public interface ISettingManager {
+public interface IConfigManager {
 
     /**
      * Returns the config storage representation for this setting manager.

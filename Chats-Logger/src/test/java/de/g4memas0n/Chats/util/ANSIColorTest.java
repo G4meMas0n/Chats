@@ -7,42 +7,88 @@ import static org.junit.Assert.assertEquals;
 public final class ANSIColorTest {
 
     @Test
-    public void translateBukkitColorTest() {
-        final String input = ChatColor.DARK_RED + "Hello" + ChatColor.DARK_GREEN + "World";
-        final String output = ANSIColor.RED + "Hello" + ANSIColor.GREEN + "World" + ANSIColor.RESET;
+    public void getCodeTest() {
+        assertEquals("[30m", ANSIColor.BLACK.getCode());
+        assertEquals("[34m", ANSIColor.BLUE.getCode());
+        assertEquals("[32m", ANSIColor.GREEN.getCode());
+        assertEquals("[36m", ANSIColor.CYAN.getCode());
+        assertEquals("[31m", ANSIColor.RED.getCode());
+        assertEquals("[35m", ANSIColor.MAGENTA.getCode());
+        assertEquals("[33m", ANSIColor.YELLOW.getCode());
+        assertEquals("[37m", ANSIColor.WHITE.getCode());
+        assertEquals("[30;1m", ANSIColor.BRIGHT_BLACK.getCode());
+        assertEquals("[34;1m", ANSIColor.BRIGHT_BLUE.getCode());
+        assertEquals("[32;1m", ANSIColor.BRIGHT_GREEN.getCode());
+        assertEquals("[36;1m", ANSIColor.BRIGHT_CYAN.getCode());
+        assertEquals("[31;1m", ANSIColor.BRIGHT_RED.getCode());
+        assertEquals("[35;1m", ANSIColor.BRIGHT_MAGENTA.getCode());
+        assertEquals("[33;1m", ANSIColor.BRIGHT_YELLOW.getCode());
+        assertEquals("[37;1m", ANSIColor.BRIGHT_WHITE.getCode());
+        assertEquals("[1m", ANSIColor.BOLD.getCode());
+        assertEquals("[4m", ANSIColor.UNDERLINE.getCode());
+        assertEquals("[0m", ANSIColor.RESET.getCode());
+    }
 
-        assertEquals(output, ANSIColor.translateBukkitColor(input));
+    @Test
+    public void toStringTest() {
+        assertEquals("\u001b[30m", ANSIColor.BLACK.toString());
+        assertEquals("\u001b[34m", ANSIColor.BLUE.toString());
+        assertEquals("\u001b[32m", ANSIColor.GREEN.toString());
+        assertEquals("\u001b[36m", ANSIColor.CYAN.toString());
+        assertEquals("\u001b[31m", ANSIColor.RED.toString());
+        assertEquals("\u001b[35m", ANSIColor.MAGENTA.toString());
+        assertEquals("\u001b[33m", ANSIColor.YELLOW.toString());
+        assertEquals("\u001b[37m", ANSIColor.WHITE.toString());
+        assertEquals("\u001b[30;1m", ANSIColor.BRIGHT_BLACK.toString());
+        assertEquals("\u001b[34;1m", ANSIColor.BRIGHT_BLUE.toString());
+        assertEquals("\u001b[32;1m", ANSIColor.BRIGHT_GREEN.toString());
+        assertEquals("\u001b[36;1m", ANSIColor.BRIGHT_CYAN.toString());
+        assertEquals("\u001b[31;1m", ANSIColor.BRIGHT_RED.toString());
+        assertEquals("\u001b[35;1m", ANSIColor.BRIGHT_MAGENTA.toString());
+        assertEquals("\u001b[33;1m", ANSIColor.BRIGHT_YELLOW.toString());
+        assertEquals("\u001b[37;1m", ANSIColor.BRIGHT_WHITE.toString());
+        assertEquals("\u001b[1m", ANSIColor.BOLD.toString());
+        assertEquals("\u001b[4m", ANSIColor.UNDERLINE.toString());
+        assertEquals("\u001b[0m", ANSIColor.RESET.toString());
+    }
+
+    @Test
+    public void translateBukkitColorTest() {
+        final String expected = ANSIColor.RED + "Hello" + ANSIColor.GREEN + "World" + ANSIColor.RESET;
+        final String input = ChatColor.DARK_RED + "Hello" + ChatColor.DARK_GREEN + "World";
+
+        assertEquals(expected, ANSIColor.translateBukkitColor(input));
     }
 
     @Test
     public void translateUnsupportedBukkitColorTest() {
+        final String expected = ANSIColor.RED + "HelloWorld" + ANSIColor.RESET;
         final String input = ChatColor.DARK_RED + "Hello" + ChatColor.MAGIC + "World";
-        final String output = ANSIColor.RED + "HelloWorld" + ANSIColor.RESET;
 
-        assertEquals(output, ANSIColor.translateBukkitColor(input));
+        assertEquals(expected, ANSIColor.translateBukkitColor(input));
     }
 
     @Test
     public void stripEightColorTest() {
+        final String expected = "HelloWorld";
         final String input = ANSIColor.RED + "Hello" + ANSIColor.GREEN + "World" + ANSIColor.RESET;
-        final String output = "HelloWorld";
 
-        assertEquals(output, ANSIColor.stripColor(input));
+        assertEquals(expected, ANSIColor.stripColor(input));
     }
 
     @Test
     public void stripSixteenColorTest() {
+        final String expected = "HelloWorld";
         final String input = ANSIColor.BRIGHT_RED + "Hello" + ANSIColor.BRIGHT_GREEN + "World" + ANSIColor.RESET;
-        final String output = "HelloWorld";
 
-        assertEquals(output, ANSIColor.stripColor(input));
+        assertEquals(expected, ANSIColor.stripColor(input));
     }
 
     @Test
     public void stripWithoutColorTest() {
-        final String output = "HelloWorld";
+        final String expected = "HelloWorld";
 
-        assertEquals(output, ANSIColor.stripColor(output));
+        assertEquals(expected, ANSIColor.stripColor(expected));
     }
 
     @Test

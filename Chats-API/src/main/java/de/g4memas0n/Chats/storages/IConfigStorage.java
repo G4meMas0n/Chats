@@ -1,6 +1,6 @@
 package de.g4memas0n.Chats.storages;
 
-import de.g4memas0n.Chats.managers.ISettingManager;
+import de.g4memas0n.Chats.managers.IConfigManager;
 import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,7 +33,7 @@ public interface IConfigStorage {
      * @throws IOException Thrown when the file with the given file name cannot be read.
      */
     @NotNull
-    ISettingManager load(@NotNull final String fileName) throws InvalidStorageFileException, FileNotFoundException, IOException;
+    IConfigManager load(@NotNull final String fileName) throws InvalidStorageFileException, FileNotFoundException, IOException;
 
     /**
      * Creates a new setting manager with the options that are given in the given file and returns this setting manager.
@@ -44,12 +44,12 @@ public interface IConfigStorage {
      * @throws IOException Thrown when the file with the given file name cannot be read.
      */
     @NotNull
-    ISettingManager load(@NotNull final File file) throws InvalidStorageFileException, FileNotFoundException, IOException;
+    IConfigManager load(@NotNull final File file) throws InvalidStorageFileException, FileNotFoundException, IOException;
 
     /**
      * Updates the file of the given setting manager or creates a new file for the given setting manager.
      * @param settingManager the setting manager that should be updated or saved.
      * @return true when the file was updated or new created as result of this call.
      */
-    boolean update(@NotNull final ISettingManager settingManager);
+    boolean update(@NotNull final IConfigManager settingManager);
 }
