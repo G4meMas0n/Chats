@@ -1,80 +1,175 @@
 package de.g4memas0n.Chats.formatters;
 
+import de.g4memas0n.Chats.Chats;
 import de.g4memas0n.Chats.channels.IChannel;
 import de.g4memas0n.Chats.chatters.IChatter;
-import de.g4memas0n.Chats.util.ANSIColor;
 import net.milkbowl.vault.chat.Chat;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public final class ChannelFormatter implements IFormatter {
-    private final Chat chatService;
-    private final String channelFormat;
-    private final ChatColor chatColor;
+/**
+ * Implements the IChannelFormatter interface, that handle the message formatting of channels.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: August 15th, 2019
+ * last change: September 11th, 2019
+ */
+public final class ChannelFormatter implements IChannelFormatter {
 
-    public ChannelFormatter(@Nullable final Chat chatService,
-                            @NotNull final IChannel channel,
-                            @NotNull final IChatter sender,
-                            @NotNull final String message,
-                            @NotNull final String format) {
-        this.chatService = chatService;
-        this.channelFormat = this.formatMessage(channel, sender, message, format);
-        this.chatColor = channel.getChatColor();
+    /**
+     * The empty string that will be returned when the channel stored in this formatter do not support an feature.
+     */
+    private static final String EMPTY_STRING = "";
+
+    private final IChannel channel;
+    private String preAnnounceFormat;
+    private String preBroadcastFormat;
+    private String preChannelFormat;
+    private boolean loggableAnnounce;
+    private boolean loggableBroadcast;
+    private boolean loggableChannel;
+
+    public ChannelFormatter(@NotNull final IChannel channel) {
+        this.channel = channel;
+        this.update();
     }
 
-    @NotNull
-    private String formatMessage(@NotNull final IChannel channel,
-                                 @NotNull final IChatter sender,
-                                 @NotNull final String message,
-                                 @NotNull String format) {
-        format = format.replaceAll(Placeholder.CHANNEL.toString(), channel.getFullName());
-        format = format.replaceAll(Placeholder.CHANNEL_NICK.toString(), channel.getShortName());
+    public void update() throws IllegalArgumentException {
+        String newFormat = this.channel.getChannelFormat();
 
-        format = format.replaceAll(Placeholder.MESSAGE.toString(), message);
-
-        Player senderPlayer = sender.getPlayer();
-        World senderWorld = senderPlayer.getWorld();
-
-        format = format.replaceAll(Placeholder.SENDER.toString(), senderPlayer.getDisplayName());
-        format = format.replaceAll(Placeholder.SENDER_PLAIN.toString(), senderPlayer.getName());
-        format = format.replaceAll(Placeholder.SENDER_WORLD.toString(), senderWorld.getName());
-
-        if (this.chatService != null) {
-            format = format.replaceAll(Placeholder.SENDER_PREFIX.toString(), this.chatService.getPlayerPrefix(senderPlayer));
-            format = format.replaceAll(Placeholder.SENDER_SUFFIX.toString(), this.chatService.getPlayerSuffix(senderPlayer));
-
-            String senderGroup = this.chatService.getPrimaryGroup(senderPlayer);
-            format = format.replaceAll(Placeholder.SENDER_GROUP.toString(), senderGroup);
-            format = format.replaceAll(Placeholder.SENDER_GROUP_PREFIX.toString(), this.chatService.getGroupPrefix(senderWorld, senderGroup));
-            format = format.replaceAll(Placeholder.SENDER_GROUP_SUFFIX.toString(), this.chatService.getGroupSuffix(senderWorld, senderGroup));
-        } else {
-            format = format.replaceAll(Placeholder.SENDER_PREFIX.toString(), "");
-            format = format.replaceAll(Placeholder.SENDER_SUFFIX.toString(), "");
-            format = format.replaceAll(Placeholder.SENDER_GROUP.toString(), "");
-            format = format.replaceAll(Placeholder.SENDER_GROUP_PREFIX.toString(), "");
-            format = format.replaceAll(Placeholder.SENDER_GROUP_SUFFIX.toString(), "");
+        if (newFormat.isEmpty()) {
+            throw new IllegalArgumentException("Channel " + this.channel.getFullName() + " returned empty channel format.");
         }
+
+        this.preChannelFormat = this.prepareChannelFormat(newFormat);
+
+        newFormat = this.channel.getAnnounceFormat();
+        this.preAnnounceFormat = newFormat.isEmpty() ? null : this.prepareAnnounceFormat(newFormat);
+
+        newFormat = this.channel.getBroadcastFormat();
+        this.preBroadcastFormat = newFormat.isEmpty() ? null : this.prepareBroadcastFormat(newFormat);
+    }
+
+    @Override
+    public boolean isAnnounceLoggable() {
+        return loggableAnnounce;
+    }
+
+    @Override
+    public @NotNull String formatAnnounce(@NotNull final String message) {
+        if (this.preAnnounceFormat == null) {
+            return EMPTY_STRING;
+        }
+
+        String formatted = this.preAnnounceFormat;
+
+        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+
+        return Placeholder.stripPlaceholders(formatted);
+    }
+
+    @Override
+    public boolean isBroadcastLoggable() {
+        return loggableBroadcast;
+    }
+
+    @Override
+    public @NotNull String formatBroadcast(@NotNull final String message) {
+        if (this.preBroadcastFormat == null) {
+            return EMPTY_STRING;
+        }
+
+        String formatted = this.preBroadcastFormat;
+
+        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+
+        return Placeholder.stripPlaceholders(formatted);
+    }
+
+    @Override
+    public boolean isChatLoggable() {
+        return loggableChannel;
+    }
+
+    @Override
+    public @NotNull String formatChat(@NotNull final IChatter chatter, @NotNull final String message) {
+        final Player player = chatter.getPlayer();
+        final Chat chatService = Chats.getInstance() != null ? Chats.getInstance().getChatService() : null;
+        String formatted = this.preChannelFormat;
+
+        formatted = formatted.replaceFirst(Placeholder.SENDER.toString(), player.getDisplayName());
+        formatted = formatted.replaceFirst(Placeholder.SENDER_PLAIN.toString(), player.getName());
+        formatted = formatted.replaceFirst(Placeholder.SENDER_WORLD.toString(), player.getWorld().getName());
+        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+
+        if (chatService != null) {
+            final World world = player.getWorld();
+            final String group = chatService.getPrimaryGroup(player);
+
+            formatted = formatted.replaceFirst(Placeholder.SENDER_GROUP.toString(), group);
+            formatted = formatted.replaceFirst(Placeholder.SENDER_GROUP_PREFIX.toString(),
+                    chatService.getGroupPrefix(world, group));
+            formatted = formatted.replaceFirst(Placeholder.SENDER_GROUP_SUFFIX.toString(),
+                    chatService.getGroupSuffix(world, group));
+            formatted = formatted.replaceFirst(Placeholder.SENDER_PREFIX.toString(),
+                    chatService.getPlayerPrefix(player));
+            formatted = formatted.replaceFirst(Placeholder.SENDER_SUFFIX.toString(),
+                    chatService.getPlayerSuffix(player));
+        }
+
+        return Placeholder.stripPlaceholders(formatted);
+    }
+
+    /**
+     * Prepares the given announce format with the information of the channel stored in this formatter.
+     * @param format the announce format that should be prepared.
+     * @return the prepared announce format.
+     */
+    private @NotNull String prepareAnnounceFormat(@NotNull String format) {
+        loggableAnnounce = format.contains(Placeholder.CHANNEL_NAME.toString())
+                || format.contains(Placeholder.CHANNEL_NICK.toString());
+
+        format = format.replaceFirst(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
+        format = format.replaceFirst(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
+        format = format.replaceAll(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
 
         return format;
     }
 
-    @Override
-    @NotNull
-    public String format() {
-        return this.channelFormat.replaceAll(Placeholder.CHANNEL_COLOR.toString(), this.chatColor.toString());
+    /**
+     * Prepares the given broadcast format with the information of the channel stored in this formatter.
+     * @param format the broadcast format that should be prepared.
+     * @return the prepared broadcast format.
+     */
+    private @NotNull String prepareBroadcastFormat(@NotNull String format) {
+        loggableBroadcast = format.contains(Placeholder.CHANNEL_NAME.toString())
+                || format.contains(Placeholder.CHANNEL_NICK.toString());
+
+        //TODO: Use Resource Bundle for getting correct broadcast prefix
+        format = format.replaceFirst(Placeholder.BROADCAST_PREFIX.toString(), "Broadcast");
+        format = format.replaceFirst(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
+        format = format.replaceFirst(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
+        format = format.replaceAll(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
+
+        return format;
     }
 
-    @Override
-    @NotNull
-    public String formatLog(final boolean colored) {
-        if (colored) {
-            return this.channelFormat.replaceAll(Placeholder.CHANNEL_COLOR.toString(),
-                    ANSIColor.getByBukkitColor(this.chatColor).toString()) + ANSIColor.RESET.toString();
-        } else {
-            return this.channelFormat.replaceAll(Placeholder.CHANNEL_COLOR.toString(), "");
-        }
+    /**
+     * Prepares the given channel format with the information of the channel stored in this formatter.
+     * @param format the channel format that should be prepared.
+     * @return the prepared channel format.
+     */
+    private @NotNull String prepareChannelFormat(@NotNull String format) {
+        loggableChannel = format.contains(Placeholder.CHANNEL_NAME.toString())
+                || format.contains(Placeholder.CHANNEL_NICK.toString());
+
+        format = format.replaceFirst(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
+        format = format.replaceFirst(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
+        format = format.replaceAll(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
+
+        return format;
     }
 }

@@ -2,31 +2,32 @@ package de.g4memas0n.Chats.formatters;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Placeholder Enum for all Placeholders that are used for formats specified in the config.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 13th, 2019
+ * last change: September 11th, 2019
+ */
 public enum Placeholder {
-    BROADCAST_PREFIX("{broadcast-prefix}"),
-    CHANNEL("{name}"),
+    BROADCAST_PREFIX("{bc-prefix}"),
     CHANNEL_COLOR("{color}"),
+    CHANNEL_NAME("{name}"),
     CHANNEL_NICK("{nick}"),
     CON_ADDRESS("{con-address}"),
     CON_PARTNER("{con-partner}"),
-    //CON_PARTNER_FORMAT("{con-partner-format}"),
-    CON_PARTNER_GROUP("{con-partner-group}"),
-    CON_PARTNER_GROUP_PREFIX("{con-partner-group-prefix}"),
-    CON_PARTNER_GROUP_SUFFIX("{con-partner-group-suffix}"),
-    CON_PARTNER_PLAIN("{con-partner-plain}"),
-    CON_PARTNER_PREFIX("{con-partner-prefix}"),
-    CON_PARTNER_SUFFIX("{con-partner-suffix}"),
-    CON_PARTNER_WORLD("{con-partner-world}"),
+    CON_SENDER("{con-sender}"),
     MESSAGE("{message}"),
     SENDER("{sender}"),
-    //SENDER_FORMAT("{sender-format}"),
+    SENDER_PLAIN("{sender-plain}"),
     SENDER_GROUP("{group}"),
     SENDER_GROUP_PREFIX("{group-prefix}"),
     SENDER_GROUP_SUFFIX("{group-suffix}"),
-    SENDER_PLAIN("{sender-plain}"),
     SENDER_PREFIX("{sender-prefix}"),
     SENDER_SUFFIX("{sender-suffix}"),
-    SENDER_WORLD("{sender-world}");
+    SENDER_WORLD("{world}");
 
     private final String placeholder;
 
@@ -34,8 +35,17 @@ public enum Placeholder {
         this.placeholder = placeholder.toLowerCase();
     }
 
-    @NotNull
-    public static String stripPlaceholders(@NotNull String input) {
+    @Override
+    public @NotNull String toString() {
+        return this.placeholder;
+    }
+
+    /**
+     * Strips all founded Placeholder contained in the given input string.
+     * @param input the string that should be stripped.
+     * @return the stripped input string.
+     */
+    public static @NotNull String stripPlaceholders(@NotNull String input) {
         for (Placeholder current : Placeholder.values()) {
             if (input.contains(current.toString())) {
                 input = input.replaceAll(current.toString(), "");
@@ -43,11 +53,5 @@ public enum Placeholder {
         }
 
         return input;
-    }
-
-    @Override
-    @NotNull
-    public String toString() {
-        return this.placeholder;
     }
 }
