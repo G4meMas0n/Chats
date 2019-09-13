@@ -6,21 +6,30 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Chatter Event that is called when a chatter send a message into a channel.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 11th, 2019
+ * last change: September 11th, 2019
+ */
 public final class ChatterChatChannelEvent extends ChatterEvent implements Cancellable {
+
     private static final HandlerList handlers = new HandlerList();
+
     private final IChannel channel;
+
     private String message;
-    private String format;
     private boolean cancel;
 
     public ChatterChatChannelEvent(@NotNull final IChatter sender,
                                    @NotNull final IChannel channel,
-                                   @NotNull final String message,
-                                   @NotNull final String format) {
+                                   @NotNull final String message) {
         super(sender, false);
         this.channel = channel;
         this.message = message;
-        this.format = format;
         this.cancel = false;
     }
 
@@ -34,13 +43,11 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
         this.cancel = cancel;
     }
 
-    @NotNull
-    public IChannel getChannel() {
+    public @NotNull IChannel getChannel() {
         return this.channel;
     }
 
-    @NotNull
-    public String getMessage() {
+    public @NotNull String getMessage() {
         return this.message;
     }
 
@@ -48,21 +55,12 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
         this.message = message;
     }
 
-    @NotNull
-    public String getFormat() {
-        return this.format;
-    }
-
-    public void setFormat(@NotNull final String format) {
-        this.format = format;
-    }
-
     @Override
-    public HandlerList getHandlers() {
+    public @NotNull HandlerList getHandlers() {
         return handlers;
     }
 
-    public static HandlerList getHandlerList() {
+    public @NotNull static HandlerList getHandlerList() {
         return handlers;
     }
 }

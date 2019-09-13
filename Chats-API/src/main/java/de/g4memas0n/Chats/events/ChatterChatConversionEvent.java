@@ -4,18 +4,31 @@ import de.g4memas0n.Chats.chatters.IChatter;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import java.util.Set;
 
+/**
+ * Chatter Event that is called when a chatter starts a conversion with an another chatter.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 12th, 2019
+ * last change: September 11th, 2019
+ */
 public final class ChatterChatConversionEvent extends ChatterEvent implements Cancellable {
+
     private static final HandlerList handlers = new HandlerList();
-    private final IChatter partner;
+
+    private final Set<IChatter> partners;
+
     private String message;
     private boolean cancel;
 
     public ChatterChatConversionEvent(@NotNull final IChatter sender,
-                                      @NotNull final IChatter partner,
+                                      @NotNull final Set<IChatter> partners,
                                       @NotNull final String message) {
         super(sender, false);
-        this.partner = partner;
+        this.partners = partners;
         this.message = message;
         this.cancel = false;
     }
@@ -30,13 +43,11 @@ public final class ChatterChatConversionEvent extends ChatterEvent implements Ca
         this.cancel = cancel;
     }
 
-    @NotNull
-    public IChatter getPartner() {
-        return this.partner;
+    public @NotNull Set<IChatter> getPartners() {
+        return this.partners;
     }
 
-    @NotNull
-    public String getMessage() {
+    public @NotNull String getMessage() {
         return this.message;
     }
 
@@ -45,11 +56,11 @@ public final class ChatterChatConversionEvent extends ChatterEvent implements Ca
     }
 
     @Override
-    public HandlerList getHandlers() {
+    public @NotNull HandlerList getHandlers() {
         return handlers;
     }
 
-    public static HandlerList getHandlerList() {
+    public @NotNull static HandlerList getHandlerList() {
         return handlers;
     }
 }
