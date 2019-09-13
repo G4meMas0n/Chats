@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Implements the IChannel interface, that represent conversion channels.
+ * Implements the {@link IChannel} interface, that represent conversion channels.
  *
  * @author G4meMas0n
  * @since 0.0.1-SNAPSHOT

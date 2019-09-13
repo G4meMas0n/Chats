@@ -5,6 +5,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * ANSI Color Enum for all ANSI Colors that corresponds to a Bukkit chat color. Can be Used to colorize the console log.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 10th, 2019
+ * last change: September 13th, 2019
+ */
 public enum ANSIColor {
     BLACK("[30m", ChatColor.BLACK),
     BLUE("[34m", ChatColor.DARK_BLUE),
@@ -26,8 +35,16 @@ public enum ANSIColor {
     UNDERLINE("[4m", ChatColor.UNDERLINE),
     RESET("[0m", ChatColor.RESET);
 
+    /**
+     * the prefix for all ANSI Colors.
+     */
     private static final String ANSI_COLOR_PREFIX = "\u001b";
+
+    /**
+     * a map of all Bukkit chat colors with their associated ANSI color.
+     */
     private static final Map<ChatColor, ANSIColor> BY_BUKKIT_COLOR = new HashMap<>();
+
     private final String code;
     private final String toString;
     private final ChatColor bukkitColor;
@@ -44,24 +61,20 @@ public enum ANSIColor {
         this.bukkitColor = bukkitColor;
     }
 
-    @NotNull
-    public String getCode() {
+    public @NotNull String getCode() {
         return this.code;
     }
 
-    @NotNull
-    public ChatColor getBukkitColor() {
+    public @NotNull ChatColor getBukkitColor() {
         return this.bukkitColor;
     }
 
     @Override
-    @NotNull
-    public String toString() {
+    public @NotNull String toString() {
         return this.toString;
     }
 
-    @NotNull
-    public static ANSIColor getByBukkitColor(@NotNull final ChatColor bukkitColor) throws IllegalArgumentException {
+    public static @NotNull ANSIColor getByBukkitColor(@NotNull final ChatColor bukkitColor) throws IllegalArgumentException {
         if (!BY_BUKKIT_COLOR.containsKey(bukkitColor)) {
             throw new IllegalArgumentException("Bukkit/Spigot ChatColor not supported!");
         }
@@ -69,8 +82,7 @@ public enum ANSIColor {
         return BY_BUKKIT_COLOR.get(bukkitColor);
     }
 
-    @NotNull
-    public static String translateBukkitColor(@NotNull String input) {
+    public static @NotNull String translateBukkitColor(@NotNull String input) {
         for (ChatColor current : ChatColor.values()) {
             if (input.contains(current.toString())) {
                 try {
@@ -84,8 +96,7 @@ public enum ANSIColor {
         return input.concat(ANSIColor.RESET.toString);
     }
 
-    @NotNull
-    public static String stripColor(@NotNull final String input) {
+    public static @NotNull String stripColor(@NotNull final String input) {
         return input.replaceAll("\u001B\\[[;\\d]*m", "");
     }
 }

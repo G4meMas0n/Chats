@@ -1,8 +1,9 @@
 package de.g4memas0n.Chats;
 
-import de.g4memas0n.Chats.logger.ChatLogFileFilter;
 import de.g4memas0n.Chats.logger.ChatLogFileFormatter;
 import de.g4memas0n.Chats.managers.*;
+import de.g4memas0n.Chats.storages.InvalidStorageFileException;
+import de.g4memas0n.Chats.storages.YAMLConfigStorage;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -16,8 +17,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.logging.FileHandler;
-import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/**
+ * The Plugins main class that implements the {@link IChats} interface.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 26th, 2019
+ * last change: September 13th, 2019
+ */
 @Plugin(name = "Chats", version = "0.0.1-SNAPSHOT")
 @Description("Test Description")
 @Author("G4meMas0n")
@@ -32,12 +42,12 @@ public final class Chats extends JavaPlugin implements IChats {
     private IChannelManager channelManager;
     private IChatterManager chatterManager;
     private IFileManager fileManager;
-    private IConfigManager settingManager;
+    private IConfigManager configManager;
+    private Logger chatLogger;
 
     private Chat chatService;
 
-    @Nullable
-    public static Chats getInstance() {
+    public static @Nullable Chats getInstance() {
         return Chats.instance;
     }
 
@@ -81,9 +91,12 @@ public final class Chats extends JavaPlugin implements IChats {
     private boolean setupManager() {
         try {
             this.fileManager = new FileManager(this.getDataFolder());
+            this.configManager = (new YAMLConfigStorage(this.fileManager.getConfigFile())).load();
+
+            //TODO initialize and create ChannelManager and ChatterManager
 
             return true;
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | InvalidStorageFileException | IOException ex) {
             this.getLogger().warning("Failed to setup manager: " + ex.getMessage());
             return false;
         }
@@ -92,15 +105,22 @@ public final class Chats extends JavaPlugin implements IChats {
     private boolean setupLogger() {
         try {
             this.getLogger().info("Setting up chat-logging handler...");
-            this.getLogger().setLevel(Level.FINE);
 
-            if (this.settingManager.isLogToFile()) {
+            this.chatLogger = Logger.getLogger("CHAT");
+            this.chatLogger.setParent(this.getLogger());
+
+            if (this.configManager.isLogToConsole()) {
+                this.chatLogger.setUseParentHandlers(true);
+            } else {
+                this.chatLogger.setUseParentHandlers(false);
+            }
+
+            if (this.configManager.isLogToFile()) {
                 final FileHandler fileHandler = new FileHandler(this.fileManager.getLogFilePattern(), true);
 
-                fileHandler.setFilter(new ChatLogFileFilter());
                 fileHandler.setFormatter(new ChatLogFileFormatter());
 
-                this.getLogger().addHandler(fileHandler);
+                this.chatLogger.addHandler(fileHandler);
             }
 
             this.getLogger().info("Chat-logging handler has been set up.");
@@ -138,37 +158,37 @@ public final class Chats extends JavaPlugin implements IChats {
         }
     }
 
-    @Nullable
-    public Chat getChatService() {
+    public @Nullable Chat getChatService() {
         return this.chatService;
     }
 
-    @NotNull
-    public PluginManager getPluginManager() {
+    @Override
+    public @NotNull Logger getChatLogger() {
+        return this.chatLogger;
+    }
+
+    @Override
+    public @NotNull PluginManager getPluginManager() {
         return this.getServer().getPluginManager();
     }
 
     @Override
-    @NotNull
-    public IChannelManager getChannelManager() {
+    public @NotNull IChannelManager getChannelManager() {
         return this.channelManager;
     }
 
     @Override
-    @NotNull
-    public IChatterManager getChatterManager() {
+    public @NotNull IChatterManager getChatterManager() {
         return this.chatterManager;
     }
 
     @Override
-    @NotNull
-    public IFileManager getFileManager() {
+    public @NotNull IFileManager getFileManager() {
         return this.fileManager;
     }
 
     @Override
-    @NotNull
-    public IConfigManager getSettingManager() {
-        return this.settingManager;
+    public @NotNull IConfigManager getConfigManager() {
+        return this.configManager;
     }
 }

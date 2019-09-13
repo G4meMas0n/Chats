@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Implements the IChannel interface, that represent conversion channels.
+ * Implements the {@link IChannel} interface, that represent conversion channels.
  *
  * @author G4meMas0n
  * @since 0.0.1-SNAPSHOT
@@ -318,7 +318,13 @@ public final class ConversionChannel implements IChannel {
         final String output = formatter.formatChat(sender, partners, event.getMessage());
 
         if (instance != null) {
-            instance.getChatLogger().info(CONVERSION_PREFIX + output);
+            String log = output;
+
+            if (!formatter.isChatLoggable()) {
+                log = CONVERSION_PREFIX + log;
+            }
+
+            instance.getChatLogger().info(log);
         }
 
         if (useTwitterStyle) {

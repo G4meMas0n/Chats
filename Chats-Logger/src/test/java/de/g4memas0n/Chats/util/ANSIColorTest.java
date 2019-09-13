@@ -4,6 +4,15 @@ import org.bukkit.ChatColor;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Tests the complete ANSIColor Enum.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: August 6th, 2019
+ * last change: August 6th, 2019
+ */
 public final class ANSIColorTest {
 
     @Test
