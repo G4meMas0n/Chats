@@ -6,14 +6,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+/**
+ * Channel Storage Interface that defines a storage representation for persist channel.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 4th, 2019
+ * last change: September 13th, 2019
+ */
 public interface IChannelStorage {
 
     /**
      * Returns the directory where this storage should save and load all files.
      * @return the directory of this storage.
      */
-    @NotNull
-    File getDirectory();
+    @NotNull File getDirectory();
 
     /**
      * Sets a new directory where this storage should save and load all files.
@@ -32,8 +40,7 @@ public interface IChannelStorage {
      * @throws FileNotFoundException Thrown when the file with the given file name cannot be found.
      * @throws IOException Thrown when the file with the given file name cannot be read.
      */
-    @NotNull
-    IChannel load(@NotNull final String fileName) throws InvalidStorageFileException, FileNotFoundException, IOException;
+    @NotNull IChannel load(@NotNull final String fileName) throws InvalidStorageFileException, FileNotFoundException, IOException;
 
     /**
      * Creates a new Channel with the options that are given in the given file and returns this channel.
@@ -43,8 +50,7 @@ public interface IChannelStorage {
      * @throws FileNotFoundException Thrown when the given file cannot be found.
      * @throws IOException Thrown when the file with the given file name cannot be read.
      */
-    @NotNull
-    IChannel load(@NotNull final File file) throws InvalidStorageFileException, FileNotFoundException, IOException;
+    @NotNull IChannel load(@NotNull final File file) throws InvalidStorageFileException, FileNotFoundException, IOException;
 
     /**
      * Updates the file of the given channel or creates a new file for the given channel.

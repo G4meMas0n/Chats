@@ -12,16 +12,44 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
+/**
+ * Implements the {@link IChatterStorage} Interface as a YAML File storage.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 10th, 2019
+ * last change: September 13th, 2019
+ */
 public final class YAMLChatterStorage implements IChatterStorage {
+
+    /**
+     * the path to the last player name that is used in the yaml file.
+     */
     private static final String PATH_LAST_PLAYER_NAME = "name";
+
+    /**
+     * the path to the last active channel that is used in the yaml file.
+     */
     private static final String PATH_ACTIVE_CHANNEL = "active-channel";
+
+    /**
+     * the path to the channels-list that is used in the yaml file.
+     */
     private static final String PATH_CHANNELS = "channels";
+
+    /**
+     * the path to the ignores-list that is used in the yaml file.
+     */
     private static final String PATH_IGNORES = "ignores";
 
-    private final IChannelManager channelManager;
-    private HashMap<UUID, YamlConfiguration> configurations;
+    private final HashMap<UUID, YamlConfiguration> configurations;
+    private IChannelManager channelManager;
     private File directory;
 
     public YAMLChatterStorage(@NotNull final File directory, @NotNull final IChannelManager channelManager)
@@ -32,42 +60,50 @@ public final class YAMLChatterStorage implements IChatterStorage {
     }
 
     @Override
-    @NotNull
-    public File getDirectory() {
+    public @NotNull File getDirectory() {
         return this.directory;
     }
 
     @Override
     public boolean setDirectory(@NotNull final File directory) throws IllegalArgumentException {
-        if (directory.isDirectory()) {
-            if (this.directory.equals(directory)) {
-                return false;
-            }
-
-            this.directory = directory;
-            return true;
-        } else {
+        if (!directory.isDirectory()) {
             throw new IllegalArgumentException("Invalid File! File must be a directory!");
         }
+
+        if (this.directory.equals(directory)) {
+            return false;
+        }
+
+        this.directory = directory;
+        return true;
     }
 
     @Override
-    @NotNull
-    public IChatter load(@NotNull final Player player) throws InvalidStorageFileException, IOException {
+    public boolean setChannelManager(@NotNull final IChannelManager manager) {
+        if (this.channelManager.equals(manager)) {
+            return false;
+        }
+
+        this.channelManager = manager;
+        return true;
+    }
+
+    @Override
+    public @NotNull IChatter load(@NotNull final Player player) throws InvalidStorageFileException, IOException {
         YamlConfiguration yamlConfig = new YamlConfiguration();
         File file = new File(this.directory, this.getFileName(player));
 
         try {
             yamlConfig.load(file);
         } catch (InvalidConfigurationException ex) {
-            throw new InvalidStorageFileException(ex);
+            throw new InvalidStorageFileException(file, ex);
         } catch (FileNotFoundException ex) {
             if (Chats.getInstance() != null) {
                 Chats.getInstance().getLogger().warning("Failed to find chatter file " + file.getName()
                         + ". Creating new file...");
             }
 
-            IChatter chatter = new Chatter(player, this.channelManager.getDefaultChannel());
+            IChatter chatter = new Chatter(player, this, this.channelManager.getDefaultChannel());
             this.update(chatter);
 
             return chatter;
@@ -93,7 +129,7 @@ public final class YAMLChatterStorage implements IChatterStorage {
 
         this.configurations.put(player.getUniqueId(), yamlConfig);
 
-        return new Chatter(player, activeChannel, channels, ignoredPlayers);
+        return new Chatter(player, this, activeChannel, channels, ignoredPlayers);
     }
 
     @Override
@@ -133,13 +169,11 @@ public final class YAMLChatterStorage implements IChatterStorage {
         }
     }
 
-    @NotNull
-    private String getFileName(@NotNull final IChatter chatter) {
+    private @NotNull String getFileName(@NotNull final IChatter chatter) {
         return this.getFileName(chatter.getPlayer());
     }
 
-    @NotNull
-    private String getFileName(@NotNull final Player player) {
+    private @NotNull String getFileName(@NotNull final Player player) {
         return player.getUniqueId().toString().concat(".yml");
     }
 }

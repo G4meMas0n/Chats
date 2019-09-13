@@ -11,19 +11,68 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * Implements the {@link IChannelStorage} Interface as a YAML File storage.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 13th, 2019
+ * last change: September 13th, 2019
+ */
 public final class YAMLChannelStorage implements IChannelStorage {
+
+    /**
+     * the path to the full name that is used in the yaml file.
+     */
     private static final String PATH_FULL_NAME = "name";
+
+    /**
+     * the path to the short name that is used in the yaml file.
+     */
     private static final String PATH_SHORT_NAME = "nick";
+
+    /**
+     * the path to the color that is used in the yaml file.
+     */
     private static final String PATH_COLOR = "color";
+
+    /**
+     * the path to the cross-world option that is used in the yaml file.
+     */
     private static final String PATH_CROSS_WORLD = "cross-world";
+
+    /**
+     * the path to the distance that is used in the yaml file.
+     */
     private static final String PATH_DISTANCE = "distance";
+
+    /**
+     * the path to the password that is used in the yaml file.
+     */
     private static final String PATH_PASSWORD = "password";
+
+    /**
+     * the path to the use-custom-format option that is used in the yaml file.
+     */
     private static final String PATH_FORMAT_USE_CUSTOM = "format.use-custom";
+
+    /**
+     * the path to the channel format that is used in the yaml file.
+     */
     private static final String PATH_FORMAT_CHANNEL = "format.channel";
+
+    /**
+     * the path to the announce format that is used in the yaml file.
+     */
     private static final String PATH_FORMAT_ANNOUNCE = "format.announce";
+
+    /**
+     * the path to the broadcast format that is used in the yaml file.
+     */
     private static final String PATH_FORMAT_BROADCAST = "format.broadcast";
 
-    private HashMap<String, YamlConfiguration> configurations;
+    private final HashMap<String, YamlConfiguration> configurations;
     private File directory;
 
     public YAMLChannelStorage(@NotNull final File directory) throws IllegalArgumentException {
@@ -32,60 +81,58 @@ public final class YAMLChannelStorage implements IChannelStorage {
     }
 
     @Override
-    @NotNull
-    public File getDirectory() {
+    public @NotNull File getDirectory() {
         return this.directory;
     }
 
     @Override
     public boolean setDirectory(@NotNull final File directory) throws IllegalArgumentException {
-        if (directory.isDirectory()) {
-            if (this.directory.equals(directory)) {
-                return false;
-            }
-
-            this.directory = directory;
-            return true;
-        } else {
+        if (!directory.isDirectory()) {
             throw new IllegalArgumentException("Invalid File! File must be a directory!");
         }
+
+        if (this.directory.equals(directory)) {
+            return false;
+        }
+
+        this.directory = directory;
+        return true;
     }
 
     @Override
-    @NotNull
-    public IChannel load(@NotNull final String fileName) throws InvalidStorageFileException, IOException {
+    public @NotNull IChannel load(@NotNull final String fileName) throws InvalidStorageFileException, IOException {
         return this.load(new File(this.directory, fileName));
     }
 
     @Override
-    @NotNull
-    public IChannel load(@NotNull final File file) throws InvalidStorageFileException, IOException {
+    public @NotNull IChannel load(@NotNull final File file) throws InvalidStorageFileException, IOException {
         YamlConfiguration yamlConfig = new YamlConfiguration();
 
         try {
             yamlConfig.load(file);
         } catch (InvalidConfigurationException ex) {
-            throw new InvalidStorageFileException(ex);
+            throw new InvalidStorageFileException(file, ex);
         }
 
         final String fullName = yamlConfig.getString(PATH_FULL_NAME);
         final String shortName = yamlConfig.getString(PATH_SHORT_NAME, "");
         final String password = yamlConfig.getString(PATH_PASSWORD, "");
-        final String channelFormat = yamlConfig.getString(PATH_FORMAT_CHANNEL, IChannel.DEFAULT_CHANNEL_FORMAT);
-        final String announceFormat = yamlConfig.getString(PATH_FORMAT_ANNOUNCE, IChannel.DEFAULT_ANNOUNCE_FORMAT);
-        final String broadcastFormat = yamlConfig.getString(PATH_FORMAT_BROADCAST, IChannel.DEFAULT_BROADCAST_FORMAT);
+        final String channelFormat = yamlConfig.getString(PATH_FORMAT_CHANNEL, "");
+        final String announceFormat = yamlConfig.getString(PATH_FORMAT_ANNOUNCE, "");
+        final String broadcastFormat = yamlConfig.getString(PATH_FORMAT_BROADCAST, "");
         final boolean useCustomFormat = yamlConfig.getBoolean(PATH_FORMAT_USE_CUSTOM, false);
         final boolean crossWorld = yamlConfig.getBoolean(PATH_CROSS_WORLD, true);
         final int distance = yamlConfig.getInt(PATH_DISTANCE, -1);
         final ChatColor chatColor = this.parseColor(yamlConfig.getString(PATH_COLOR, ChatColor.WHITE.name()),
                 file.getName());
 
-        if (fullName.isEmpty()) {
-            throw new InvalidStorageFileException("Invalid channel name! Name cannot be empty.");
+        if (fullName == null || fullName.isEmpty()) {
+            throw new InvalidStorageFileException(file, "Invalid channel name! Name cannot be empty or missing.");
         }
 
         if (!file.getName().equals(fullName.concat(".yml"))) {
-            throw new InvalidStorageFileException("Invalid file name! File name do not equals with the channel name.");
+            throw new InvalidStorageFileException(file, "Invalid file name! File name do not equals with the channel "
+                    + "name.");
         }
 
         this.configurations.put(fullName, yamlConfig);
@@ -122,9 +169,9 @@ public final class YAMLChannelStorage implements IChannelStorage {
         }
 
         yamlConfig.set(PATH_FORMAT_USE_CUSTOM, channel.isUseCustomFormat());
-        yamlConfig.set(PATH_FORMAT_CHANNEL, channel.getCustomChannelFormat());
-        yamlConfig.set(PATH_FORMAT_ANNOUNCE, channel.getCustomAnnounceFormat());
-        yamlConfig.set(PATH_FORMAT_BROADCAST, channel.getCustomBroadcastFormat());
+        yamlConfig.set(PATH_FORMAT_ANNOUNCE, channel.getAnnounceFormat());
+        yamlConfig.set(PATH_FORMAT_BROADCAST, channel.getBroadcastFormat());
+        yamlConfig.set(PATH_FORMAT_CHANNEL, channel.getChannelFormat());
 
         this.configurations.put(channel.getFullName(), yamlConfig);
 
@@ -140,8 +187,7 @@ public final class YAMLChannelStorage implements IChannelStorage {
         }
     }
 
-    @NotNull
-    private ChatColor parseColor(@NotNull final String colorName, @NotNull final String fileName) {
+    private @NotNull ChatColor parseColor(@NotNull final String colorName, @NotNull final String fileName) {
         try {
             return ChatColor.valueOf(colorName);
         } catch (IllegalArgumentException ex) {
@@ -153,8 +199,7 @@ public final class YAMLChannelStorage implements IChannelStorage {
         }
     }
 
-    @NotNull
-    private String getFileName(@NotNull final IChannel channel) {
+    private @NotNull String getFileName(@NotNull final IChannel channel) {
         return channel.getFullName().concat(".yml");
     }
 }

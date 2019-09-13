@@ -1,20 +1,29 @@
 package de.g4memas0n.Chats.storages;
 
 import de.g4memas0n.Chats.chatters.IChatter;
+import de.g4memas0n.Chats.managers.IChannelManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+/**
+ * Chatter Storage Interface that defines a storage representation for chatters.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 4th, 2019
+ * last change: September 13th, 2019
+ */
 public interface IChatterStorage {
 
     /**
      * Returns the directory where this storage should save and load all files.
      * @return the directory of this storage.
      */
-    @NotNull
-    File getDirectory();
+    @NotNull File getDirectory();
 
     /**
      * Sets a new directory where this storage should save and load all files.
@@ -25,6 +34,13 @@ public interface IChatterStorage {
     boolean setDirectory(@NotNull final File directory) throws IllegalArgumentException;
 
     /**
+     * Sets a new channel manager where this storage gets the channel to load the chatters.
+     * @param manager the new channel manager.
+     * @return true when the channel manager was changed as result of this call.
+     */
+    boolean setChannelManager(@NotNull final IChannelManager manager);
+
+    /**
      * Loads the file of the chatter of the given player from the directory of this storage and creates a new chatter
      * with the options that are given in the file and returns this chatter.
      * @param player the player of the chatter that should be loaded.
@@ -33,8 +49,7 @@ public interface IChatterStorage {
      * @throws FileNotFoundException Thrown when the file with the given file name cannot be found.
      * @throws IOException Thrown when the file with the given file name cannot be read.
      */
-    @NotNull
-    IChatter load(@NotNull final Player player) throws InvalidStorageFileException, FileNotFoundException, IOException;
+    @NotNull IChatter load(@NotNull final Player player) throws InvalidStorageFileException, FileNotFoundException, IOException;
 
     /**
      * Updates the file of the given chatter or creates a new file for the given chatter.
