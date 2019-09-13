@@ -1,28 +1,61 @@
 package de.g4memas0n.Chats.channels;
 
 import de.g4memas0n.Chats.Chats;
+import de.g4memas0n.Chats.IChats;
 import de.g4memas0n.Chats.chatters.IChatter;
 import de.g4memas0n.Chats.events.ChatterChatChannelEvent;
-import de.g4memas0n.Chats.formatters.AnnounceFormatter;
-import de.g4memas0n.Chats.formatters.BroadcastFormatter;
 import de.g4memas0n.Chats.formatters.ChannelFormatter;
-import de.g4memas0n.Chats.formatters.IFormatter;
+import de.g4memas0n.Chats.formatters.IChannelFormatter;
 import de.g4memas0n.Chats.storages.IChannelStorage;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Implements the IChannel interface, that represent conversion channels.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 13th, 2019
+ * last change: September 13th, 2019
+ */
 public final class GlobalChannel implements IChannel {
-    private static String defaultAnnounceFormat = IChannel.DEFAULT_ANNOUNCE_FORMAT;
-    private static String defaultBroadcastFormat = IChannel.DEFAULT_BROADCAST_FORMAT;
-    private static String defaultChannelFormat = IChannel.DEFAULT_CHANNEL_FORMAT;
+
+    /**
+     * the channel prefix. Used to detect to which channel a log belongs.
+     */
+    private static final String CHANNEL_PREFIX = "[%s]";
+
+    /**
+     * the default announce format. Used for all channel announces.
+     */
+    private static String defaultAnnounceFormat = "{color}{message}";
+
+    /**
+     * the default broadcast format. Used for all channel broadcasts.
+     */
+    private static String defaultBroadcastFormat = "{color}[{bc-prefix}{color}] {message}";
+
+    /**
+     * the default channel format. Used for all channels chats.
+     */
+    private static String defaultChannelFormat = "{color}[{nick}]{sender}{color}: {message}";
+
+    /**
+     * the default conversion chat color. Used for all channels without a defined chat color.
+     */
     private static ChatColor defaultChannelColor = ChatColor.WHITE;
+
     private final IChannelStorage storage;
+    private final IChannelFormatter formatter;
     private final String fullName;
+
     private String shortName;
     private String password;
     private String customAnnounceFormat;
@@ -45,13 +78,11 @@ public final class GlobalChannel implements IChannel {
         this.shortName = shortName.isEmpty() ? fullName : shortName;
         this.storage = storage;
         this.password = null;
-        this.customAnnounceFormat = IChannel.DEFAULT_ANNOUNCE_FORMAT;
-        this.customBroadcastFormat = IChannel.DEFAULT_BROADCAST_FORMAT;
-        this.customChannelFormat = IChannel.DEFAULT_CHANNEL_FORMAT;
         this.useCustomFormat = false;
         this.crossWorld = true;
         this.chatColor = ChatColor.WHITE;
         this.chatters = new HashSet<>();
+        this.formatter = new ChannelFormatter(this);
     }
 
     public GlobalChannel(@NotNull final IChannelStorage storage,
@@ -66,13 +97,14 @@ public final class GlobalChannel implements IChannel {
         this.shortName = shortName.isEmpty() ? fullName : shortName;
         this.storage = storage;
         this.password = password;
-        this.customAnnounceFormat = IChannel.DEFAULT_ANNOUNCE_FORMAT;
-        this.customBroadcastFormat = IChannel.DEFAULT_BROADCAST_FORMAT;
-        this.customChannelFormat = IChannel.DEFAULT_CHANNEL_FORMAT;
+        this.customAnnounceFormat = GlobalChannel.defaultAnnounceFormat;
+        this.customBroadcastFormat = GlobalChannel.defaultBroadcastFormat;
+        this.customChannelFormat = GlobalChannel.defaultChannelFormat;
         this.useCustomFormat = false;
         this.crossWorld = true;
         this.chatColor = ChatColor.WHITE;
         this.chatters = new HashSet<>();
+        this.formatter = new ChannelFormatter(this);
     }
 
     public GlobalChannel(@NotNull final IChannelStorage storage,
@@ -91,34 +123,33 @@ public final class GlobalChannel implements IChannel {
         }
 
         this.fullName = fullName;
-        this.shortName = shortName.isEmpty() ? fullName : shortName;
+        this.shortName = shortName.isEmpty() ? null : shortName;
         this.storage = storage;
         this.password = password.isEmpty() ? null : password;
-        this.customAnnounceFormat = announceFormat;
-        this.customBroadcastFormat = broadcastFormat;
-        this.customChannelFormat = channelFormat;
+        this.customAnnounceFormat = announceFormat.isEmpty() ? null : announceFormat;
+        this.customBroadcastFormat = broadcastFormat.isEmpty() ? null : broadcastFormat;
+        this.customChannelFormat = channelFormat.isEmpty() ? null : channelFormat;
         this.useCustomFormat = useCustomFormat;
         this.crossWorld = crossWorld;
         this.distance = distance > 0 ? distance : -1;
         this.chatColor = chatColor;
         this.chatters = new HashSet<>();
+        this.formatter = new ChannelFormatter(this);
     }
 
     // Methods for Channel Properties:
     @Override
-    @NotNull
-    public String getFullName() {
+    public @NotNull String getFullName() {
         return this.fullName;
     }
 
     @Override
-    @NotNull
-    public String getShortName() {
-        return this.shortName;
+    public @NotNull String getShortName() {
+        return this.shortName != null ? this.shortName : this.fullName;
     }
 
     @Override
-    public boolean setShortName(@NotNull final String shortName) {
+    public boolean setShortName(@Nullable final String shortName) {
         if (this.shortName.equals(shortName)) {
             return false;
         }
@@ -129,8 +160,7 @@ public final class GlobalChannel implements IChannel {
     }
 
     @Override
-    @NotNull
-    public ChatColor getChatColor() {
+    public @NotNull ChatColor getChatColor() {
         return this.chatColor;
     }
 
@@ -157,6 +187,16 @@ public final class GlobalChannel implements IChannel {
 
         final GlobalChannel channel = (GlobalChannel) object;
         return this.getFullName().equals(channel.getFullName());
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 59;
+        int result = 5;
+
+        result = prime * result + this.fullName.hashCode();
+
+        return result;
     }
 
     // Methods for Channel Types:
@@ -219,13 +259,12 @@ public final class GlobalChannel implements IChannel {
     }
 
     @Override
-    @Nullable
-    public String getPassword() {
+    public @Nullable String getPassword() {
         return this.password;
     }
 
     @Override
-    public boolean setPassword(@NotNull final String password) {
+    public boolean setPassword(@Nullable final String password) {
         if (this.password.equals(password)) {
             return false;
         }
@@ -235,24 +274,16 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
+    // Methods for Channel Formatting
     @Override
-    public boolean removePassword() {
-        if (this.password == null) {
-            return false;
-        }
-
-        this.password = null;
-        this.update();
-        return true;
+    public @NotNull IChannelFormatter getFormatter() {
+        return this.formatter;
     }
 
-    // Methods for Custom Channel Formats:
-    @Override
     public boolean isUseCustomFormat() {
         return this.useCustomFormat;
     }
 
-    @Override
     public boolean setUseCustomFormat(final boolean state) {
         if (this.useCustomFormat == state) {
             return false;
@@ -264,13 +295,16 @@ public final class GlobalChannel implements IChannel {
     }
 
     @Override
-    @NotNull
-    public String getCustomAnnounceFormat() {
-        return this.customAnnounceFormat;
+    public @NotNull String getAnnounceFormat() {
+        if (this.useCustomFormat) {
+            return this.customAnnounceFormat != null ? this.customAnnounceFormat : defaultAnnounceFormat;
+        }
+
+        return defaultAnnounceFormat;
     }
 
     @Override
-    public boolean setCustomAnnounceFormat(@NotNull final String format) {
+    public boolean setAnnounceFormat(@Nullable final String format) {
         if (this.customAnnounceFormat.equals(format)) {
             return false;
         }
@@ -281,13 +315,16 @@ public final class GlobalChannel implements IChannel {
     }
 
     @Override
-    @NotNull
-    public String getCustomBroadcastFormat() {
-        return this.customBroadcastFormat;
+    public @NotNull String getBroadcastFormat() {
+        if (this.useCustomFormat) {
+            return this.customBroadcastFormat != null ? this.customBroadcastFormat : defaultBroadcastFormat;
+        }
+
+        return defaultBroadcastFormat;
     }
 
     @Override
-    public boolean setCustomBroadcastFormat(@NotNull final String format) {
+    public boolean setBroadcastFormat(@Nullable final String format) {
         if (this.customBroadcastFormat.equals(format)) {
             return false;
         }
@@ -298,13 +335,16 @@ public final class GlobalChannel implements IChannel {
     }
 
     @Override
-    @NotNull
-    public String getCustomChannelFormat() {
-        return this.customChannelFormat;
+    public @NotNull String getChannelFormat() {
+        if (this.useCustomFormat) {
+            return this.customChannelFormat != null ? this.customChannelFormat : defaultChannelFormat;
+        }
+
+        return defaultChannelFormat;
     }
 
     @Override
-    public boolean setCustomChannelFormat(@NotNull final String format) {
+    public boolean setChannelFormat(@Nullable final String format) {
         if (this.customChannelFormat.equals(format)) {
             return false;
         }
@@ -316,8 +356,7 @@ public final class GlobalChannel implements IChannel {
 
     // Methods for Chatter Collection of this Channel:
     @Override
-    @NotNull
-    public Collection<IChatter> getChatters() {
+    public @NotNull Set<IChatter> getChatters() {
         return this.chatters;
     }
 
@@ -327,12 +366,8 @@ public final class GlobalChannel implements IChannel {
             return false;
         }
 
-        //TODO: Announce
+        //TODO: Announce with localized Message
         this.chatters.add(chatter);
-
-        if (!chatter.getChannels().contains(this)) {
-            chatter.addChannel(this);
-        }
 
         return true;
     }
@@ -344,127 +379,118 @@ public final class GlobalChannel implements IChannel {
         }
 
         this.chatters.remove(chatter);
-        //TODO: Announce
-
-        if (chatter.getChannels().contains(this)) {
-            chatter.removeChannel(this);
-        }
+        //TODO: Announce with localized Message
 
         return true;
     }
 
     // Methods for performing Actions:
-    public void performAnnounce(@NotNull final String message) throws IllegalStateException {
-        Chats instance = Chats.getInstance();
-        if (instance == null) {
-            throw new IllegalStateException("Method can only performed with a Server instance");
+    @Override
+    public void performAnnounce(@NotNull final String message) {
+        IChats instance = Chats.getInstance();
+
+        final String output = this.formatter.formatAnnounce(message);
+
+        if (instance != null) {
+            String log = output;
+
+            if (!this.formatter.isAnnounceLoggable()) {
+                log = String.format(CHANNEL_PREFIX, this.fullName) + log;
+            }
+
+            instance.getChatLogger().info(log);
         }
 
-        IFormatter formatter;
-
-        if (this.isUseCustomFormat()) {
-            formatter = new AnnounceFormatter(this, message, this.customAnnounceFormat);
-        } else {
-            formatter = new AnnounceFormatter(this, message, GlobalChannel.defaultAnnounceFormat);
-        }
-
-        if (instance.getSettingManager().isLogToConsole()) {
-            instance.getLogger().fine(formatter.formatLog(instance.getSettingManager().isLogWithColor()));
-        }
-
-        String finalMsg = formatter.format();
-
-        for (IChatter current : this.getChatters()) {
-            current.getPlayer().sendMessage(finalMsg);
-        }
-    }
-
-    public void performBroadcast(@NotNull final String message) throws IllegalStateException {
-        Chats instance = Chats.getInstance();
-        if (instance == null) {
-            throw new IllegalStateException("Method can only performed with a Server instance");
-        }
-
-        IFormatter formatter;
-
-        //TODO: Replace static Broadcast Prefix string with localed Broadcast Prefix string.
-        if (this.isUseCustomFormat()) {
-            formatter = new BroadcastFormatter(this, "Broadcast", message, this.customBroadcastFormat);
-        } else {
-            formatter = new BroadcastFormatter(this, "Broadcast", message, GlobalChannel.defaultBroadcastFormat);
-        }
-
-        if (instance.getSettingManager().isLogToConsole()) {
-            instance.getLogger().fine(formatter.formatLog(instance.getSettingManager().isLogWithColor()));
-        }
-
-        String finalMsg = formatter.format();
-
-        for (IChatter current : this.getChatters()) {
-            current.getPlayer().sendMessage(finalMsg);
+        for (IChatter current : this.chatters) {
+            current.getPlayer().sendMessage(output);
         }
     }
 
     @Override
-    public void performChat(@NotNull final IChatter sender, @NotNull final String message)
-            throws IllegalArgumentException, IllegalStateException {
+    public void performBroadcast(@NotNull final String message) {
+        IChats instance = Chats.getInstance();
+
+        final String output = this.formatter.formatBroadcast(message);
+
+        if (instance != null) {
+            String log = output;
+
+            if (!this.formatter.isBroadcastLoggable()) {
+                log = String.format(CHANNEL_PREFIX, this.fullName) + log;
+            }
+
+            instance.getChatLogger().info(log);
+        }
+
+        for (IChatter current : this.chatters) {
+            current.getPlayer().sendMessage(output);
+        }
+    }
+
+    @Override
+    public void performChat(@NotNull final IChatter sender,
+                            @NotNull final String message) throws IllegalArgumentException {
         if (!this.chatters.contains(sender)) {
             throw new IllegalArgumentException("The sender must be in the channel: " + this.getFullName());
         }
 
-        Chats instance = Chats.getInstance();
-        if (instance == null) {
-            throw new IllegalStateException("Method can only performed with a Server instance");
+        IChats instance = Chats.getInstance();
+
+        ChatterChatChannelEvent event = new ChatterChatChannelEvent(sender, this, message);
+
+        if (instance != null) {
+            instance.getPluginManager().callEvent(event);
         }
-
-        ChatterChatChannelEvent event;
-
-        if (this.isUseCustomFormat()) {
-            event = new ChatterChatChannelEvent(sender, this, message, this.customChannelFormat);
-        } else {
-            event = new ChatterChatChannelEvent(sender, this, message, GlobalChannel.defaultChannelFormat);
-        }
-
-        instance.getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
             return;
         }
 
-        IFormatter formatter = new ChannelFormatter(instance.getChatService(), event.getChannel(), event.getChatter(),
-                event.getMessage(), event.getFormat());
+        final String output = this.formatter.formatChat(sender, event.getMessage());
 
-        if (instance.getSettingManager().isLogToConsole()) {
-            instance.getLogger().fine(formatter.formatLog(instance.getSettingManager().isLogWithColor()));
+        if (instance != null) {
+            String log = output;
+
+            if (!this.formatter.isChatLoggable()) {
+                log = String.format(CHANNEL_PREFIX, this.fullName) + log;
+            }
+
+            instance.getChatLogger().info(log);
         }
 
-        String finalMsg = formatter.format();
+        final Location locationSender = sender.getPlayer().getLocation();
+        final World worldSender = sender.getPlayer().getWorld();
 
         if (this.hasDistance()) {
-            Location senderLocation = event.getChatter().getPlayer().getLocation();
-            String senderWorldName = event.getChatter().getPlayer().getWorld().getName();
+            for (IChatter current : this.chatters) {
+                final Player crtPlayer = current.getPlayer();
 
-            for (IChatter current : this.getChatters()) {
-                if (current.getPlayer().getWorld().getName().equals(senderWorldName)) {
-                    if (current.getPlayer().getLocation().distance(senderLocation) < this.distance) {
-                        current.getPlayer().sendMessage(finalMsg);
-                    }
+                if (!crtPlayer.getWorld().equals(worldSender)) {
+                    continue;
+                }
+
+                if (crtPlayer.getLocation().distance(locationSender) <= this.distance) {
+                    crtPlayer.sendMessage(output);
                 }
             }
-        } else {
-            if (this.isCrossWorld()) {
-                for (IChatter current : this.getChatters()) {
-                    current.getPlayer().sendMessage(finalMsg);
-                }
-            } else {
-                String senderWorldName = event.getChatter().getPlayer().getWorld().getName();
 
-                for (IChatter current : this.getChatters()) {
-                    if (current.getPlayer().getWorld().getName().equals(senderWorldName)) {
-                        current.getPlayer().sendMessage(finalMsg);
-                    }
+            return;
+        }
+
+        if (!this.isCrossWorld()) {
+            for (IChatter current : this.chatters) {
+                final Player crtPlayer = current.getPlayer();
+
+                if (crtPlayer.getWorld().equals(worldSender)) {
+                    crtPlayer.sendMessage(output);
                 }
             }
+
+            return;
+        }
+
+        for (IChatter current : this.chatters) {
+            current.getPlayer().sendMessage(output);
         }
     }
 
@@ -473,11 +499,11 @@ public final class GlobalChannel implements IChannel {
         if (this.isPersistChannel()) {
             this.storage.update(this);
         }
+        this.formatter.update();
     }
 
     // Static Methods:
-    @NotNull
-    public static String getDefaultAnnounceFormat() {
+    public static @NotNull String getDefaultAnnounceFormat() {
         return GlobalChannel.defaultAnnounceFormat;
     }
 
@@ -490,8 +516,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    @NotNull
-    public static String getDefaultBroadcastFormat() {
+    public static @NotNull String getDefaultBroadcastFormat() {
         return GlobalChannel.defaultBroadcastFormat;
     }
 
@@ -504,8 +529,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    @NotNull
-    public static String getDefaultChannelFormat() {
+    public static @NotNull String getDefaultChannelFormat() {
         return GlobalChannel.defaultChannelFormat;
     }
 
@@ -518,8 +542,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    @NotNull
-    public static ChatColor getDefaultChannelColor() {
+    public static @NotNull ChatColor getDefaultChannelColor() {
         return GlobalChannel.defaultChannelColor;
     }
 

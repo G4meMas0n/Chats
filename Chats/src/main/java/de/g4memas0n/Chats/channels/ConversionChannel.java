@@ -1,60 +1,112 @@
 package de.g4memas0n.Chats.channels;
 
 import de.g4memas0n.Chats.Chats;
+import de.g4memas0n.Chats.IChats;
 import de.g4memas0n.Chats.chatters.IChatter;
 import de.g4memas0n.Chats.events.ChatterChatConversionEvent;
 import de.g4memas0n.Chats.formatters.ConversionFormatter;
+import de.g4memas0n.Chats.formatters.IChannelFormatter;
 import de.g4memas0n.Chats.formatters.IConversionFormatter;
+import de.g4memas0n.Chats.managers.IChannelManager;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+/**
+ * Implements the IChannel interface, that represent conversion channels.
+ *
+ * @author G4meMas0n
+ * @since 0.0.1-SNAPSHOT
+ *
+ * created: July 13th, 2019
+ * last change: September 13th, 2019
+ */
 public final class ConversionChannel implements IChannel {
-    private static String conversionFormat = IChannel.DEFAULT_CONVERSION_FORMAT;
-    private static String conversionTwitterFormat = IChannel.DEFAULT_CONVERSION_TWITTER_FORMAT;
-    private static ChatColor conversionColor = ChatColor.LIGHT_PURPLE;
-    private final String fullName;
-    private final String shortName;
-    private final Set<IChatter> chatters;
 
-    public ConversionChannel(@NotNull final IChatter firstChatter,
-                             @NotNull final IChatter secondChatter) throws IllegalArgumentException {
-        this.fullName = ConversionChannel.buildFullName(firstChatter, secondChatter);
-        this.shortName = ConversionChannel.buildShortName(firstChatter, secondChatter);
+    /**
+     * the empty string. Used to return a non null string for unsupported formats.
+     */
+    private static final String EMPTY_STRING = "";
+
+    /**
+     * the conversion prefix. Used to detect to which channel a log belongs.
+     */
+    private static final String CONVERSION_PREFIX = "[CONVERSION]";
+
+    /**
+     * the default announce format. Used for all conversion channel announces.
+     */
+    private static String announceFormat = "{color}{message}";
+
+    /**
+     * the default conversion format. Used for all conversions and conversion-logs.
+     */
+    private static String channelFormat = "{color}[{sender}{color} -> {con-partner}{color}] {message}";
+
+    /**
+     * the twitter-style conversion format. Used for all conversion when the use-twitter-style option is enabled.
+     */
+    private static String twitterStyleFormat = "{color}[{con-address} {con-partner}{color}] {message}";
+
+    /**
+     * the default conversion chat color. Used for all conversions.
+     */
+    private static ChatColor channelColor = ChatColor.LIGHT_PURPLE;
+
+    /**
+     * the use-twitter-style option. Used to decide which format will be used for the conversion.
+     */
+    private static boolean useTwitterStyle = true;
+
+    /**
+     * the default conversion formatter. Used to format all conversions.
+     */
+    private static IConversionFormatter formatter = new ConversionFormatter();
+
+    private final IChannelManager manager;
+
+    private String fullName;
+    private Set<IChatter> chatters;
+
+    public ConversionChannel(@NotNull final IChannelManager manager,
+                             @NotNull final IChatter... chatters) {
+        this.manager = manager;
         this.chatters = new HashSet<>();
-        this.chatters.add(firstChatter);
-        this.chatters.add(secondChatter);
+
+        Collections.addAll(this.chatters, chatters);
+
+        this.fullName = ConversionChannel.buildName(this.chatters);
     }
 
     // Methods for Channel Properties:
     @Override
-    @NotNull
-    public String getFullName() {
+    public @NotNull String getFullName() {
         return this.fullName;
     }
 
     @Override
-    @NotNull
-    public String getShortName() {
-        return this.shortName;
+    public @NotNull String getShortName() {
+        return this.fullName;
     }
 
     @Override
-    public boolean setShortName(@NotNull final String shortName) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setShortName(@Nullable final String shortName) {
+        return false;
     }
 
     @Override
-    @NotNull
-    public ChatColor getChatColor() throws UnsupportedOperationException {
-        return ConversionChannel.conversionColor;
+    public @NotNull ChatColor getChatColor() {
+        return channelColor;
     }
 
     @Override
-    public boolean setChatColor(@NotNull final ChatColor chatColor) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setChatColor(@NotNull final ChatColor chatColor) {
+        return false;
     }
 
     @Override
@@ -67,8 +119,18 @@ public final class ConversionChannel implements IChannel {
             return false;
         }
 
-        final ConversionChannel channel = (ConversionChannel) object;
-        return this.getChatters().equals(channel.getChatters());
+        final IChannel channel = (ConversionChannel) object;
+        return this.fullName.equals(channel.getFullName());
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 53;
+        int result = 3;
+
+        result = prime * result + this.fullName.hashCode();
+
+        return result;
     }
 
     // Methods for Channel Types:
@@ -94,8 +156,8 @@ public final class ConversionChannel implements IChannel {
     }
 
     @Override
-    public boolean setCrossWorld(final boolean state) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setCrossWorld(final boolean state) {
+        return false;
     }
 
     @Override
@@ -109,8 +171,8 @@ public final class ConversionChannel implements IChannel {
     }
 
     @Override
-    public boolean setDistance(final int distance) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setDistance(final int distance) {
+        return false;
     }
 
     @Override
@@ -119,215 +181,234 @@ public final class ConversionChannel implements IChannel {
     }
 
     @Override
-    @Nullable
-    public String getPassword() {
+    public @Nullable String getPassword() {
         return null;
     }
 
     @Override
-    public boolean setPassword(@NotNull final String password) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setPassword(@Nullable final String password) {
+        return false;
+    }
+
+    // Methods for Channel Formatting:
+    @Override
+    public @NotNull IChannelFormatter getFormatter() {
+        return formatter;
     }
 
     @Override
-    public boolean removePassword() throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not available in ConversionChannel!");
-    }
-
-    // Methods for Custom Channel Formats:
-    @Override
-    public boolean isUseCustomFormat() throws UnsupportedOperationException {
+    public boolean isUseCustomFormat() {
         return false;
     }
 
     @Override
-    public boolean setUseCustomFormat(boolean state) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setUseCustomFormat(final boolean state) {
+        return false;
     }
 
     @Override
-    @NotNull
-    public String getCustomAnnounceFormat() {
-        return "";
+    public @NotNull String getAnnounceFormat() {
+        return announceFormat;
     }
 
     @Override
-    public boolean setCustomAnnounceFormat(@NotNull String format) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setAnnounceFormat(@Nullable final String format) {
+        return false;
     }
 
     @Override
-    @NotNull
-    public String getCustomBroadcastFormat() {
-        return "";
+    public @NotNull String getBroadcastFormat() {
+        return EMPTY_STRING;
     }
 
     @Override
-    public boolean setCustomBroadcastFormat(@NotNull String format) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setBroadcastFormat(@Nullable final String format) {
+        return false;
     }
 
     @Override
-    @NotNull
-    public String getCustomChannelFormat() {
-        return "";
+    public @NotNull String getChannelFormat() {
+        return useTwitterStyle ? twitterStyleFormat : channelFormat;
     }
 
     @Override
-    public boolean setCustomChannelFormat(@NotNull String format) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean setChannelFormat(@Nullable final String format) {
+        return false;
     }
 
     // Methods for Chatter Collection of this Channel:
     @Override
-    @NotNull
-    public Set<IChatter> getChatters() {
+    public @NotNull Set<IChatter> getChatters() {
         return this.chatters;
     }
 
     @Override
-    public boolean addChatter(@NotNull final IChatter chatter) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean addChatter(@NotNull final IChatter chatter) {
+        if (this.chatters.contains(chatter)) {
+            return false;
+        }
+
+        this.chatters.add(chatter);
+        this.fullName = buildName(this.chatters);
+        return true;
     }
 
     @Override
-    public boolean removeChatter(@NotNull final IChatter chatter) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not allowed in ConversionChannel!");
+    public boolean removeChatter(@NotNull final IChatter chatter) {
+        if (!this.chatters.contains(chatter)) {
+            return false;
+        }
+
+        this.chatters.remove(chatter);
+
+        if (this.chatters.size() < 2) {
+            this.manager.removeChannel(this);
+            return true;
+        }
+
+        this.fullName = buildName(this.chatters);
+        return true;
     }
 
     // Method for performing Chats:
     @Override
+    public void performAnnounce(@NotNull final String message) {
+        final String output = formatter.formatAnnounce(message);
+
+        for (IChatter current : this.chatters) {
+            current.getPlayer().sendMessage(output);
+        }
+    }
+
+    @Override
+    public void performBroadcast(@NotNull final String message) throws UnsupportedFeatureException {
+        throw new UnsupportedFeatureException("Broadcasts not available for conversions!");
+    }
+
+    @Override
     public void performChat(@NotNull final IChatter sender,
                             @NotNull final String message) throws IllegalArgumentException, IllegalStateException {
         if (!this.chatters.contains(sender)) {
-            throw new IllegalArgumentException("The sender: " + sender.getPlayer().getName()
-                    + " must be in the conversion channel: " + this.getFullName());
+            throw new IllegalArgumentException("Sender: " + sender.getPlayer().getName()
+                    + " must be a member of the conversion channel: " + this.getFullName());
         }
 
-        if (this.chatters.size() != 2) {
-            throw new IllegalStateException("There are too few or too many chatters");
-        }
+        Set<IChatter> partners = new HashSet<>(this.chatters);
+        partners.remove(sender);
 
-        for (IChatter current : this.chatters) {
-            if (!current.equals(sender)) {
-                ConversionChannel.performConversion(sender, current, message);
-                return;
-            }
-        }
+        performConversion(sender, partners, message);
     }
 
     // Static Methods:
     public static void performConversion(@NotNull final IChatter sender,
-                                         @NotNull final IChatter partner,
-                                         @NotNull final String message) throws IllegalStateException {
-        Chats instance = Chats.getInstance();
-        if (instance == null) {
-            throw new IllegalStateException("Method can only performed with a Server instance");
+                                         @NotNull final Set<IChatter> partners,
+                                         @NotNull final String message) {
+        IChats instance = Chats.getInstance();
+
+        ChatterChatConversionEvent event = new ChatterChatConversionEvent(sender, partners, message);
+
+        if (instance != null) {
+            instance.getPluginManager().callEvent(event);
         }
-
-        ChatterChatConversionEvent event = new ChatterChatConversionEvent(sender, partner, message);
-
-        instance.getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
             return;
         }
 
-        IConversionFormatter formatter = new ConversionFormatter(instance.getChatService(), event.getChatter(),
-                event.getPartner(), event.getMessage(), ConversionChannel.conversionFormat,
-                ConversionChannel.conversionTwitterFormat, ConversionChannel.conversionColor);
+        final String output = formatter.formatChat(sender, partners, event.getMessage());
 
-        if (instance.getSettingManager().isLogToConsole()) {
-            instance.getLogger().fine(formatter.formatLog(instance.getSettingManager().isLogWithColor()));
+        if (instance != null) {
+            instance.getChatLogger().info(CONVERSION_PREFIX + output);
         }
 
-        if (instance.getSettingManager().isUseConversionTwitterFormat()) {
-            //TODO: Replace static Address string with localed Address string.
-            sender.getPlayer().sendMessage(formatter.formatTwitterStyle(partner, "To"));
-            partner.getPlayer().sendMessage(formatter.formatTwitterStyle(sender, "From"));
+        if (useTwitterStyle) {
+            final String outputTo = formatter.formatTo(partners, event.getMessage());
+            final String outputFrom = formatter.formatFrom(sender, event.getMessage());
+
+            sender.getPlayer().sendMessage(outputTo);
+
+            for (IChatter current : partners) {
+                current.getPlayer().sendMessage(outputFrom);
+            }
         } else {
-            String finalMsg = formatter.format();
-            sender.getPlayer().sendMessage(finalMsg);
-            partner.getPlayer().sendMessage(finalMsg);
+            sender.getPlayer().sendMessage(output);
+
+            for (IChatter current : partners) {
+                current.getPlayer().sendMessage(output);
+            }
         }
-
-        sender.setLastConversionPartner(partner);
-        partner.setLastConversionPartner(sender);
     }
 
-    @NotNull
-    public static String getConversionFormat() {
-        return ConversionChannel.conversionFormat;
-    }
-
-    public static boolean setConversionFormat(@NotNull final String format) {
-        if (ConversionChannel.conversionFormat.equals(format)) {
+    public static boolean setDefaultAnnounceFormat(@NotNull final String format) {
+        if (announceFormat.equals(format)) {
             return false;
         }
 
-        ConversionChannel.conversionFormat = format;
+        announceFormat = format;
         return true;
     }
 
-    @NotNull
-    public static String getConversionTwitterFormat() {
-        return ConversionChannel.conversionTwitterFormat;
+    public static @NotNull String getDefaultAnnounceFormat() {
+        return announceFormat;
     }
 
-    public static boolean setConversionTwitterFormat(@NotNull final String format) {
-        if (ConversionChannel.conversionTwitterFormat.equals(format)) {
+    public static boolean setDefaultChannelFormat(@NotNull final String format) {
+        if (channelFormat.equals(format)) {
             return false;
         }
 
-        ConversionChannel.conversionTwitterFormat = format;
+        channelFormat = format;
         return true;
     }
 
-    @NotNull
-    public static ChatColor getConversionColor() {
-        return ConversionChannel.conversionColor;
+    public static @NotNull String getDefaultChannelFormat() {
+        return channelFormat;
     }
 
-    public static boolean setConversionColor(@NotNull final ChatColor color) {
-        if (ConversionChannel.conversionColor == color) {
+    public static boolean setDefaultChannelColor(@NotNull final ChatColor color) {
+        if (channelColor == color) {
             return false;
         }
 
-        ConversionChannel.conversionColor = color;
+        channelColor = color;
         return true;
     }
 
-    @NotNull
-    public static String buildFullName(@NotNull final IChatter firstChatter,
-                                       @NotNull final IChatter secondChatter) throws IllegalArgumentException {
-        final String firstUUID = firstChatter.getPlayer().getUniqueId().toString();
-        final String secondUUID = secondChatter.getPlayer().getUniqueId().toString();
-
-        final int compared = firstUUID.compareTo(secondUUID);
-
-        if (compared < 0) {
-            return firstUUID + "_" + secondUUID;
-        } else if (compared > 0) {
-            return secondUUID + "_" + firstUUID;
-        } else {
-            throw new IllegalArgumentException("Both chatters has the same UUID! Chatters must be different.");
-        }
+    public static @NotNull ChatColor getDefaultChannelColor() {
+        return channelColor;
     }
 
-    @NotNull
-    public static String buildShortName(@NotNull final IChatter firstChatter,
-                                        @NotNull final IChatter secondChatter) throws IllegalArgumentException {
-        final String firstName = firstChatter.getPlayer().getName();
-        final String secondName = secondChatter.getPlayer().getName();
-
-        final int compared = firstName.compareTo(secondName);
-
-        if (compared < 0) {
-            return firstName + "_" + secondName;
-        } else if (compared > 0) {
-            return secondName + "_" + firstName;
-        } else {
-            throw new IllegalArgumentException("Both chatters has the same name! Chatters must be different.");
+    public static boolean setTwitterStyleFormat(@NotNull final String format) {
+        if (twitterStyleFormat.equals(format)) {
+            return false;
         }
+
+        twitterStyleFormat = format;
+        return true;
+    }
+
+    public static @NotNull String getTwitterStyleFormat() {
+        return twitterStyleFormat;
+    }
+
+    public static boolean useTwitterFormat(final boolean enabled) {
+        if (useTwitterStyle == enabled) {
+            return false;
+        }
+
+        useTwitterStyle = enabled;
+        return true;
+    }
+
+    public static @NotNull String buildName(@NotNull final Set<IChatter> chatters) {
+        final List<String> chatterUUIDs = new ArrayList<>();
+
+        for (IChatter current : chatters) {
+            chatterUUIDs.add(current.getPlayer().getUniqueId().toString());
+        }
+
+        Collections.sort(chatterUUIDs);
+
+        return String.join("_", chatterUUIDs);
     }
 }
