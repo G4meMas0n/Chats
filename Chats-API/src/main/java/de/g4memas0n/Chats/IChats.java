@@ -1,9 +1,9 @@
 package de.g4memas0n.Chats;
 
-import de.g4memas0n.Chats.managers.IChannelManager;
-import de.g4memas0n.Chats.managers.IChatterManager;
-import de.g4memas0n.Chats.managers.IFileManager;
-import de.g4memas0n.Chats.managers.IConfigManager;
+import de.g4memas0n.Chats.channel.IChannelManager;
+import de.g4memas0n.Chats.chatter.IChatterManager;
+import de.g4memas0n.Chats.util.IFileManager;
+import de.g4memas0n.Chats.configuration.IConfigManager;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 import java.util.logging.Logger;
@@ -18,6 +18,12 @@ import java.util.logging.Logger;
  * last change: September 11th, 2019
  */
 public interface IChats {
+
+    /**
+     * Logs the given message to the chat logger.
+     * @param message the message that should be logged.
+     */
+    void logChat(@NotNull String message);
 
     /**
      * Returns the chat logger of this plugin main class.

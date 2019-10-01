@@ -1,0 +1,15 @@
+conversion-format:
+  color: "LIGHT_PURPLE"
+  normal: "{color}[{sender}{color} -> {con-partner}{color}] {message}"
+  twitter-style: "{color}[{con-address} {con-partner}{color}] {message}"
+  use-twitter-style: true
+default-channel: "Global"
+default-format:
+  announce: "{color}{message}"
+  broadcast: "{color}[{bc-prefix}{color}] {message}"
+  channel: "{color}[{nick}]{sender}{color}: {message}"
+locale: "en"
+logs:
+  colored: false
+  to-console: true
+  to-file: true

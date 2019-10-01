@@ -1,10 +1,16 @@
 package de.g4memas0n.Chats;
 
+import de.g4memas0n.Chats.channel.IChannelManager;
+import de.g4memas0n.Chats.chatter.IChatterManager;
+import de.g4memas0n.Chats.configuration.IConfigManager;
+import de.g4memas0n.Chats.exception.InvalidStorageFileException;
 import de.g4memas0n.Chats.logger.ChatLogFileFormatter;
-import de.g4memas0n.Chats.managers.*;
-import de.g4memas0n.Chats.storages.InvalidStorageFileException;
-import de.g4memas0n.Chats.storages.YAMLConfigStorage;
+import de.g4memas0n.Chats.configuration.YAMLConfigStorage;
+import de.g4memas0n.Chats.util.ANSIColor;
+import de.g4memas0n.Chats.util.FileManager;
+import de.g4memas0n.Chats.util.IFileManager;
 import net.milkbowl.vault.chat.Chat;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,7 +32,7 @@ import java.util.logging.Logger;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 26th, 2019
- * last change: September 13th, 2019
+ * last change: October 1st, 2019
  */
 @Plugin(name = "Chats", version = "0.0.1-SNAPSHOT")
 @Description("Test Description")
@@ -34,7 +40,15 @@ import java.util.logging.Logger;
 @SoftDependency("Vault")
 @ApiVersion(ApiVersion.Target.v1_13)
 public final class Chats extends JavaPlugin implements IChats {
+
+    /**
+     * the official plugin name of the plugin Vault.
+     */
     private static final String PLUGIN_VAULT_NAME = "Vault";
+
+    /**
+     * the official plugin name of the plugin HeroChat.
+     */
     private static final String PLUGIN_HERO_CHAT_NAME = "HeroChat";
 
     private static Chats instance;
@@ -44,11 +58,13 @@ public final class Chats extends JavaPlugin implements IChats {
     private IFileManager fileManager;
     private IConfigManager configManager;
     private Logger chatLogger;
-
     private Chat chatService;
 
     public static @Nullable Chats getInstance() {
         return Chats.instance;
+    }
+
+    public Chats() {
     }
 
     @Override
@@ -88,16 +104,18 @@ public final class Chats extends JavaPlugin implements IChats {
         return false;
     }
 
-    private boolean setupManager() {
+    private boolean setupManagers() {
         try {
             this.fileManager = new FileManager(this.getDataFolder());
-            this.configManager = (new YAMLConfigStorage(this.fileManager.getConfigFile())).load();
+
+            final YAMLConfigStorage configStorage = new YAMLConfigStorage(this.fileManager.getDataFolder());
+            this.configManager = configStorage.load(this.fileManager.getConfigFile());
 
             //TODO initialize and create ChannelManager and ChatterManager
 
             return true;
         } catch (IllegalArgumentException | InvalidStorageFileException | IOException ex) {
-            this.getLogger().warning("Failed to setup manager: " + ex.getMessage());
+            this.getLogger().warning("Failed to setup managers: " + ex.getMessage());
             return false;
         }
     }
@@ -156,6 +174,17 @@ public final class Chats extends JavaPlugin implements IChats {
                 return false;
             }
         }
+    }
+
+    @Override
+    public void logChat(@NotNull String message) {
+        if (this.configManager.isLogColored()) {
+            message = ANSIColor.translateBukkitColor(message);
+        } else {
+            message = ChatColor.stripColor(message);
+        }
+
+        this.chatLogger.info(message);
     }
 
     public @Nullable Chat getChatService() {

@@ -2,6 +2,7 @@ package de.g4memas0n.Chats.util;
 
 import org.bukkit.ChatColor;
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 
 /**
