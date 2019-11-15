@@ -19,9 +19,13 @@ import java.util.Map;
  * @since 0.0.1-SNAPSHOT
  *
  * created: September 13th, 2019
- * last change: September 26th, 2019
+ * last change: November 14th, 2019
  */
 public final class YAMLConfigStorage implements IConfigStorage {
+
+    /**
+     * the yaml configuration paths of all saved config options.
+     */
     private static final String PATH_CON_FORMAT_COLOR = "conversion-format.color";
     private static final String PATH_CON_FORMAT_NORMAL = "conversion-format.normal";
     private static final String PATH_CON_FORMAT_TWITTER = "conversion-format.twitter-style";
@@ -32,34 +36,14 @@ public final class YAMLConfigStorage implements IConfigStorage {
     private static final String PATH_DEF_FORMAT_CHANNEL = "default-format.channel";
     private static final String PATH_LOCALE = "locale";
     private static final String PATH_LOGS_COLORED = "logs.colored";
+    private static final String PATH_LOGS_DEBUG = "logs.debug";
     private static final String PATH_LOGS_TO_CONSOLE = "logs.to-console";
     private static final String PATH_LOGS_TO_FILE = "logs.to-file";
 
     private final Map<IConfigManager, YamlConfiguration> configurations;
-    private File directory;
 
-    public YAMLConfigStorage(@NotNull final File directory) throws IllegalArgumentException {
+    public YAMLConfigStorage() {
         this.configurations = new HashMap<>();
-        this.setDirectory(directory);
-    }
-
-    @Override
-    public @NotNull File getDirectory() {
-        return this.directory;
-    }
-
-    @Override
-    public boolean setDirectory(@NotNull final File directory) throws IllegalArgumentException {
-        if (!directory.isDirectory()) {
-            throw new IllegalArgumentException("Invalid File! File must be a directory!");
-        }
-
-        if (this.directory.equals(directory)) {
-            return false;
-        }
-
-        this.directory = directory;
-        return true;
     }
 
     @Override
@@ -111,6 +95,10 @@ public final class YAMLConfigStorage implements IConfigStorage {
 
         if (yamlConfig.contains(PATH_LOGS_COLORED)) {
             manager._setLogColored(yamlConfig.getBoolean(PATH_LOGS_COLORED));
+        }
+
+        if (yamlConfig.contains(PATH_LOGS_DEBUG)) {
+            manager._setLogDebug(yamlConfig.getBoolean(PATH_LOGS_DEBUG));
         }
 
         if (yamlConfig.contains(PATH_LOGS_TO_CONSOLE)) {
@@ -167,6 +155,10 @@ public final class YAMLConfigStorage implements IConfigStorage {
             yamlConfig.set(PATH_LOGS_COLORED, manager.isLogColored());
         }
 
+        if (!yamlConfig.contains(PATH_LOGS_DEBUG)) {
+            yamlConfig.set(PATH_LOGS_DEBUG, manager.isLogDebug());
+        }
+
         if (!yamlConfig.contains(PATH_LOGS_TO_CONSOLE)) {
             yamlConfig.set(PATH_LOGS_TO_CONSOLE, manager.isLogToConsole());
         }
@@ -179,11 +171,8 @@ public final class YAMLConfigStorage implements IConfigStorage {
             yamlConfig.save(configFile);
             return true;
         } catch (IOException ex) {
-            Chats instance = Chats.getInstance();
-
-            if (instance != null) {
-                instance.getLogger().warning("Failed to save the config file: " + configFile.getName() + ".");
-            }
+            Chats.getPluginLogger().warning("Failed to save the config file '" + configFile.getName() + "': "
+                    + ex.getMessage());
 
             return false;
         }
@@ -209,11 +198,8 @@ public final class YAMLConfigStorage implements IConfigStorage {
         try {
             return ChatColor.valueOf(colorName);
         } catch (IllegalArgumentException ex) {
-            Chats instance = Chats.getInstance();
-
-            if (instance != null) {
-                instance.getLogger().warning("Invalid conversion color name for config file: " + configName + ".");
-            }
+            Chats.getPluginLogger().warning("Invalid conversion color name for config file ' " + configName
+                    + "': " + ex.getMessage());
 
             return ChatColor.LIGHT_PURPLE;
         }

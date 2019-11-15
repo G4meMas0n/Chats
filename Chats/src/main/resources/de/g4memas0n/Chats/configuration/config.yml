@@ -11,5 +11,6 @@ default-format:
 locale: "en"
 logs:
   colored: false
+  debug: false
   to-console: true
   to-file: true

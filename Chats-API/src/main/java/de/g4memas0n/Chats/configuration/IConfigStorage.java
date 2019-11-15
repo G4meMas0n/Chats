@@ -13,23 +13,9 @@ import java.io.IOException;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: September 26th, 2019
+ * last change: November 13th, 2019
  */
 public interface IConfigStorage {
-
-    /**
-     * Returns the directory where this storage should save and load all files.
-     * @return the directory of this storage.
-     */
-    @NotNull File getDirectory();
-
-    /**
-     * Sets a new directory where this storage should save and load all files.
-     * @param directory the new directory of this storage.
-     * @return true when the directory was changed as result of this call.
-     * @throws IllegalArgumentException Thrown when the given file is no directory.
-     */
-    boolean setDirectory(@NotNull final File directory) throws IllegalArgumentException;
 
     /**
      * Creates a new setting manager with the options that are given in the given file and returns this setting manager.

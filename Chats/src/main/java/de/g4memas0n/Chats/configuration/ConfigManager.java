@@ -13,9 +13,9 @@ import java.util.Locale;
  * @since 0.0.1-SNAPSHOT
  *
  * created: September 13th, 2019
- * last change: September 26th, 2019
+ * last change: November 13th, 2019
  */
-public class ConfigManager implements IConfigManager {
+public final class ConfigManager implements IConfigManager {
 
     /**
      * count variable, that makes the config manager differentiable.
@@ -39,6 +39,7 @@ public class ConfigManager implements IConfigManager {
 
     private boolean conFormatUseTwitterStyle = true;
     private boolean logsColored = false;
+    private boolean logsDebug = false;
     private boolean logsToConsole = true;
     private boolean logsToFile = true;
 
@@ -205,6 +206,19 @@ public class ConfigManager implements IConfigManager {
         }
 
         this.logsColored = enabled;
+    }
+
+    @Override
+    public boolean isLogDebug() {
+        return this.logsDebug;
+    }
+
+    protected void _setLogDebug(final boolean enabled) {
+        if (this.logsDebug == enabled) {
+            return;
+        }
+
+        this.logsDebug = enabled;
     }
 
     @Override
