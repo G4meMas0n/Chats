@@ -11,13 +11,13 @@ import de.g4memas0n.Chats.util.FileManager;
 import de.g4memas0n.Chats.util.IFileManager;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.ChatColor;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.Description;
-import org.bukkit.plugin.java.annotation.plugin.Plugin;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,9 +32,9 @@ import java.util.logging.Logger;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 26th, 2019
- * last change: October 1st, 2019
+ * last change: November 15th, 2019
  */
-@Plugin(name = "Chats", version = "0.0.1-SNAPSHOT")
+@org.bukkit.plugin.java.annotation.plugin.Plugin(name = "Chats", version = "0.0.1-SNAPSHOT")
 @Description("Test Description")
 @Author("G4meMas0n")
 @SoftDependency("Vault")
@@ -42,21 +42,18 @@ import java.util.logging.Logger;
 public final class Chats extends JavaPlugin implements IChats {
 
     /**
-     * the official plugin name of the plugin Vault.
+     * the official plugin name of the plugin Vault and of the plugin HeroChat.
      */
     private static final String PLUGIN_VAULT_NAME = "Vault";
-
-    /**
-     * the official plugin name of the plugin HeroChat.
-     */
     private static final String PLUGIN_HERO_CHAT_NAME = "HeroChat";
 
     private static Chats instance;
+    private static Logger pluginLogger;
 
     private IChannelManager channelManager;
     private IChatterManager chatterManager;
-    private IFileManager fileManager;
     private IConfigManager configManager;
+    private IFileManager fileManager;
     private Logger chatLogger;
     private Chat chatService;
 
@@ -64,63 +61,113 @@ public final class Chats extends JavaPlugin implements IChats {
         return Chats.instance;
     }
 
+    public static @NotNull Logger getPluginLogger() {
+        return Chats.pluginLogger;
+    }
+
     public Chats() {
+        Chats.pluginLogger = this.getLogger();
+    }
+
+    @Override
+    public void onLoad() {
+        this.setupManagers();
     }
 
     @Override
     public void onEnable() {
-        Chats.instance = this;
+        if (!this.isLoaded()) {
+            this.getLogger().warning("Plugin not loaded successfully. Loading it again...");
+            this.onLoad();
+        }
 
-        super.onEnable();
+        this.checkForHeroChat();
+        this.setupChatService();
+        this.setupListeners();
+        this.setupCommands();
+        this.setupLogger();
+
+        Chats.instance = this;
     }
 
     @Override
     public void onDisable() {
-        super.onDisable();
+        this.channelManager = null;
+        this.chatterManager = null;
+        this.configManager = null;
+        this.fileManager = null;
+        Chats.instance = null;
+    }
+
+    private void setupManagers() {
+        try {
+            this.fileManager = new FileManager(this.getDataFolder());
+
+            final YAMLConfigStorage configStorage = new YAMLConfigStorage();
+            this.configManager = configStorage.load(this.fileManager.getConfigFile());
+
+            //TODO initialize and create ChannelManager and ChatterManager
+        } catch (IllegalArgumentException | InvalidStorageFileException | IOException ex) {
+            this.getLogger().warning("Failed to setup managers: " + ex.getMessage());
+        }
+    }
+
+    private boolean isLoaded() {
+        return this.channelManager != null && this.chatterManager != null
+                && this.configManager != null
+                && this.fileManager != null;
     }
 
     private void checkForHeroChat() {
         PluginManager pluginManager = this.getPluginManager();
 
-        org.bukkit.plugin.Plugin heroChat = pluginManager.getPlugin(PLUGIN_HERO_CHAT_NAME);
+        Plugin heroChat = pluginManager.getPlugin(PLUGIN_HERO_CHAT_NAME);
 
         if (heroChat != null) {
             if (heroChat.isEnabled()) {
                 pluginManager.disablePlugin(heroChat);
-                this.getLogger().warning("Found Plugin HeroChat, trying to disable it... (Please remove HeroChat!)");
+                this.getLogger().warning("Found Plugin HeroChat, trying to disable it... Please remove HeroChat!");
             } else {
                 this.getLogger().severe("Found Plugin HeroChat, but it is disabled. Please remove HeroChat!");
             }
         }
     }
 
-    private boolean setupCommands(@NotNull final String permissionMessage) {
-        //TODO set TabExecuter and PermissionMessage for all Commands
-        return false;
-    }
+    private void setupChatService() {
+        if (this.getPluginManager().getPlugin(PLUGIN_VAULT_NAME) == null) {
+            this.getLogger().severe("Plugin Vault not found. Vault integration has been disabled.");
+            this.chatService = null;
+            return;
+        }
 
-    private boolean setupListeners() {
-        //TODO register all Listeners to Bukkit/Spigot
-        return false;
-    }
+        this.getLogger().info("Found Plugin Vault. Setting up chat service...");
+        RegisteredServiceProvider<Chat> rsp = this.getServer().getServicesManager().getRegistration(Chat.class);
 
-    private boolean setupManagers() {
-        try {
-            this.fileManager = new FileManager(this.getDataFolder());
+        if (rsp == null) {
+            this.chatService = null;
+            this.getLogger().severe("Failed to setup chat service. Vault integration has been disabled.");
+        } else {
+            this.chatService = rsp.getProvider();
 
-            final YAMLConfigStorage configStorage = new YAMLConfigStorage(this.fileManager.getDataFolder());
-            this.configManager = configStorage.load(this.fileManager.getConfigFile());
-
-            //TODO initialize and create ChannelManager and ChatterManager
-
-            return true;
-        } catch (IllegalArgumentException | InvalidStorageFileException | IOException ex) {
-            this.getLogger().warning("Failed to setup managers: " + ex.getMessage());
-            return false;
+            if (this.chatService != null) {
+                this.getLogger().info("Chat service has been set up. Vault integration has been enabled.");
+            } else {
+                this.getLogger().severe("Failed to setup chat service. Vault integration has been disabled.");
+            }
         }
     }
 
-    private boolean setupLogger() {
+    private void setupListeners() {
+        //TODO register all Listeners to Bukkit/Spigot
+
+    }
+
+    private void setupCommands() {
+        //TODO set TabExecuter for all Commands
+
+    }
+
+    private void setupLogger() {
         try {
             this.getLogger().info("Setting up chat-logging handler...");
 
@@ -142,37 +189,8 @@ public final class Chats extends JavaPlugin implements IChats {
             }
 
             this.getLogger().info("Chat-logging handler has been set up.");
-
-            return true;
         } catch (IOException | SecurityException ex) {
             this.getLogger().warning("Failed to setup chat-logging handler: " + ex.getMessage());
-            return false;
-        }
-    }
-
-    private boolean setupChatService() {
-        if (this.getPluginManager().getPlugin(PLUGIN_VAULT_NAME) == null) {
-            this.chatService = null;
-            return false;
-        }
-
-        this.getLogger().info("Found Plugin Vault. Setting up chat service...");
-        RegisteredServiceProvider<Chat> rsp = this.getServer().getServicesManager().getRegistration(Chat.class);
-
-        if (rsp == null) {
-            this.chatService = null;
-            this.getLogger().severe("Failed to setup chat service. Vault integration has been disabled.");
-            return false;
-        } else {
-            this.chatService = rsp.getProvider();
-
-            if (this.chatService != null) {
-                this.getLogger().info("Chat service has been set up.");
-                return true;
-            } else {
-                this.getLogger().severe("Failed to setup chat service. Vault integration has been disabled.");
-                return false;
-            }
         }
     }
 
@@ -212,12 +230,12 @@ public final class Chats extends JavaPlugin implements IChats {
     }
 
     @Override
-    public @NotNull IFileManager getFileManager() {
-        return this.fileManager;
+    public @NotNull IConfigManager getConfigManager() {
+        return this.configManager;
     }
 
     @Override
-    public @NotNull IConfigManager getConfigManager() {
-        return this.configManager;
+    public @NotNull IFileManager getFileManager() {
+        return this.fileManager;
     }
 }

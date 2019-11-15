@@ -4,6 +4,7 @@ import de.g4memas0n.Chats.channel.IChannelManager;
 import de.g4memas0n.Chats.chatter.IChatterManager;
 import de.g4memas0n.Chats.util.IFileManager;
 import de.g4memas0n.Chats.configuration.IConfigManager;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 import java.util.logging.Logger;
@@ -15,9 +16,9 @@ import java.util.logging.Logger;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 26th, 2019
- * last change: September 11th, 2019
+ * last change: November 13th, 2019
  */
-public interface IChats {
+public interface IChats extends Plugin {
 
     /**
      * Logs the given message to the chat logger.
@@ -50,14 +51,14 @@ public interface IChats {
     @NotNull IChatterManager getChatterManager();
 
     /**
-     * Returns the file manager of this plugin main class.
-     * @return the file manager.
-     */
-    @NotNull IFileManager getFileManager();
-
-    /**
      * Returns the setting manager of this plugin main class.
      * @return the setting manager.
      */
     @NotNull IConfigManager getConfigManager();
+
+    /**
+     * Returns the file manager of this plugin main class.
+     * @return the file manager.
+     */
+    @NotNull IFileManager getFileManager();
 }
