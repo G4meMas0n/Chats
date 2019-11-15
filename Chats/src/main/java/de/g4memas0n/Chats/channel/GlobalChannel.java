@@ -20,7 +20,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: October 1st, 2019
+ * last change: November 15th, 2019
  */
 public final class GlobalChannel implements IChannel {
 
@@ -30,23 +30,13 @@ public final class GlobalChannel implements IChannel {
     private static final String CHANNEL_PREFIX = "[%s]";
 
     /**
-     * the default announce format. Used for all channel announces.
+     * the channel regex. Used to detect whether the given full name matches the channel full name regex.
      */
+    private static final String CHANNEL_REGEX = "(\\w)+";
+
     private static String defaultAnnounceFormat = "{color}{message}";
-
-    /**
-     * the default broadcast format. Used for all channel broadcasts.
-     */
     private static String defaultBroadcastFormat = "{color}[{bc-prefix}{color}] {message}";
-
-    /**
-     * the default channel format. Used for all channels chats.
-     */
     private static String defaultChannelFormat = "{color}[{nick}]{sender}{color}: {message}";
-
-    /**
-     * the default conversion chat color. Used for all channels without a defined chat color.
-     */
     private static ChatColor defaultChannelColor = ChatColor.WHITE;
 
     private final IChannelStorage storage;
@@ -67,7 +57,11 @@ public final class GlobalChannel implements IChannel {
     public GlobalChannel(@NotNull final IChannelStorage storage,
                          @NotNull final String fullName) throws IllegalArgumentException {
         if (fullName.isEmpty()) {
-            throw new IllegalArgumentException("Empty channel full Name");
+            throw new IllegalArgumentException("Invalid channel full name! full name can not be empty.");
+        }
+
+        if (!fullName.matches(CHANNEL_REGEX)) {
+            throw new IllegalArgumentException("Invalid channel full name! full name must match " + CHANNEL_REGEX);
         }
 
         this.storage = storage;
@@ -91,6 +85,11 @@ public final class GlobalChannel implements IChannel {
     @Override
     public @NotNull String getFullName() {
         return this.fullName;
+    }
+
+    @Override
+    public boolean setFullName(@NotNull final String fullName) {
+        return false;
     }
 
     @Override

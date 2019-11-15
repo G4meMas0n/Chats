@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.0.1-SNAPSHOT
  *
  * created: August 15th, 2019
- * last change: September 11th, 2019
+ * last change: November 13th, 2019
  */
 public final class ChannelFormatter implements IChannelFormatter {
 
@@ -66,7 +66,7 @@ public final class ChannelFormatter implements IChannelFormatter {
 
         String formatted = this.preAnnounceFormat;
 
-        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+        formatted = formatted.replace(Placeholder.MESSAGE.toString(), message);
 
         return Placeholder.stripPlaceholders(formatted);
     }
@@ -84,7 +84,7 @@ public final class ChannelFormatter implements IChannelFormatter {
 
         String formatted = this.preBroadcastFormat;
 
-        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+        formatted = formatted.replace(Placeholder.MESSAGE.toString(), message);
 
         return Placeholder.stripPlaceholders(formatted);
     }
@@ -100,23 +100,23 @@ public final class ChannelFormatter implements IChannelFormatter {
         final Chat chatService = Chats.getInstance() != null ? Chats.getInstance().getChatService() : null;
         String formatted = this.preChannelFormat;
 
-        formatted = formatted.replaceFirst(Placeholder.SENDER.toString(), player.getDisplayName());
-        formatted = formatted.replaceFirst(Placeholder.SENDER_PLAIN.toString(), player.getName());
-        formatted = formatted.replaceFirst(Placeholder.SENDER_WORLD.toString(), player.getWorld().getName());
-        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+        formatted = formatted.replace(Placeholder.SENDER.toString(), player.getDisplayName());
+        formatted = formatted.replace(Placeholder.SENDER_PLAIN.toString(), player.getName());
+        formatted = formatted.replace(Placeholder.SENDER_WORLD.toString(), player.getWorld().getName());
+        formatted = formatted.replace(Placeholder.MESSAGE.toString(), message);
 
         if (chatService != null) {
             final World world = player.getWorld();
             final String group = chatService.getPrimaryGroup(player);
 
-            formatted = formatted.replaceFirst(Placeholder.SENDER_GROUP.toString(), group);
-            formatted = formatted.replaceFirst(Placeholder.SENDER_GROUP_PREFIX.toString(),
+            formatted = formatted.replace(Placeholder.SENDER_GROUP.toString(), group);
+            formatted = formatted.replace(Placeholder.SENDER_GROUP_PREFIX.toString(),
                     chatService.getGroupPrefix(world, group));
-            formatted = formatted.replaceFirst(Placeholder.SENDER_GROUP_SUFFIX.toString(),
+            formatted = formatted.replace(Placeholder.SENDER_GROUP_SUFFIX.toString(),
                     chatService.getGroupSuffix(world, group));
-            formatted = formatted.replaceFirst(Placeholder.SENDER_PREFIX.toString(),
+            formatted = formatted.replace(Placeholder.SENDER_PREFIX.toString(),
                     chatService.getPlayerPrefix(player));
-            formatted = formatted.replaceFirst(Placeholder.SENDER_SUFFIX.toString(),
+            formatted = formatted.replace(Placeholder.SENDER_SUFFIX.toString(),
                     chatService.getPlayerSuffix(player));
         }
 
@@ -132,9 +132,9 @@ public final class ChannelFormatter implements IChannelFormatter {
         loggableAnnounce = format.contains(Placeholder.CHANNEL_NAME.toString())
                 || format.contains(Placeholder.CHANNEL_NICK.toString());
 
-        format = format.replaceFirst(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
-        format = format.replaceFirst(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
-        format = format.replaceAll(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
+        format = format.replace(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
+        format = format.replace(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
+        format = format.replace(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
 
         return format;
     }
@@ -149,10 +149,10 @@ public final class ChannelFormatter implements IChannelFormatter {
                 || format.contains(Placeholder.CHANNEL_NICK.toString());
 
         //TODO: Use Resource Bundle for getting correct broadcast prefix
-        format = format.replaceFirst(Placeholder.BROADCAST_PREFIX.toString(), "Broadcast");
-        format = format.replaceFirst(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
-        format = format.replaceFirst(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
-        format = format.replaceAll(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
+        format = format.replace(Placeholder.BROADCAST_PREFIX.toString(), "Broadcast");
+        format = format.replace(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
+        format = format.replace(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
+        format = format.replace(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
 
         return format;
     }
@@ -166,9 +166,9 @@ public final class ChannelFormatter implements IChannelFormatter {
         loggableChannel = format.contains(Placeholder.CHANNEL_NAME.toString())
                 || format.contains(Placeholder.CHANNEL_NICK.toString());
 
-        format = format.replaceFirst(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
-        format = format.replaceFirst(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
-        format = format.replaceAll(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
+        format = format.replace(Placeholder.CHANNEL_NAME.toString(), this.channel.getFullName());
+        format = format.replace(Placeholder.CHANNEL_NICK.toString(), this.channel.getShortName());
+        format = format.replace(Placeholder.CHANNEL_COLOR.toString(), this.channel.getChatColor().toString());
 
         return format;
     }

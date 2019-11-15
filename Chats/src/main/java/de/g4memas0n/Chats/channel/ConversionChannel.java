@@ -21,7 +21,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: October 1st, 2019
+ * last change: November 15th, 2019
  */
 public final class ConversionChannel implements IChannel {
 
@@ -35,34 +35,11 @@ public final class ConversionChannel implements IChannel {
      */
     private static final String CONVERSION_PREFIX = "[CONVERSION]";
 
-    /**
-     * the default announce format. Used for all conversion channel announces.
-     */
     private static String announceFormat = "{color}{message}";
-
-    /**
-     * the default conversion format. Used for all conversions and conversion-logs.
-     */
     private static String channelFormat = "{color}[{sender}{color} -> {con-partner}{color}] {message}";
-
-    /**
-     * the twitter-style conversion format. Used for all conversion when the use-twitter-style option is enabled.
-     */
     private static String twitterStyleFormat = "{color}[{con-address} {con-partner}{color}] {message}";
-
-    /**
-     * the default conversion chat color. Used for all conversions.
-     */
     private static ChatColor channelColor = ChatColor.LIGHT_PURPLE;
-
-    /**
-     * the use-twitter-style option. Used to decide which format will be used for the conversion.
-     */
     private static boolean useTwitterStyle = true;
-
-    /**
-     * the default conversion formatter. Used to format all conversions.
-     */
     private static IConversionFormatter formatter = new ConversionFormatter();
 
     private final IChannelManager manager;
@@ -91,6 +68,20 @@ public final class ConversionChannel implements IChannel {
     @Override
     public @NotNull String getFullName() {
         return this.fullName;
+    }
+
+    @Override
+    public boolean setFullName(@NotNull final String fullName) {
+        if (this.fullName.equals(fullName)) {
+            return false;
+        }
+
+        if (!fullName.equals(ConversionChannel.buildName(this.chatters))) {
+            return false;
+        }
+
+        this.fullName = fullName;
+        return true;
     }
 
     @Override
@@ -258,7 +249,7 @@ public final class ConversionChannel implements IChannel {
         }
 
         this.chatters.add(chatter);
-        this.fullName = buildName(this.chatters);
+        this.manager.updateName(this.fullName, buildName(this.chatters));
         return true;
     }
 
@@ -269,13 +260,7 @@ public final class ConversionChannel implements IChannel {
         }
 
         this.chatters.remove(chatter);
-
-        if (this.chatters.size() < 2) {
-            this.manager.removeConversionChannel(this.fullName);
-            return true;
-        }
-
-        this.fullName = buildName(this.chatters);
+        this.manager.updateName(this.fullName, buildName(this.chatters));
         return true;
     }
 

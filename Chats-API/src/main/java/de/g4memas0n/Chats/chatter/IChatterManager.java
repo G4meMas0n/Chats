@@ -13,7 +13,7 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 4th, 2019
- * last change: October 1st, 2019
+ * last change: November 14th, 2019
  */
 public interface IChatterManager {
 
@@ -55,29 +55,29 @@ public interface IChatterManager {
      * @param playerUUID the player UUID of the chatter.
      * @return the chatter with the given player UUID or null if there is no chatter with the given player UUID.
      */
-    @Nullable IChatter getChatter(@NotNull final String playerUUID);
+    @Nullable IChatter getChatter(@NotNull final UUID playerUUID);
 
     /**
-     * Adds a new chatter to this chatter manager.
-     * @param chatter the chatter that should be added.
-     * @return true when the chatter was added as result of this call.
+     * Loads a new chatter and add it to this chatter manager.
+     * @param player the player of the chatter that should be loaded.
+     * @return true when the chatter was loaded and added as result of this call.
      */
-    boolean addChatter(@NotNull final IChatter chatter);
+    boolean loadChatter(@NotNull final Player player);
 
     /**
-     * Removes a chatter from this chatter manager.
-     * Gets the player UUID of the given player and removes them from this chatter manager.
+     * Unloads and removes a chatter from this chatter manager.
+     * Gets the player UUID of the given player and unload and removes them from this chatter manager.
      * When the chatter is in a conversion channel, the conversion channels will be removed from the channel manager.
-     * @param player the player of the chatter that should be removed.
-     * @return true when the chatter was removed as result of this call.
+     * @param player the player of the chatter that should be unloaded and removed.
+     * @return true when the chatter was unloaded and removed as result of this call.
      */
-    boolean removeChatter(@NotNull final Player player);
+    boolean unloadChatter(@NotNull final Player player);
 
     /**
-     * Removes a chatter from this chatter manager.
+     * Unloads and removes a chatter from this chatter manager.
      * When the chatter is in a conversion channel, the conversion channels will be removed from the channel manager.
-     * @param playerUUID the player UUID of the chatter that should be removed.
-     * @return true when the chatter was removed as result of this call
+     * @param playerUUID the player UUID of the chatter that should be unloaded and removed.
+     * @return true when the chatter was unloaded and removed as result of this call
      */
-    boolean removeChatter(@NotNull final String playerUUID);
+    boolean unloadChatter(@NotNull final UUID playerUUID);
 }

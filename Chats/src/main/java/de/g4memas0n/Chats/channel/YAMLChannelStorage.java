@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -19,10 +20,13 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: October 1st, 2019
+ * last change: November 15th, 2019
  */
 public final class YAMLChannelStorage implements IChannelStorage {
 
+    /**
+     * the yaml configuration paths of all saved channel options.
+     */
     private static final String PATH_FULL_NAME = "name";
     private static final String PATH_SHORT_NAME = "nick";
     private static final String PATH_COLOR = "color";
@@ -34,7 +38,7 @@ public final class YAMLChannelStorage implements IChannelStorage {
     private static final String PATH_FORMAT_CHANNEL = "format.channel";
     private static final String PATH_FORMAT_USE_CUSTOM = "format.use-custom";
 
-    private final HashMap<String, YamlConfiguration> configurations;
+    private final Map<String, YamlConfiguration> configurations;
     private File directory;
 
     public YAMLChannelStorage(@NotNull final File directory) throws IllegalArgumentException {
@@ -71,19 +75,14 @@ public final class YAMLChannelStorage implements IChannelStorage {
             throw new IOException("Failed to load files from directory: " + this.directory.getName());
         }
 
-        Chats instance = Chats.getInstance();
-
         for (File current : files) {
             try {
                 channels.add(this.load(current));
             } catch (InvalidStorageFileException ex) {
-                if (instance != null) {
-                    instance.getLogger().warning("Found illegal storage File: " + ex.getExceptionFile().getName());
-                }
+                Chats.getPluginLogger().warning("Found illegal storage File: " + ex.getExceptionFile().getName());
+
             } catch (IOException ex) {
-                if (instance != null) {
-                    instance.getLogger().warning("Failed to load File: " + current.getName());
-                }
+                Chats.getPluginLogger().warning("Failed to load File: " + current.getName());
             }
         }
 
@@ -194,14 +193,25 @@ public final class YAMLChannelStorage implements IChannelStorage {
             yamlConfig.save(file);
             return true;
         } catch (IOException ex) {
-            Chats instance = Chats.getInstance();
-
-            if (instance != null) {
-                instance.getLogger().warning("Failed to save channel file: " + file.getName());
-            }
+            Chats.getPluginLogger().warning("Failed to save channel file: " + file.getName());
 
             return false;
         }
+    }
+
+    @Override
+    public boolean delete(@NotNull final IChannel channel) throws IllegalArgumentException {
+        if (!channel.isPersistChannel()) {
+            throw new IllegalArgumentException("Invalid Channel! channel must be a persist channel.");
+        }
+
+        File file = new File(this.directory, this.getFileName(channel));
+
+        if (!file.exists()) {
+            return false;
+        }
+
+        return file.delete();
     }
 
     private @NotNull String getFileName(@NotNull final IChannel channel) {
@@ -212,11 +222,7 @@ public final class YAMLChannelStorage implements IChannelStorage {
         try {
             return ChatColor.valueOf(colorName);
         } catch (IllegalArgumentException ex) {
-            Chats instance = Chats.getInstance();
-
-            if (instance != null) {
-                instance.getLogger().warning("Invalid color name in channel file: " + fileName);
-            }
+            Chats.getPluginLogger().warning("Invalid color name in channel file: " + fileName);
 
             return ChatColor.WHITE;
         }

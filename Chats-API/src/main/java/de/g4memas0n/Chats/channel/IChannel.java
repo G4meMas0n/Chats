@@ -14,7 +14,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: October 1st, 2019
+ * last change: November 15th, 2019
  */
 public interface IChannel {
 
@@ -24,6 +24,14 @@ public interface IChannel {
      * @return the full name of this channel.
      */
     @NotNull String getFullName();
+
+    /**
+     * Sets a new full name for this channel.
+     * @param fullName the new full name for this channel.
+     * @return true when the full name was changed as result of this call.
+     *         false when the full name was not changed or when this channel do not support this feature.
+     */
+    boolean setFullName(@NotNull final String fullName);
 
     /**
      * Returns the listed short name of this channel.

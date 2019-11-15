@@ -24,10 +24,13 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 10th, 2019
- * last change: October 1st, 2019
+ * last change: November 15th, 2019
  */
 public final class YAMLChatterStorage implements IChatterStorage {
 
+    /**
+     * the yaml configuration paths of all saved chatter options.
+     */
     private static final String PATH_LAST_PLAYER_NAME = "last-name"; // Currently unused.
     private static final String PATH_ACTIVE_CHANNEL = "active-channel";
     private static final String PATH_CHANNELS = "channels";
@@ -37,8 +40,8 @@ public final class YAMLChatterStorage implements IChatterStorage {
     private IChannelManager channelManager;
     private File directory;
 
-    public YAMLChatterStorage(@NotNull final File directory,
-                              @NotNull final IChannelManager channelManager) throws IllegalArgumentException {
+    YAMLChatterStorage(@NotNull final File directory,
+                       @NotNull final IChannelManager channelManager) throws IllegalArgumentException {
         this.configurations = new HashMap<>();
         this.channelManager = channelManager;
         this.setDirectory(directory);
@@ -175,6 +178,17 @@ public final class YAMLChatterStorage implements IChatterStorage {
 
             return false;
         }
+    }
+
+    @Override
+    public boolean delete(@NotNull final IChatter chatter) {
+        File file = new File(this.directory, this.getFileName(chatter.getPlayer()));
+
+        if (!file.exists()) {
+            return false;
+        }
+
+        return file.delete();
     }
 
     private @NotNull String getFileName(@NotNull final Player player) {

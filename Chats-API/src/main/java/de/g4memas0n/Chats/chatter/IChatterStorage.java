@@ -14,7 +14,7 @@ import java.io.IOException;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 4th, 2019
- * last change: September 13th, 2019
+ * last change: November 15th, 2019
  */
 public interface IChatterStorage {
 
@@ -61,4 +61,11 @@ public interface IChatterStorage {
      * @return true when the file was updated or new created as result of this call.
      */
     boolean update(@NotNull final IChatter chatter);
+
+    /**
+     * Deletes the file of the given chatter when it exists.
+     * @param chatter the chatter that should be deleted from this storage.
+     * @return true when the chatters file was deleted.
+     */
+    boolean delete(@NotNull final IChatter chatter);
 }

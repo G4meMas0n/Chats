@@ -1,10 +1,8 @@
 package de.g4memas0n.Chats.channel;
 
-import de.g4memas0n.Chats.chatter.IChatter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * Channel Manager Interface that defines a channel manager representation.
@@ -13,7 +11,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 4th, 2019
- * last change: October 1st, 2019
+ * last change: November 15th, 2019
  */
 public interface IChannelManager {
 
@@ -70,15 +68,6 @@ public interface IChannelManager {
     boolean hasConversionChannel(@NotNull final String fullName);
 
     /**
-     * Returns if this channel manager contains a conversion channel with the given chatters.
-     * Builds the full name of the conversion channel with the given chatters and checks if this channel manager
-     * contains a conversion channel with this full name.
-     * @param chatters the chatters that are in the conversion channel.
-     * @return true when a channel with the given chatters was found in this channel manager.
-     */
-    boolean hasConversionChannel(@NotNull final Set<IChatter> chatters);
-
-    /**
      * Returns a collection of all listed channels in this channel manager.
      * @return all channels of this channel manager.
      */
@@ -92,14 +81,12 @@ public interface IChannelManager {
     @Nullable IChannel getChannel(@NotNull final String fullName);
 
     /**
-     * Returns the conversion channel with the given chatters if they exist.
-     * Builds the full name of the conversion channel with the given chatters and search in this channel manager for a
-     * conversion channel with this full name.
-     * @param chatters the chatters that are in the conversion channel.
-     * @return the conversion channel with the given chatters or null if there is no conversion channel with the given
-     *         chatters or the founded channel is no conversion channel.
+     * Returns the conversion channel with the given full channel name if they exist.
+     * @param fullName the full name of the conversion channel.
+     * @return the conversion channel with the given full name or null if there is no conversion channel with the given
+     *         full name or the founded channel is no conversion channel.
      */
-    @Nullable IChannel getConversionChannel(@NotNull final Set<IChatter> chatters);
+    @Nullable IChannel getConversionChannel(@NotNull final String fullName);
 
     /**
      * Adds a new channel to this channel manager.
@@ -117,20 +104,10 @@ public interface IChannelManager {
     boolean removeChannel(@NotNull final String fullName) throws IllegalArgumentException;
 
     /**
-     * Removes the conversion channel with the given full name from this channel manager if the channel exists.
-     * @param fullName the full name of the conversion channel that should be removed.
-     * @return true when the conversion channel was removed as result of this call, false when the founded channel is
-     *         not a conversion channel.
+     * Updates the registered channel with the old full name to the new full name.
+     * @param oldName the old full name of the channel.
+     * @param newName the new full name of the channel.
+     * @return true when the registered channel with the old full name was updated to the new full name.
      */
-    boolean removeConversionChannel(@NotNull final String fullName);
-
-    /**
-     * Removes the conversion channel with the given chatters from this channel manager if the channel exists.
-     * Builds the full name of the conversion channel with the given chatters and removes them from this channel
-     * manager if the channel exists.
-     * @param chatters the chatters that are in the conversion channel that should be removed.
-     * @return true when the conversion channel was removed as result of this call, false when the founded channel is
-     *         not a conversion channel.
-     */
-    boolean removeConversionChannel(@NotNull final Set<IChatter> chatters);
+    boolean updateName(@NotNull final String oldName, @NotNull final String newName);
 }

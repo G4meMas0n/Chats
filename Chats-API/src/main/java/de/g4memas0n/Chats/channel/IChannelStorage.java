@@ -14,7 +14,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 4th, 2019
- * last change: October 1st, 2019
+ * last change: November 15th, 2019
  */
 public interface IChannelStorage {
 
@@ -54,7 +54,15 @@ public interface IChannelStorage {
      * Updates the file of the given channel or creates a new file for the given channel.
      * @param channel the channel that should be updated or saved.
      * @return true when the file was updated or new created as result of this call.
-     * @throws IllegalArgumentException Thrown when the given channel is non persist channel.
+     * @throws IllegalArgumentException Thrown when the given channel is a non persist channel.
      */
     boolean update(@NotNull final IChannel channel) throws IllegalArgumentException;
+
+    /**
+     * Deletes the file of the given channel when it exists.
+     * @param channel the channel that should be deleted from this storage.
+     * @return true when the channel file was deleted.
+     * @throws IllegalArgumentException Thrown when the given channel is a non persist channel.
+     */
+    boolean delete(@NotNull final IChannel channel) throws IllegalArgumentException;
 }

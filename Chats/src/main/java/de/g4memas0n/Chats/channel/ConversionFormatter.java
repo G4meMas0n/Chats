@@ -14,7 +14,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: September 7th, 2019
- * last change: September 11th, 2019
+ * last change: November 13th, 2019
  */
 public final class ConversionFormatter implements IConversionFormatter {
 
@@ -51,7 +51,7 @@ public final class ConversionFormatter implements IConversionFormatter {
     public @NotNull String formatAnnounce(@NotNull final String message) {
         String formatted = this.preAnnounceFormat;
 
-        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+        formatted = formatted.replace(Placeholder.MESSAGE.toString(), message);
 
         return Placeholder.stripPlaceholders(formatted);
     }
@@ -83,9 +83,9 @@ public final class ConversionFormatter implements IConversionFormatter {
                                       @NotNull final String message) {
         String formatted = this.preChannelFormat;
 
-        formatted = formatted.replaceFirst(Placeholder.CON_SENDER.toString(), sender.getPlayer().getDisplayName());
-        formatted = formatted.replaceFirst(Placeholder.CON_PARTNER.toString(), this.joinNames(partners));
-        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+        formatted = formatted.replace(Placeholder.CON_SENDER.toString(), sender.getPlayer().getDisplayName());
+        formatted = formatted.replace(Placeholder.CON_PARTNER.toString(), this.joinNames(partners));
+        formatted = formatted.replace(Placeholder.MESSAGE.toString(), message);
 
         return Placeholder.stripPlaceholders(formatted);
     }
@@ -95,8 +95,8 @@ public final class ConversionFormatter implements IConversionFormatter {
                                       @NotNull final String message) {
         String formatted = this.preFromFormat;
 
-        formatted = formatted.replaceFirst(Placeholder.CON_PARTNER.toString(), sender.getPlayer().getDisplayName());
-        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+        formatted = formatted.replace(Placeholder.CON_PARTNER.toString(), sender.getPlayer().getDisplayName());
+        formatted = formatted.replace(Placeholder.MESSAGE.toString(), message);
 
         return Placeholder.stripPlaceholders(formatted);
     }
@@ -106,8 +106,8 @@ public final class ConversionFormatter implements IConversionFormatter {
                                     @NotNull final String message) {
         String formatted = this.preToFormat;
 
-        formatted = formatted.replaceFirst(Placeholder.CON_PARTNER.toString(), this.joinNames(partners));
-        formatted = formatted.replaceFirst(Placeholder.MESSAGE.toString(), message);
+        formatted = formatted.replace(Placeholder.CON_PARTNER.toString(), this.joinNames(partners));
+        formatted = formatted.replace(Placeholder.MESSAGE.toString(), message);
 
         return Placeholder.stripPlaceholders(formatted);
     }
@@ -160,7 +160,7 @@ public final class ConversionFormatter implements IConversionFormatter {
         format = format.replaceAll(Placeholder.CHANNEL_COLOR.toString(),
                 ConversionChannel.getDefaultChannelColor().toString());
         //TODO: Use Resource Bundle for getting correct conversion address from prefix
-        format = format.replaceFirst(Placeholder.CON_ADDRESS.toString(), "From");
+        format = format.replace(Placeholder.CON_ADDRESS.toString(), "From");
 
         return format;
     }
@@ -174,7 +174,7 @@ public final class ConversionFormatter implements IConversionFormatter {
         format = format.replaceAll(Placeholder.CHANNEL_COLOR.toString(),
                 ConversionChannel.getDefaultChannelColor().toString());
         //TODO: Use Resource Bundle for getting correct conversion address to prefix
-        format = format.replaceFirst(Placeholder.CON_ADDRESS.toString(), "To");
+        format = format.replace(Placeholder.CON_ADDRESS.toString(), "To");
 
         return format;
     }
