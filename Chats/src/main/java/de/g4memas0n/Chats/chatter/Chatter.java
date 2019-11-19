@@ -18,7 +18,7 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: October 1st, 2019
+ * last change: November 19th, 2019
  */
 public final class Chatter extends AbstractChatter implements IChatter {
 
@@ -86,7 +86,7 @@ public final class Chatter extends AbstractChatter implements IChatter {
         return true;
     }
 
-    protected void _setActiveChannel(@NotNull final IChannel channel) {
+    void _setActiveChannel(@NotNull final IChannel channel) {
         if (this.activeChannel.equals(channel)) {
             return;
         }
@@ -131,20 +131,6 @@ public final class Chatter extends AbstractChatter implements IChatter {
         return this.channels;
     }
 
-    protected void _setChannels(@NotNull final Set<IChannel> channels) {
-        if (this.channels.equals(channels)) {
-            return;
-        }
-
-        for (IChannel current : this.channels) {
-            this._removeChannel(current);
-        }
-
-        for (IChannel current : channels) {
-            this._addChannel(current);
-        }
-    }
-
     @Override
     public boolean addChannel(@NotNull final IChannel channel) {
         if (this.channels.contains(channel)) {
@@ -164,7 +150,7 @@ public final class Chatter extends AbstractChatter implements IChatter {
         return true;
     }
 
-    protected void _addChannel(@NotNull final IChannel channel) {
+    void _addChannel(@NotNull final IChannel channel) {
         if (this.channels.contains(channel)) {
             return;
         }
@@ -203,7 +189,7 @@ public final class Chatter extends AbstractChatter implements IChatter {
         return true;
     }
 
-    protected void _removeChannel(@NotNull final IChannel channel) {
+    void _removeChannel(@NotNull final IChannel channel) {
         if (!this.channels.contains(channel)) {
             return;
         }
@@ -220,7 +206,7 @@ public final class Chatter extends AbstractChatter implements IChatter {
         return this.ignores;
     }
 
-    protected void _setIgnores(@NotNull final Set<UUID> chatters) {
+    void _setIgnores(@NotNull final Set<UUID> chatters) {
         if (this.ignores.equals(chatters)) {
             return;
         }

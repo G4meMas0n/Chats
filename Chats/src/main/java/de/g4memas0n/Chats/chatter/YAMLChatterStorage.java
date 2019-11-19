@@ -1,6 +1,7 @@
 package de.g4memas0n.Chats.chatter;
 
 import de.g4memas0n.Chats.Chats;
+import de.g4memas0n.Chats.IChats;
 import de.g4memas0n.Chats.exception.InvalidStorageFileException;
 import de.g4memas0n.Chats.channel.IChannel;
 import de.g4memas0n.Chats.channel.IChannelManager;
@@ -24,7 +25,7 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 10th, 2019
- * last change: November 15th, 2019
+ * last change: November 19th, 2019
  */
 public final class YAMLChatterStorage implements IChatterStorage {
 
@@ -86,7 +87,7 @@ public final class YAMLChatterStorage implements IChatterStorage {
         YamlConfiguration yamlConfig = new YamlConfiguration();
         File file = new File(this.directory, this.getFileName(player));
 
-        Chats instance = Chats.getInstance();
+        IChats instance = Chats.getInstance();
 
         Chatter chatter = new Chatter(player, this);
 
@@ -107,20 +108,20 @@ public final class YAMLChatterStorage implements IChatterStorage {
         }
 
         if (yamlConfig.contains(PATH_CHANNELS)) {
-            final Set<IChannel> channels = new HashSet<>();
             final Set<String> existing = new HashSet<>();
 
             for (String current : yamlConfig.getStringList(PATH_CHANNELS)) {
-                if (!this.channelManager.hasPersistChannel(current)) {
+                IChannel channel = this.channelManager.getChannel(current);
+
+                if (channel == null || !channel.isPersistChannel()) {
                     continue;
                 }
 
-                channels.add(this.channelManager.getChannel(current));
+                chatter._addChannel(channel);
                 existing.add(current);
             }
 
             yamlConfig.set(PATH_CHANNELS, existing);
-            chatter._setChannels(channels);
         }
 
         if (yamlConfig.contains(PATH_ACTIVE_CHANNEL)) {

@@ -20,7 +20,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: November 15th, 2019
+ * last change: November 19th, 2019
  */
 public final class GlobalChannel implements IChannel {
 
@@ -108,7 +108,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setShortName(@NotNull final String shortName) {
+    void _setShortName(@NotNull final String shortName) {
         if (this.shortName.equals(shortName)) {
             return;
         }
@@ -132,7 +132,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setChatColor(@NotNull final ChatColor color) {
+    void _setChatColor(@NotNull final ChatColor color) {
         if (this.chatColor == color) {
             return;
         }
@@ -202,7 +202,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setCrossWorld(final boolean enabled) {
+    void _setCrossWorld(final boolean enabled) {
         if (this.crossWorld == enabled) {
             return;
         }
@@ -231,7 +231,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setDistance(final int distance) {
+    void _setDistance(final int distance) {
         if (this.distance == distance) {
             return;
         }
@@ -260,7 +260,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setPassword(@NotNull final String password) {
+    void _setPassword(@NotNull final String password) {
         if (this.password.equals(password)) {
             return;
         }
@@ -295,7 +295,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setAnnounceFormat(@NotNull final String format) {
+    void _setAnnounceFormat(@NotNull final String format) {
         if (this.customAnnounceFormat.equals(format)) {
             return;
         }
@@ -324,7 +324,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setBroadcastFormat(@NotNull final String format) {
+    void _setBroadcastFormat(@NotNull final String format) {
         if (this.customBroadcastFormat.equals(format)) {
             return;
         }
@@ -353,7 +353,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setChannelFormat(@NotNull final String format) {
+    void _setChannelFormat(@NotNull final String format) {
         if (this.customChannelFormat.equals(format)) {
             return;
         }
@@ -375,7 +375,7 @@ public final class GlobalChannel implements IChannel {
         return true;
     }
 
-    protected void _setUseCustomFormat(final boolean enabled) {
+    void _setUseCustomFormat(final boolean enabled) {
         if (this.useCustomFormat == enabled) {
             return;
         }

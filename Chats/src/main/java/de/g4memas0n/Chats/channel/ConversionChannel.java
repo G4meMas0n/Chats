@@ -21,7 +21,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: November 15th, 2019
+ * last change: November 19th, 2019
  */
 public final class ConversionChannel implements IChannel {
 
@@ -249,7 +249,7 @@ public final class ConversionChannel implements IChannel {
         }
 
         this.chatters.add(chatter);
-        this.manager.updateName(this.fullName, buildName(this.chatters));
+        this.updateChannel();
         return true;
     }
 
@@ -260,8 +260,19 @@ public final class ConversionChannel implements IChannel {
         }
 
         this.chatters.remove(chatter);
-        this.manager.updateName(this.fullName, buildName(this.chatters));
+        this.updateChannel();
         return true;
+    }
+
+    private void updateChannel() {
+        final Set<IChatter> partners = new HashSet<>(this.chatters);
+        for (IChatter current : partners) {
+            current.setLastConversionPartner(partners);
+        }
+
+        if (!this.manager.updateName(this.fullName, buildName(this.chatters))) {
+            this.manager.removeChannel(this.fullName);
+        }
     }
 
     // Method for performing Chats:
