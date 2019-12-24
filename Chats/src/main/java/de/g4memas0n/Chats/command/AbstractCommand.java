@@ -16,12 +16,17 @@ import java.util.Map;
  * @since 0.0.1-SNAPSHOT
  *
  * created: September 13th, 2019
- * last change: November 13th, 2019
+ * last change: November 19th, 2019
  */
 public abstract class AbstractCommand implements TabExecutor {
 
+    private static final String REGISTER_FAILURE = "Failed to register TabExecutor for Command '%s': %s.";
+    private static final String REGISTER_SUCCESS = "TabExecutor successfully registered for Command '%s'.";
+    private static final String UNREGISTER_FAILURE = "Failed to unregister TabExecutor for Command '%s': %s.";
+    private static final String UNREGISTER_SUCCESS = "TabExecutor successfully unregistered for Command '%s'.";
+
     /**
-     *
+     * Map of all registered TabExecutors with their name. Used to update all these and to get an another command.
      */
     private static Map<String, AbstractCommand> commands = new HashMap<>();
 
@@ -31,15 +36,22 @@ public abstract class AbstractCommand implements TabExecutor {
     private final int maxArgs;
 
     private PluginCommand command;
+    private IChats instance;
 
-    protected IChats instance;
+    AbstractCommand(@NotNull final String name,
+                    @NotNull final String permission,
+                    final int minArgs,
+                    final int maxArgs) throws IllegalArgumentException {
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("Argument 'name' can not be empty.");
+        }
 
-    protected AbstractCommand(@NotNull final String name,
-                              @NotNull final String permission,
-                              final int minArgs,
-                              final int maxArgs) throws IllegalArgumentException {
+        if (AbstractCommand.commands.containsKey(name)) {
+            throw new IllegalArgumentException("Argument 'name' already registered for an another TabExecutor.");
+        }
+
         if (minArgs < 0) {
-            throw new IllegalArgumentException("the count of minimum arguments is not allowed to be negative.");
+            throw new IllegalArgumentException("Argument 'minArgs' can not be negative.");
         }
 
         this.name = name;
@@ -49,43 +61,68 @@ public abstract class AbstractCommand implements TabExecutor {
     }
 
     public final void register(@NotNull final Chats instance) {
+        final boolean debug = instance.getConfigManager().isLogDebug();
+
+        if (this.instance != null && this.command != null) {
+            this.instance.getLogger().warning(String.format(REGISTER_FAILURE, this.name, "TabExecutor already registered"));
+            return;
+        }
+
         this.instance = instance;
         this.command = instance.getCommand(this.name);
 
-        if (this.command != null) {
-            this.command.setExecutor(this);
-            this.command.setTabCompleter(this);
+        if (this.command == null) {
+            this.instance.getLogger().warning(String.format(REGISTER_FAILURE, this.name, "Command not registered for this plugin"));
+            return;
+        }
 
-            AbstractCommand.commands.put(this.name, this);
+        this.command.setExecutor(this);
+        this.command.setTabCompleter(this);
+        this.updateCommand();
 
-            if (this.instance.getConfigManager().isLogDebug()) {
-                this.instance.getLogger().info("Successfully registered Command '" + this.name + "'.");
-            }
-        } else {
-            this.instance.getLogger().warning("Failed to register Command '" + this.name + "'.");
+        AbstractCommand.commands.put(this.name, this);
+
+        if (debug) {
+            this.instance.getLogger().info(String.format(REGISTER_SUCCESS, this.name));
         }
     }
 
     public final void unregister() {
+        if (this.instance == null || this.command == null) {
+            Chats.getPluginLogger().warning(String.format(UNREGISTER_FAILURE, this.name, "TabExecutor already unregistered"));
+        }
+
+        final boolean debug = this.instance.getConfigManager().isLogDebug();
+
         this.command.setExecutor(null);
         this.command.setTabCompleter(null);
         this.command = null;
 
         AbstractCommand.commands.remove(this.name);
 
-        if (this.instance.getConfigManager().isLogDebug()) {
-            this.instance.getLogger().info("Successfully unregistered Command '" + this.name + "'.");
+        if (debug) {
+            this.instance.getLogger().info(String.format(UNREGISTER_SUCCESS, this.name));
         }
 
         this.instance = null;
     }
 
-    protected final @Nullable AbstractCommand getCommand(@NotNull final String name) {
-        if (AbstractCommand.commands.containsKey(name)) {
-            return AbstractCommand.commands.get(name);
-        }
+    /**
+     * Returns the instance of the plugins main class.
+     * As long as the command is registered, this method will not return null.
+     * @return the plugin main class instance.
+     */
+    protected final @NotNull IChats getInstance() {
+        return this.instance;
+    }
 
-        return null;
+    /**
+     * Returns the Command TabExecutor implementation of the given command name.
+     * @param name the name of the command.
+     * @return the Command TabExecutor when it is registered, null otherwise.
+     */
+    protected final @Nullable AbstractCommand getExecutor(@NotNull final String name) {
+        return AbstractCommand.commands.get(name);
     }
 
     protected final @NotNull String getName() {
@@ -108,26 +145,24 @@ public abstract class AbstractCommand implements TabExecutor {
         return this.maxArgs;
     }
 
-    protected final boolean areArgsInRange(final int countArgs) {
+    protected final boolean isArgsInRange(final int countArgs) {
         return this.maxArgs > 0 ? countArgs >= this.minArgs && countArgs <= this.maxArgs : countArgs >= this.minArgs;
     }
 
-    /*
-    public static boolean updatePermissionMessage(@NotNull final String permissionMessage) {
-        boolean successfully = true;
-        int count = 0;
-
-        for (AbstractCommand current : AbstractCommand.commands.values()) {
-            count++;
-
-            if (current.command != null) {
-                current.command.setPermissionMessage(permissionMessage);
-            } else {
-                successfully = false;
-            }
+    private void updateCommand() {
+        if (this.command == null) {
+            return;
         }
 
-        return count > 0 && successfully;
+        //TODO: Insert localized Command Description, Usage and Permission Message.
+        this.command.setDescription("");
+        this.command.setUsage("");
+        this.command.setPermissionMessage("");
     }
-     */
+
+    public static void updateCommands() {
+        for (AbstractCommand current : AbstractCommand.commands.values()) {
+            current.updateCommand();
+        }
+    }
 }
