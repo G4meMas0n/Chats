@@ -1,13 +1,18 @@
 package de.g4memas0n.Chats.channel;
 
+import de.g4memas0n.Chats.chat.ChatFormatter;
+import de.g4memas0n.Chats.chat.ChatPerformer;
+import de.g4memas0n.Chats.chat.IChatFormatter;
+import de.g4memas0n.Chats.chat.IChatPerformer;
 import de.g4memas0n.Chats.chatter.IChatter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
-import java.util.Collection;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Representation of a Chatter Manager, implements the {@link IChannelManager} interface.
@@ -16,84 +21,78 @@ import java.util.Map;
  * @since 0.0.1-SNAPSHOT
  *
  * created: November 14th, 2019
- * last change: November 15th, 2019
+ * changed: February 2nd, 2020
  */
 public final class ChannelManager implements IChannelManager {
 
+    /**
+     * the folder name for the channels directory.
+     */
+    private static final String DIRECTORY_NAME = "channels";
+
     private final Map<String, IChannel> channels;
-    private final IChannelStorage storage;
-    private String defaultChannel;
+    private final File directory;
 
-    public ChannelManager(@NotNull final File directory) {
+    private final IChatFormatter formatter;
+    private final IChatPerformer performer;
+
+    private IChannel def;
+
+    public ChannelManager(@NotNull final File parent) throws IOException, IllegalArgumentException {
+        if (!parent.isDirectory()) {
+            throw new IllegalArgumentException("Parent File must be a directory");
+        }
+
         this.channels = new HashMap<>();
-        this.storage = new YAMLChannelStorage(directory);
+        this.directory = new File(parent, DIRECTORY_NAME);
+
+        this.formatter = new ChatFormatter();
+        this.performer = new ChatPerformer(this.formatter);
+
+        this.reload();
     }
 
     @Override
-    public @NotNull IChannelStorage getChannelStorage() {
-        return this.storage;
+    public @NotNull IChatFormatter getFormatter() {
+        return this.formatter;
     }
 
     @Override
-    public @NotNull IChannel getDefaultChannel() {
-        return this.channels.get(this.defaultChannel);
+    public @NotNull IChatPerformer getPerformer() {
+        return this.performer;
     }
 
+    // Default Channel Methods:
     @Override
-    public boolean setDefaultChannel(@NotNull final IChannel channel) throws IllegalArgumentException {
-        if (!this.hasChannel(channel.getFullName())) {
-            throw new IllegalArgumentException("Invalid channel name! Channel must be registered in this manager.");
+    public @NotNull IChannel getDefault() {
+        if (this.def == null) {
+            throw new IllegalStateException("Missing default channel");
         }
 
-        if (!channel.isPersistChannel()) {
-            throw new IllegalArgumentException("Invalid channel type! Channel must be a persist channel.");
+        return this.def;
+    }
+
+    public boolean setDefault(@NotNull final IChannel channel) throws IllegalArgumentException {
+        if (!channel.isPersist()) {
+            throw new IllegalArgumentException("Channel must be persistent");
         }
 
-        if (this.defaultChannel.equals(channel.getFullName())) {
+        if (channel.equals(this.def)) {
             return false;
         }
 
-        this.defaultChannel = channel.getFullName();
+        if (!this.channels.containsKey(channel.getFullName())) {
+            this.channels.put(channel.getFullName(), channel);
+        }
+
+        this.def = channel;
         return true;
     }
 
+    // Channel Collection Methods:
     @Override
-    public boolean setDefaultChannel(@NotNull final String fullName) throws IllegalArgumentException {
-        IChannel channel = this.channels.get(fullName);
-
-        if (channel == null) {
-            throw new IllegalArgumentException("Invalid channel name! Channel must be registered in this manager.");
-        }
-
-        return this.setDefaultChannel(channel);
-    }
-
-    @Override
-    public boolean hasChannel(@NotNull final String fullName) {
-        return this.channels.containsKey(fullName);
-    }
-
-    @Override
-    public boolean hasPersistChannel(@NotNull final String fullName) {
-        if (this.channels.containsKey(fullName)) {
-            return this.channels.get(fullName).isPersistChannel();
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean hasConversionChannel(@NotNull final String fullName) {
-        if (this.channels.containsKey(fullName)) {
-            return this.channels.get(fullName).isConversionChannel();
-        }
-
-        return false;
-    }
-
-    @Override
-    public @NotNull Collection<IChannel> getChannels() {
-        return this.channels.values();
+    public @NotNull Set<IChannel> getChannels() {
+        return new HashSet<>(this.channels.values());
     }
 
     @Override
@@ -102,14 +101,8 @@ public final class ChannelManager implements IChannelManager {
     }
 
     @Override
-    public @Nullable IChannel getConversionChannel(@NotNull final String fullName) {
-        IChannel channel = this.channels.get(fullName);
-        return channel != null && channel.isConversionChannel() ? channel : null;
-    }
-
-    @Override
     public boolean addChannel(@NotNull final IChannel channel) {
-        if (this.hasChannel(channel.getFullName())) {
+        if (this.channels.containsKey(channel.getFullName())) {
             return false;
         }
 
@@ -117,48 +110,111 @@ public final class ChannelManager implements IChannelManager {
         return true;
     }
 
-    @Override
-    public boolean removeChannel(@NotNull final String fullName) throws IllegalArgumentException {
-        if (this.defaultChannel.equals(fullName)) {
-            throw new IllegalArgumentException("Invalid channel name! The default channel can not be removed");
+    public boolean removeChannel(@NotNull final IChannel channel) throws IllegalArgumentException {
+        if (channel.equals(this.def)) {
+            throw new IllegalArgumentException("Default channel can not be removed");
         }
 
-        final IChannel channel = this.channels.remove(fullName);
-
-        if (channel == null) {
+        if (!this.channels.containsKey(channel.getFullName())) {
             return false;
         }
 
-        for (IChatter current : new HashSet<>(channel.getChatters())) {
-            channel.removeChatter(current);
+        for (IChatter current : channel.getChatters()) {
             current.removeChannel(channel);
         }
 
-        if (channel.isPersistChannel()) {
-            return this.storage.delete(channel);
-        } else {
-            return true;
+        if (channel.isPersist()) {
+            channel.delete();
         }
+
+        return true;
     }
 
     @Override
-    public boolean updateName(@NotNull final String oldName, @NotNull final String newName) {
-        if (this.hasChannel(newName)) {
+    public boolean hasChannel(@NotNull final String fullName) {
+        return this.channels.containsKey(fullName);
+    }
+
+    @Override
+    public boolean hasPersist(@NotNull final String fullName) {
+        if (!this.channels.containsKey(fullName)) {
             return false;
         }
 
-        final IChannel channel = this.channels.get(oldName);
+        return this.channels.get(fullName).isPersist();
+    }
 
-        if (channel == null) {
+    @Override
+    public boolean hasConversation(@NotNull final String fullName) {
+        if (!this.channels.containsKey(fullName)) {
             return false;
         }
 
-        if (channel.setFullName(newName)) {
-            this.channels.remove(oldName);
-            this.channels.put(newName, channel);
-            return true;
-        } else {
-            return false;
+        return this.channels.get(fullName).isConversation();
+    }
+
+    @Override
+    public @NotNull IChannel create(@NotNull final String fullName) throws IllegalArgumentException {
+        return new StandardChannel(this.formatter, this.performer, fullName);
+    }
+
+    @Override
+    public @NotNull IChannel createPersist(@NotNull final String fullName) throws IllegalArgumentException {
+        final File file = this.getFile(fullName);
+
+        if (file.exists()) {
+            throw new IllegalArgumentException("Storage file for persist channel '" + fullName + "' already exists");
         }
+
+        return new PersistChannel(this.formatter, this.performer, this.getFile(fullName));
+    }
+
+    @Override
+    public @NotNull IChannel createConversation(@NotNull final IChatter first, @NotNull final IChatter second) {
+        return new ConversationChannel(this.formatter, this.performer, first, second);
+    }
+
+    public void reload() throws IOException {
+        final File[] files = this.directory.listFiles(File::isFile);
+
+        if (files == null) {
+            throw new IOException("Failed to load files from directory " + this.directory.getName());
+        }
+
+        this.channels.clear();
+
+        for (final File current : files) {
+            try {
+                final IChannel channel = new PersistChannel(this.formatter, this.performer, current);
+
+                channel.reload();
+
+                this.addChannel(channel);
+            } catch (IllegalArgumentException ignored) {
+                // This should never be the case here.
+            }
+        }
+
+        if (this.def != null) {
+            try {
+                IChannel channel;
+
+                if (this.channels.containsKey(this.def.getFullName())) {
+                    channel = this.channels.get(this.def.getFullName());
+                } else {
+                    channel = this.createPersist(this.def.getFullName());
+
+                    channel.save();
+                }
+
+                this.setDefault(channel);
+            } catch (IllegalArgumentException ignored) {
+                // This should never be the case here.
+            }
+        }
+    }
+
+    private @NotNull File getFile(@NotNull final String name) {
+        return new File(this.directory, name + ".yml");
     }
 }

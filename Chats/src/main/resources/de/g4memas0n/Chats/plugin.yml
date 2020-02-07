@@ -1,0 +1,140 @@
+main: de.g4memas0n.Chats.Chats
+name: Chats
+version: 0.1.0-SNAPSHOT
+description: A Plugin that provides a channel based chat.
+author: G4meMas0n
+api-version: '1.15'
+
+softdepend:
+  - Vault
+
+commands:
+  chat:
+    description: Sends a message in a channel.
+    permission: chats.channel.speak
+  focus:
+    description: Focuses a new channel.
+    permission: chats.channel.focus
+  ignore:
+    description: Ignores or unignores a chatter.
+    aliases: [unignore]
+    permission: chats.chatter.ignore
+  join:
+    description: Joins a new channel.
+    permission: chats.channel.join
+  leave:
+    description: Leaves a channel.
+    permission: chats.channel.leave
+  msg:
+    description: Starts a conversation with or sends a private message to a chatter.
+    aliases: [pm, whisper, w, tell]
+    permission: chats.chatter.msg
+  reply:
+    description: Starts a conversation with or sends a private message to the last conversation partner.
+    aliases: [r]
+    permission: chats.chatter.msg
+
+permissions:
+  chats.admin.reload:
+    description: Allows to access the reload command.
+    default: op
+  chats.admin.reload.channels:
+    description: Allows to reload all channels.
+    default: false
+  chats.admin.reload.chatters:
+    description: Allows to reload all chatters.
+    default: false
+  chats.admin.reload.config:
+    description: Allows to reload the config.
+    default: op
+  chats.admin.reload.*:
+    description: Wildcard Permission, that allows to reload all reload types.
+    default: false
+    children:
+      chats.admin.reload: true
+      chats.admin.reload.channels: true
+      chats.admin.reload.chatters: true
+      chats.admin.reload.config: true
+
+  chats.channel.focus:
+    description: Allows to access the channel focus command.
+    default: true
+  chats.channel.focus.all:
+    description: Allows to focus all channels.
+    default: op
+    children:
+      chats.channel.focus: true
+
+  chats.channel.join:
+    description: Allows to access the channel join command.
+    default: true
+  chats.channel.join.all:
+    description: Allows to join all channels.
+    default: op
+    children:
+      chats.channel.join: true
+
+  chats.channel.leave:
+    description: Allows to access the channel leave command.
+    default: true
+  chats.channel.leave.all:
+    description: Allos to leave all channels.
+    default: op
+    children:
+      chats.channel.leave: true
+
+  chats.channel.modify:
+    description: Allows to access the channel modify command.
+    default: op
+  chats.channel.modify.all:
+    description: Allows to modify all channels.
+    default: op
+    children:
+      chats.channel.modify: true
+      chats.channel.modify.own: true
+  chats.channel.modify.own:
+    description: Allows to modify owning channels.
+    default: op
+    children:
+      chats.channel.modify: true
+
+  chats.channel.speak:
+    description: Allows to speak and to access the chat command.
+    default: true
+  chats.channel.speak.all:
+    description: Allos to speak in all channels.
+    default: op
+    children:
+      chats.channel.speak: true
+
+  chats.chatter.ignore:
+    description: Allows to ignore or unignore chatters.
+    default: true
+  chats.except.ignore:
+    description: Allows to be excepted from ignore actions.
+    default: op
+  chats.except.ignore.bypass:
+    description: Allows to bypass the ignore exceptions.
+    default: false
+  chats.except.ignore.*:
+    description: Wildcard permission, that allows to be excepted and bypass ignore actions.
+    default: false
+    children:
+      chats.except.ignore: true
+      chats.except.ignore.bypass: true
+
+  chats.chatter.msg:
+    description: Allows to start conversations or send private messages.
+    default: true
+  chats.except.msg:
+    description: Allows to be excepted from start conversations or send private messages.
+    default: false
+  chats.except.msg.bypass:
+    description: Allows to bypass the msg exception.
+    default: false
+  chats.except.msg.*:
+    description: Wildcard permission, that allows to be expected from conversations and to bypass this exception.
+    default: false
+    children:
+      chats.except.msg: true
+      chats.except.msg.bypass: true

@@ -1,7 +1,10 @@
 package de.g4memas0n.Chats.channel;
 
-import de.g4memas0n.Chats.exception.UnsupportedFeatureException;
+import de.g4memas0n.Chats.channel.type.ChannelType;
+import de.g4memas0n.Chats.chat.IChatFormatter;
+import de.g4memas0n.Chats.chat.IChatPerformer;
 import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.Chats.storage.IStorageHolder;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,24 +17,16 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: November 15th, 2019
+ * changed: February 3rd, 2020
  */
-public interface IChannel {
+public interface IChannel extends IStorageHolder, Comparable<IChannel> {
 
-    // Methods for Channel Properties:
+    // Channel Properties Methods:
     /**
      * Returns the listed full name of this channel.
      * @return the full name of this channel.
      */
     @NotNull String getFullName();
-
-    /**
-     * Sets a new full name for this channel.
-     * @param fullName the new full name for this channel.
-     * @return true when the full name was changed as result of this call.
-     *         false when the full name was not changed or when this channel do not support this feature.
-     */
-    boolean setFullName(@NotNull final String fullName);
 
     /**
      * Returns the listed short name of this channel.
@@ -40,13 +35,12 @@ public interface IChannel {
     @NotNull String getShortName();
 
     /**
-     * Sets a new short name for this channel.
-     * Removes the short name when the given param is null.
-     * @param shortName the new short name for this channel.
+     * Sets a new short name for this channel or removes it when the given argument is null or empty.
+     * @param name the new short name for this channel.
      * @return true when the short name was changed as result of this call.
      *         false when the short name was not changed or when this channel do not support this feature.
      */
-    boolean setShortName(@Nullable final String shortName);
+    boolean setShortName(@Nullable final String name);
 
     /**
      * Returns the listed chat color of this channel.
@@ -55,34 +49,34 @@ public interface IChannel {
     @NotNull ChatColor getChatColor();
 
     /**
-     * Sets a new color for this channel.
-     * @param chatColor the new chat color for this channel.
+     * Sets a new chat color for this channel or removes it when the given argument is null.
+     * @param color the new chat color for this channel.
      * @return true when this channel color was changed as result of this call.
      *         false when the color was not changed or when this channel do not support this feature.
      */
-    boolean setChatColor(@NotNull final ChatColor chatColor);
-
-    // Methods for Channel Types:
-    /**
-     * Returns if this channel is a persist channel.
-     * @return true when this channel is persist.
-     */
-    boolean isPersistChannel();
+    boolean setChatColor(@Nullable final ChatColor color);
 
     /**
-     * Returns the channel type of this channel.
-     * @return true when this channel is a global channel.
+     * Returns if this channel has set a password or not.
+     * @return true when a valid password is set.
+     *         false when no password is set or when the password is empty.
      */
-    boolean isGlobalChannel();
+    boolean hasPassword();
 
     /**
-     * Returns the channel type of this channel.
-     * @return true when this channel is a conversion channel.
+     * Returns the password of this channel.
+     * @return the password of this channel or null when no password is set.
      */
-    boolean isConversionChannel();
+    @Nullable String getPassword();
 
+    /**
+     * Sets a new password for this channel or removes it when the given argument is null or empty.
+     * @param password the new password for this channel.
+     * @return true when the password was changed as result of this call.
+     *         false when the password was not changed or when this channel do not support this feature.
+     */
+    boolean setPassword(@Nullable final String password);
 
-    // Methods for Channel Settings:
     /**
      * Returns if this channel is worlds across.
      * @return true when this channel is world across.
@@ -117,140 +111,137 @@ public interface IChannel {
      */
     boolean setDistance(final int distance);
 
+    // Channel Type Methods:
     /**
-     * Returns if this channel has set a password or not.
-     * @return true when this channel has set a password and false if the channel has not set a password.
+     * Returns the type of this channel.
+     * @return the channel type.
      */
-    boolean hasPassword();
+    @NotNull ChannelType getTpe();
 
     /**
-     * Returns the password of this channel.
-     * @return the password of this channel or null when no password is set.
+     * Returns whether this channel represents a conversion channel or not.
+     * @return true when this channel represents a conversion channel, false otherwise.
      */
-    @Nullable String getPassword();
+    boolean isConversation();
 
     /**
-     * Sets a new password for this channel.
-     * Removes the password when the given param is null.
-     * @param password the new password for this channel.
-     * @return true when the password was changed as result of this call.
-     *         false when the password was not changed or when this channel do not support this feature.
+     * Returns whether this channel represents a persist channel or not.
+     * @return true when this channel represents a persist channel, false otherwise.
      */
-    boolean setPassword(@Nullable final String password);
+    boolean isPersist();
 
-    // Methods for Channel Formatting:
+    // Chatter Collection Methods:
     /**
-     * Returns the message formatter from this channel.
-     * @return the channel formatter.
-     */
-    @NotNull IChannelFormatter getFormatter();
-
-    /**
-     * Returns if this channel use custom format or use the default format.
-     * @return true when this channel use a custom format.
-     */
-    boolean isUseCustomFormat();
-
-    /**
-     * Sets the use custom format option for this channel.
-     * @param state if this channel should use a custom format.
-     * @return true when the use custom format option was changed as result of this call.
-     *         false when the option was not changed or when this channel do not support this feature.
-     */
-    boolean setUseCustomFormat(final boolean state);
-
-    /**
-     * Returns the announce format from this channel.
-     * @return the announce format or an empty string when this channel do not support this feature.
-     */
-    @NotNull String getAnnounceFormat();
-
-    /**
-     * Sets the announce format for this channel.
-     * @param format the new announce format.
-     * @return true when the announce format was changed as result of this call.
-     *         false when the format was not changed or when this channel do not support this feature.
-     */
-    boolean setAnnounceFormat(@Nullable final String format);
-
-    /**
-     * Returns the broadcast format from this channel.
-     * @return the broadcast format or an empty string when this channel do not support this feature.
-     */
-    @NotNull String getBroadcastFormat();
-
-    /**
-     * Sets the broadcast format for this channel.
-     * @param format the new broadcast format.
-     * @return true when the broadcast format was changed as result of this call.
-     *         false when the format was not changed or when this channel do not support this feature.
-     */
-    boolean setBroadcastFormat(@Nullable final String format);
-
-    /**
-     * Returns the channel format from this channel.
-     * @return the channel format.
-     */
-    @NotNull String getChannelFormat();
-
-    /**
-     * Sets the channel format for this channel.
-     * @param format the new channel format.
-     * @return true when the channel format was changed as result of this call.
-     *         false when the format was not changed.
-     */
-    boolean setChannelFormat(@Nullable final String format);
-
-    // Methods for Chatter Collection of this Channel:
-    /**
-     * Returns all listed chatters of this channel.
-     * @return all chatters listed in this channel.
+     * Returns a copy of all chatter that are registered in this channel.
+     * @return a set of all registered chatters.
      */
     @NotNull Set<IChatter> getChatters();
 
     /**
-     * Adds a new chatter to this channel.
+     * Registers (Adds) a new chatter to this channel.
      * This method only adds the given chatter to this channel and do not add this channel to the given chatter.
-     * @param chatter a chatter who should be listed in this channel.
+     * @param chatter a chatter who should be registered in this channel.
      * @return true when the collection was changed as result of this call.
      *         false when the collection was not changed or when this channel do not support this feature.
      */
     boolean addChatter(@NotNull final IChatter chatter);
 
     /**
-     * Removes a chatter of this channel.
-     * This method only removes the given chatter from this channel and do not remove this channel from
-     * the given chatter.
-     * @param chatter a chatter who should be removed from this channel.
+     * Unregisters (Removes) a chatter from this channel.
+     * This method only removes the given chatter from this channel and do not remove this channel from the given
+     * chatter.
+     * @param chatter a chatter who should be unregistered from this channel.
      * @return true when the chatter was removed as result of this call.
      *         false when the collection was not changed or when this channel do not support this feature.
      */
     boolean removeChatter(@NotNull final IChatter chatter);
 
-    // Method for performing Chat:
     /**
-     * Perform the announce action for this channel.
-     * Checks all conditions to perform the announce action successfully and then sends all listed player in this
-     * channel the given message.
-     * @param message the message for this announce.
+     * Returns whether this channel contains the given chatter or not.
+     * @param chatter the chatter that should be checked.
+     * @return true when this channel contains the chatter, false otherwise.
      */
-    void performAnnounce(@NotNull final String message);
+    boolean hasChatter(@NotNull final IChatter chatter);
+
+    // Channel Formatter and Performer Methods:
+    /**
+     * Returns the announce format that is used for this channel.
+     * When the 'use-custom-format' option is active then it will return the custom announce format if it is specified.
+     * Otherwise this method returns the default announce format that is specified in the formatter of this channel.
+     * @return the announce format that is used for this channel.
+     */
+    @NotNull String getAnnounceFormat();
 
     /**
-     * Perform the broadcast action for this channel.
-     * Checks all conditions to perform the broadcast action successfully and then sends all listed player in this
-     * channel the broadcast with the given message.
-     * @param message the message for this broadcast.
-     * @throws UnsupportedFeatureException Thrown when this channel do not support broadcasts.
+     * Sets the custom announce format for this channel or removes it when the given format is null or empty.
+     * @param format the new announce format for this channel.
+     * @return true when the announce format was changed as result of this call.
+     *         false when the format was not changed or when this channel do not support this feature.
+     * @throws IllegalArgumentException Thrown when the given format do not include the message placeholder.
      */
-    void performBroadcast(@NotNull final String message) throws UnsupportedFeatureException;
+    boolean setAnnounceFormat(@Nullable final String format) throws IllegalArgumentException;
 
     /**
-     * Perform the chat action for this channel.
-     * Checks all conditions to perform the chat action successfully and then sends all listed player in this channel
-     * the given message from the given chatter.
-     * @param sender the chatter that performed the chat action.
-     * @param message the message from the chatter.
+     * Returns the broadcast format that is used for this channel.
+     * When the 'use-custom-format' option is active then it will return the custom broadcast format if it is specified.
+     * Otherwise this method returns the default broadcast format that is specified in the formatter of this channel.
+     * @return the broadcast format that is used for this channel.
      */
-    void performChat(@NotNull final IChatter sender, @NotNull final String message);
+    @NotNull String getBroadcastFormat();
+
+    /**
+     * Sets the custom broadcast format for this channel or removes it when the given format is null or empty.
+     * @param format the new broadcast format for this channel.
+     * @return true when the broadcast format was changed as result of this call.
+     *         false when the format was not changed or when this channel do not support this feature.
+     * @throws IllegalArgumentException Thrown when the given format do not include the message placeholder.
+     */
+    boolean setBroadcastFormat(@Nullable final String format) throws IllegalArgumentException;
+
+    /**
+     * Returns the chat format that is used for this channel.
+     * When the 'use-custom-format' option is active then it will return the custom chat format if it is specified.
+     * Otherwise this method returns the default chat format that is specified in the formatter of this channel.
+     * @return the chat format that is used for this channel.
+     */
+    @NotNull String getChatFormat();
+
+    /**
+     * Sets the chat format for this channel.
+     * @param format the new channel format.
+     * @return true when the channel format was changed as result of this call.
+     *         false when the format was not changed.
+     * @throws IllegalArgumentException Thrown when the given format do not include the sender and message placeholder.
+     */
+    boolean setChatFormat(@Nullable final String format);
+
+    /**
+     * Returns whether this channel uses custom formats or the default formats.
+     * When this option is active this channel will use the custom format when it is specified, otherwise this method
+     * will return the default formats that are specified in the formatter of this channel.
+     * @return true when this channel use a custom format, false otherwise.
+     */
+    boolean isUseCustomFormat();
+
+    /**
+     * Sets whether this channel uses custom formats or the default formats.
+     * When this option is active this channel will use the custom format when it is specified, otherwise this method
+     * will return the default formats that are specified in the formatter of this channel.
+     * @param state whether this channel should use custom formats.
+     * @return true when the use custom format option was changed as result of this call.
+     *         false when the option was not changed or when this channel do not support this feature.
+     */
+    boolean setUseCustomFormat(final boolean state);
+
+    /**
+     * Returns the message formatter that is used to format all messages.
+     * @return the used message formatter of this channel.
+     */
+    @NotNull IChatFormatter getFormatter();
+
+    /**
+     * Returns the action performer that is used to perform all channel actions.
+     * @return the used action performer of this channel.
+     */
+    @NotNull IChatPerformer getPerformer();
 }

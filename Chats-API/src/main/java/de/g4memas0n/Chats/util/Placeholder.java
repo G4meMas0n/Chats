@@ -3,13 +3,13 @@ package de.g4memas0n.Chats.util;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Placeholder Enum for all Placeholders that are used for formats specified in the config.
+ * Placeholder Enum for all Placeholders that are used for all formats specified in the plugin configuration file.
  *
  * @author G4meMas0n
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * last change: September 11th, 2019
+ * changed: September 11th, 2019
  */
 public enum Placeholder {
     BROADCAST_PREFIX("{bc-prefix}"),

@@ -1,6 +1,7 @@
 package de.g4memas0n.Chats.chatter;
 
 import de.g4memas0n.Chats.channel.IChannel;
+import de.g4memas0n.Chats.storage.IStorageHolder;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -8,16 +9,15 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Chatter Interface that defines a chatter representation.
- * Extends the Comparable interface.
+ * Chatter Interface that defines a chatter representation, extends the {@link Comparable} interface.
  *
  * @author G4meMas0n
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 12th, 2019
- * last change: October 1st, 2019
+ * changed: February 2nd, 2020
  */
-public interface IChatter extends Comparable<IChatter> {
+public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Comparable<IChatter> {
 
     /**
      * Returns the listed Player of this chatter.
@@ -27,141 +27,113 @@ public interface IChatter extends Comparable<IChatter> {
 
     // Active Channel Methods:
     /**
-     * Returns the currently active channel of this chatter.
-     * @return the active channel of this chatter.
+     * Returns the currently channel in that this chatter is focused.
+     * @return the currently focused channel of this chatter.
      */
-    @NotNull IChannel getActiveChannel();
+    @NotNull IChannel getFocus();
 
     /**
-     * Sets the current active channel of this chatter.
-     * Sets the old active channel as last persist channel if it was a persist channel.
-     * @param channel the new active channel for this chatter.
-     * @return true when the active channel was changed as result of this call.
+     * Sets a new channel as the currently focused channel of this chatter.
+     * The old focused channel will be saved as 'last-focused-channel' when it is a non conversation channel.
+     * When the old focused channel is a persist channel then it will additionally saved as 'last-persist-channel'.
+     * @param channel the new channel that should be the currently focused channel of this chatter.
+     * @return true when the currently focused channel was changed as result of this call, false otherwise.
      */
-    boolean setActiveChannel(@NotNull final IChannel channel);
+    boolean setFocus(@NotNull final IChannel channel);
 
     // Last Sources Methods:
     /**
-     * Returns the last active global channel of this chatter.
-     * @return the last global channel of this chatter or null if this chatter don't changed the channel.
+     * Returns the last channel that this chatter had focused. Can be null when there is no last focused channel.
+     * This Channel can be any non conversation channel.
+     * @return the last focused channel of this chatter. or null when there is no last focused channel.
      */
-    @Nullable IChannel getLastPersistChannel();
+    @Nullable IChannel getLastFocused();
 
     /**
-     * Returns the last conversion partner of this chatter.
-     * @return the chatters of the last conversion or null if this chatter don't have at least one last conversion
-     *         partner.
+     * Returns the last persist channel that this chatter had focused. Can be null when there is no last focused
+     * persist channel.
+     * This Channel can only be persist channels.
+     * @return the last focused persist channel of this chatter or null when there is no last focused channel.
      */
-    @Nullable Set<IChatter> getLastConversionPartner();
+    @Nullable IChannel getLastPersist();
 
     /**
-     * Sets the last conversion partner of this chatter.
-     * When this given chatters contains this chatter, it will be removed from the set.
-     * @param chatters the last conversion partner.
-     * @return true when the last conversion partner was changed as result of this call.
-     * @throws IllegalArgumentException Thrown when the set of given chatters is empty.
+     * Returns the last partner this chatter had a conversation with. Can be null when there is no last conversation
+     * this chatter had
+     * @return the last conversation partner.
      */
-    boolean setLastConversionPartner(@NotNull final Set<IChatter> chatters) throws IllegalArgumentException;
+    @Nullable IChatter getLastPartner();
+
+    /**
+     * Sets a new chatters this chatter had a conversation with.
+     * @param partner the new last conversation partner.
+     * @return true when the last conversation partner was changed as result of this call, false otherwise.
+     */
+    boolean setLastPartners(@NotNull final IChatter partner);
 
     // Channels Collection Methods:
     /**
-     * Returns the set of all channels this chatter is in.
-     * @return all channels this chatter is in.
+     * Returns all channel that this chatter is in. Can be all types of channels.
+     * @return a copy of a set of channels this chatter is in.
      */
     @NotNull Set<IChannel> getChannels();
 
     /**
-     * Adds a new channel to this chatter and also adds this chatter to the chatter list of the given channel.
+     * Adds a new channel to the collection of channels this chatter is in.
+     * This method will check whether this chatter is listed in the given channel and will add it to the channel when
+     * it is not listed.
      * @param channel the new channel that should be added to this chatter.
-     * @return true when the channel collection of this chatter and the chatter list of the given channel was
-     *              changed as result of this call.
+     * @return true when the collection of channels was updated as result of this call, false otherwise.
      */
     boolean addChannel(@NotNull final IChannel channel);
 
     /**
-     * Removes a channel from this chatter and also removes this chatter from the chatter list of the given channel.
+     * Removes a given channel from the collection of channels this chatter is in when it is contained.
+     * This method will check whether this chatter is listed in the given channel and will remove it from the channel
+     * when it is listed.
      * @param channel the channel that should be removed from this chatter.
-     * @return true when the channel collection of this chatter and the chatter list of the given channel was
-     *              changed as result of this call.
+     * @return true when the collection of channels was updated as result of this call, false otherwise.
      */
     boolean removeChannel(@NotNull final IChannel channel);
 
+    /**
+     * Returns whether this chatter contains the given channel or not.
+     * @param channel the channel that should be checked.
+     * @return true when the collection of channels contains given the channel, false otherwise.
+     */
+    boolean hasChannel(@NotNull final IChannel channel);
+
     // Ignored Chatter Collection Methods:
     /**
-     * Returns the set of all player UUIDs that this chatter is ignoring.
-     * @return all ignored player UUIDs of this chatter.
+     * Returns all UUIDs of chatters this chatter is ignoring.
+     * @return a copy of a set of chatter UUIDs this chatter is ignoring.
      */
     @NotNull Set<UUID> getIgnores();
 
     /**
-     * Adds a new player UUID to the collection of all ignoring player UUIDs of this chatter.
-     * Gets the player and the UUID of the given chatter and adds them to the collection.
-     * @param chatter the chatter that should be added to the collection.
-     * @return true when the list of all ignored player UUIDs was changed as result of this call.
+     * Adds a new UUID of a chatter to the collection of ignoring chatter UUIDs of this chatter.
+     * @param uuid the UUID of a chatter that should be ignored from this chatter.
+     * @return true when the collection of ignoring chatter UUIDs was updated as result of this call, false otherwise.
      */
-    boolean addIgnores(@NotNull final IChatter chatter);
+    boolean addIgnores(@NotNull final UUID uuid);
 
     /**
-     * Adds a new player UUID to the collection of all ignoring player UUIDs of this chatter.
-     * Gets the UUID of the given player and adds them to the collection.
-     * @param player the player that should be added to the collection.
-     * @return true when the list of all ignored player UUIDs was changed as result of this call.
+     * Removes a given UUID of a chatter from the collection of ignoring chatter UUIDs of this chatter.
+     * @param uuid the UUID of a chatter that should be no longer ignored from this chatter.
+     * @return true when the collection of ignoring chatter UUIDs was updated as result of this call, false otherwise.
      */
-    boolean addIgnores(@NotNull final Player player);
+    boolean removeIgnores(@NotNull final UUID uuid);
 
     /**
-     * Adds a new player UUID to the collection of all ignoring player UUIDs of this chatter.
-     * @param playerUUID the UUID of the chatter that should be added to the collection.
-     * @return true when the list of all ignored player UUIDs was changed as result of this call.
+     * Returns whether the given UUID of a chatter is ignored from this chatter.
+     * @param uuid the UUID of a chatter that should be checked.
+     * @return true when the collection of ignoring chatter UUIDs contains the given UUID of a chatter, false otherwise.
      */
-    boolean addIgnores(@NotNull final UUID playerUUID);
+    boolean isIgnoring(@NotNull final UUID uuid);
 
     /**
-     * Removes a player UUID from the collection of all ignoring player UUIDs of this chatter.
-     * Gets the player and the UUID of the given chatter and removes them from the collection.
-     * @param chatter the chatter that should be removed from this collection.
-     * @return true when the list of all ignored player UUIDs was changed as result of this call.
+     * Returns whether this chatter is ignoring someone.
+     * @return true when the collection of ignoring chatter UUIDs is not empty, false otherwise.
      */
-    boolean removeIgnores(@NotNull final IChatter chatter);
-
-    /**
-     * Removes a player UUID from the collection of all ignoring player UUIDs of this chatter.
-     * Gets the UUID of the given player and removes them to the collection.
-     * @param player the player that should be removed from the collection.
-     * @return true when the list of all ignored player UUIDs was changed as result of this call.
-     */
-    boolean removeIgnores(@NotNull final Player player);
-
-    /**
-     * Removes a player UUID from the collection of all ignoring player UUIDs of this chatter.
-     * @param playerUUID the UUID of the chatter that should be removed from this collection.
-     * @return true when the list of all ignored player UUIDs was changed as result of this call.
-     */
-    boolean removeIgnores(@NotNull final UUID playerUUID);
-
-    /**
-     * Returns if this chatter is ignoring the given chatter.
-     * Gets the player und the UUID of the given chatter and checks if this UUID is listed in the ignoring player
-     * UUID collection of this chatter.
-     * @param chatter the chatter that should be checked.
-     * @return true when this chatter is ignoring the given chatter.
-     */
-    boolean isIgnoring(@NotNull final IChatter chatter);
-
-    /**
-     * Returns if this chatter is ignoring the given Player.
-     * Gets the UUID of the given Player and checks if this UUID is listed in the ignoring player UUID collection of
-     * this chatter.
-     * @param player the player that should be checked.
-     * @return true when this chatter is ignoring the given UUID.
-     */
-    boolean isIgnoring(@NotNull final Player player);
-
-    /**
-     * Returns if this chatter is ignoring a chatter with the given player UUID.
-     * Checks if the given player UUID is listed in the ignoring player UUId list of this chatter.
-     * @param playerUUID the player UUID that should be checked.
-     * @return true when this chatter is ignoring a chatter with the given player UUID.
-     */
-    boolean isIgnoring(@NotNull final UUID playerUUID);
+    boolean isIgnoring();
 }

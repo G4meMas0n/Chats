@@ -13,7 +13,7 @@ import java.util.Map;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 5th, 2019
- * last change: July 5th, 2019
+ * changed: January 5th, 2020
  */
 @SuppressWarnings("unused")
 public class Notice implements Comparable<Notice> {
@@ -55,11 +55,6 @@ public class Notice implements Comparable<Notice> {
     }
 
     @NotNull
-    public Date getTime() {
-        return new Date(this.timeMillis);
-    }
-
-    @NotNull
     public String getAuthor() {
         return this.author;
     }
@@ -67,6 +62,11 @@ public class Notice implements Comparable<Notice> {
     @NotNull
     public String getMessage() {
         return this.message;
+    }
+
+    @NotNull
+    public Date getTime() {
+        return new Date(this.timeMillis);
     }
 
     @NotNull
@@ -78,6 +78,16 @@ public class Notice implements Comparable<Notice> {
         noticeMap.put(MAP_KEY_TIME, this.timeMillis);
 
         return noticeMap;
+    }
+
+    @Override
+    public int compareTo(@NotNull final Notice notice) {
+        return Long.compare(this.timeMillis, notice.timeMillis);
+    }
+
+    @Override
+    public String toString() {
+        return "Notice{author=" + this.getAuthor() + ";message=" + this.getMessage() + ";time=" + this.getTime() + "}";
     }
 
     @Override
@@ -94,10 +104,5 @@ public class Notice implements Comparable<Notice> {
         return this.timeMillis == notice.timeMillis
                 && this.author.equals(notice.author)
                 && this.message.equals(notice.message);
-    }
-
-    @Override
-    public int compareTo(@NotNull final Notice notice) {
-        return Long.compare(this.timeMillis, notice.timeMillis);
     }
 }

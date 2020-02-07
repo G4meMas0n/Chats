@@ -2,12 +2,8 @@ package de.g4memas0n.Chats;
 
 import de.g4memas0n.Chats.channel.IChannelManager;
 import de.g4memas0n.Chats.chatter.IChatterManager;
-import de.g4memas0n.Chats.util.IFileManager;
-import de.g4memas0n.Chats.configuration.IConfigManager;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
-import java.util.logging.Logger;
 
 /**
  * Chats Interface, that defines the main class of this plugin.
@@ -16,27 +12,9 @@ import java.util.logging.Logger;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 26th, 2019
- * last change: November 13th, 2019
+ * changed: February 1st, 2020
  */
 public interface IChats extends Plugin {
-
-    /**
-     * Logs the given message to the chat logger.
-     * @param message the message that should be logged.
-     */
-    void logChat(@NotNull String message);
-
-    /**
-     * Returns the chat logger of this plugin main class.
-     * @return the chat logger.
-     */
-    @NotNull Logger getChatLogger();
-
-    /**
-     * Returns the plugin manager of this plugin main class.
-     * @return the plugin manager.
-     */
-    @NotNull PluginManager getPluginManager();
 
     /**
      * Returns the channel manager of this plugin main class.
@@ -49,16 +27,4 @@ public interface IChats extends Plugin {
      * @return the chatter manager.
      */
     @NotNull IChatterManager getChatterManager();
-
-    /**
-     * Returns the setting manager of this plugin main class.
-     * @return the setting manager.
-     */
-    @NotNull IConfigManager getConfigManager();
-
-    /**
-     * Returns the file manager of this plugin main class.
-     * @return the file manager.
-     */
-    @NotNull IFileManager getFileManager();
 }
