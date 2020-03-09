@@ -1,8 +1,7 @@
 package de.g4memas0n.Chats.channel;
 
-import de.g4memas0n.Chats.chat.IChatFormatter;
-import de.g4memas0n.Chats.chat.IChatPerformer;
-import org.bukkit.ChatColor;
+import de.g4memas0n.Chats.messaging.IFormatter;
+import de.g4memas0n.Chats.storage.YamlStorageFile;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import java.io.File;
@@ -44,12 +43,10 @@ public final class YamlChannelStorage implements IChannelStorage {
     private static final String PATH_FORMAT_USE_CUSTOM = "format.use-custom";
 
     private final Map<String, YamlConfiguration> configurations;
-    private final IChatFormatter formatter;
-    private final IChatPerformer performer;
+    private final IFormatter formatter;
     private final File directory;
 
-    public YamlChannelStorage(@NotNull final IChatFormatter formatter,
-                              @NotNull final IChatPerformer performer,
+    public YamlChannelStorage(@NotNull final IFormatter formatter,
                               @NotNull final File parent) throws IllegalArgumentException {
         if (!parent.isDirectory()) {
             throw new IllegalArgumentException("Parent File must be a directory");
@@ -57,7 +54,6 @@ public final class YamlChannelStorage implements IChannelStorage {
 
         this.configurations = new HashMap<>();
         this.formatter = formatter;
-        this.performer = performer;
         this.directory = new File(parent, DIRECTORY_NAME);
     }
 
@@ -143,9 +139,9 @@ public final class YamlChannelStorage implements IChannelStorage {
         this.configurations.put(fullName, yamlConfig);
          */
 
-        PersistChannel channel = new PersistChannel(this.formatter, this.performer, file);
+        PersistChannel channel = new PersistChannel(this.formatter, new YamlStorageFile(file));
 
-        channel.reload();
+        channel.load();
 
         return channel;
     }
@@ -158,7 +154,7 @@ public final class YamlChannelStorage implements IChannelStorage {
             throw new IllegalArgumentException("File named as channel file already exists");
         }
 
-        final PersistChannel channel = new PersistChannel(this.formatter, this.performer, file);
+        final PersistChannel channel = new PersistChannel(this.formatter, new YamlStorageFile(this.getStorageFile(fullName)));
 
         /*
         this.save(channel);
@@ -222,7 +218,6 @@ public final class YamlChannelStorage implements IChannelStorage {
         }
          */
 
-        channel.save();
         return true;
     }
 
@@ -244,19 +239,10 @@ public final class YamlChannelStorage implements IChannelStorage {
         }
          */
 
-        channel.delete();
         return true;
     }
 
     private @NotNull File getStorageFile(@NotNull final String name) {
         return new File(this.directory, name + ".yml");
-    }
-
-    private @NotNull ChatColor parseColor(@NotNull final String colorName) {
-        try {
-            return ChatColor.valueOf(colorName);
-        } catch (IllegalArgumentException ex) {
-            return ChatColor.WHITE;
-        }
     }
 }

@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.util;
+package de.g4memas0n.Chats.util.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 3rd, 2020
- * changed: February 3rd, 2020
+ * changed: February 10th, 2020
  */
 public enum ReloadType implements Type {
     ALL("all"),
@@ -42,7 +42,7 @@ public enum ReloadType implements Type {
      */
     public static @Nullable ReloadType getType(@NotNull final String identifier) {
         for (final ReloadType current : ReloadType.values()) {
-            if (current.getIdentifier().equals(identifier)) {
+            if (current.getIdentifier().equalsIgnoreCase(identifier)) {
                 return current;
             }
         }

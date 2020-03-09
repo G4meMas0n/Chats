@@ -105,4 +105,16 @@ public class Notice implements Comparable<Notice> {
                 && this.author.equals(notice.author)
                 && this.message.equals(notice.message);
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 47;
+        int result = 2;
+
+        result = prime * result + this.getAuthor().hashCode();
+        result = prime * result + this.getMessage().hashCode();
+        result = prime * result + this.getTime().hashCode();
+
+        return result;
+    }
 }

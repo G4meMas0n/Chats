@@ -9,6 +9,9 @@ softdepend:
   - Vault
 
 commands:
+  channel:
+    description: Manages the channels.
+    permission: chats.channel
   chat:
     description: Sends a message in a channel.
     permission: chats.channel.speak
@@ -27,7 +30,7 @@ commands:
     permission: chats.channel.leave
   msg:
     description: Starts a conversation with or sends a private message to a chatter.
-    aliases: [pm, whisper, w, tell]
+    aliases: [pm, tell, whisper, w]
     permission: chats.chatter.msg
   reply:
     description: Starts a conversation with or sends a private message to the last conversation partner.
@@ -55,6 +58,60 @@ permissions:
       chats.admin.reload.channels: true
       chats.admin.reload.chatters: true
       chats.admin.reload.config: true
+
+  chats.channel:
+    description: Allows to access the channel command.
+    default: op
+  chats.channel.*:
+    description: Allows to access all channel commands.
+    default: op
+    children:
+      chats.channel.broadcast.all: true
+      chats.channel.create.*: true
+      chats.channel.delete.all: true
+      chats.channel.focus.all: true
+      chats.channel.join.all: true
+      chats.channel.leave.all: true
+      chats.channel.modify.all: true
+
+  chats.channel.broadcast:
+    description: Allows to access the channel broadcast command.
+    default: op
+  chats.channel.broadcast.all:
+    description: Allows to broadcast to all channels.
+    default: op
+    children:
+      chats.channel.broadcast: true
+      chats.channel.broadcast.own: true
+  chats.channel.broadcast.own:
+    description: Allows to broadcast to owning channels.
+    default: op
+    children:
+      chats.channel.broadcast: true
+
+  chats.channel.create:
+    description: Allows to access the channel create command.
+    default: op
+  chats.channel.create.*:
+    description: Allows to create all channel types.
+    default: op
+    children:
+      chats.channel.create: true
+
+  chats.channel.delete:
+    description: Allows to access the channel delete command.
+    default: op
+  chats.channel.delete.all:
+    description: Allows to delete all channels.
+    default: op
+    children:
+      chats.channel.delete: true
+      chats.channel.delete.own: true
+  chats.channel.delete.own:
+    description: Allows to delete owning channels.
+    default: op
+    children:
+      chats.channel.delete: true
 
   chats.channel.focus:
     description: Allows to access the channel focus command.
@@ -85,6 +142,9 @@ permissions:
 
   chats.channel.modify:
     description: Allows to access the channel modify command.
+    default: op
+  chats.channel.modify.*:
+    description: Allows to modify all modify types of channels.
     default: op
   chats.channel.modify.all:
     description: Allows to modify all channels.
@@ -138,3 +198,7 @@ permissions:
     children:
       chats.except.msg: true
       chats.except.msg.bypass: true
+
+  chats.help:
+    description: Allows to access the help command.
+    default: true

@@ -1,9 +1,11 @@
 package de.g4memas0n.Chats.command;
 
+import de.g4memas0n.Chats.channel.IChannel;
 import de.g4memas0n.Chats.chatter.IPermissible;
+import de.g4memas0n.Chats.messaging.Messages;
+import de.g4memas0n.Chats.util.InputUtil;
 import de.g4memas0n.Chats.util.Permission;
-import de.g4memas0n.Chats.util.ReloadType;
-import org.bukkit.command.Command;
+import de.g4memas0n.Chats.util.type.ReloadType;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
@@ -12,15 +14,15 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The Reload Command, extends {@link ChatsCommand}.
+ * The Reload Command, extends {@link BasicCommand}.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 13th, 2020
- * changed: February 4th, 2020
+ * changed: March 3rd, 2020
  */
-public final class ReloadCommand extends ChatsCommand {
+public final class ReloadCommand extends BasicCommand {
 
     private static final String NAME = "reload";
     private static final int MIN_ARGS = 0;
@@ -33,17 +35,11 @@ public final class ReloadCommand extends ChatsCommand {
     }
 
     @Override
-    public boolean onCommand(@NotNull final CommandSender sender,
-                             @NotNull final Command command,
-                             @NotNull final String alias,
-                             @NotNull final String[] arguments) {
-        if (!sender.hasPermission(this.getPermission())) {
-            sender.sendMessage(""); //TODO: Add localized 'command_permissionMessage' message.
-            return true;
-        }
-
+    public boolean execute(@NotNull final CommandSender sender,
+                           @NotNull final String alias,
+                           @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            final IPermissible permissible = this.getInstance().getChatterManager().getPermissible(sender);
+            final IPermissible permissible = this.getPermissible(sender);
 
             ReloadType reloadType = ReloadType.getDefault();
 
@@ -61,18 +57,16 @@ public final class ReloadCommand extends ChatsCommand {
                         try {
                             this.getInstance().reloadConfig();
                             this.getInstance().getChannelManager().reload();
-                            this.getInstance().getChatterManager().reload();
                         } catch (IOException ex) {
-                            sender.sendMessage(""); //TODO: Add localized 'command_reloadFailed' message.
+                            sender.sendMessage(Messages.tl("reloadFailed"));
                             return true;
                         }
                         break;
                     case CHANNELS:
                         try {
                             this.getInstance().getChannelManager().reload();
-                            this.getInstance().getChatterManager().reload();
                         } catch (IOException ex) {
-                            sender.sendMessage(""); //TODO: Add localized 'command_reloadFailed' message.
+                            sender.sendMessage(Messages.tl("reloadFailed"));
                             return true;
                         }
                         break;
@@ -84,11 +78,11 @@ public final class ReloadCommand extends ChatsCommand {
                         break;
                 }
 
-                sender.sendMessage(""); //TODO: Add localized 'command_reloadSuccess' message.
+                sender.sendMessage(Messages.tl("reloadSuccess"));
                 return true;
             }
 
-            sender.sendMessage(""); //TODO: Add localized 'command_reloadDenied' message.
+            sender.sendMessage(Messages.tl("reloadDenied"));
             return true;
         }
 
@@ -96,32 +90,28 @@ public final class ReloadCommand extends ChatsCommand {
     }
 
     @Override
-    public @NotNull List<String> onTabComplete(@NotNull final CommandSender sender,
-                                               @NotNull final Command command,
-                                               @NotNull final String alias,
-                                               @NotNull final String[] arguments) {
-        final List<String> completion = new ArrayList<>();
-
-        if (!sender.hasPermission(this.getPermission())) {
-            return completion;
-        }
-
+    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+                                             @NotNull final String alias,
+                                             @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            final IPermissible permissible = this.getInstance().getChatterManager().getPermissible(sender);
-
             if (arguments.length == this.getMaxArgs()) {
+                final List<String> completion = new ArrayList<>();
+                final IPermissible permissible = this.getPermissible(sender);
+
                 for (final ReloadType current : ReloadType.values()) {
-                    if (permissible.canReload(current)) {
-                        if (current.getIdentifier().contains(arguments[ARG_RELOAD_TYPE])) {
+                    if (InputUtil.containsInput(current.getIdentifier(), arguments[ARG_RELOAD_TYPE])) {
+                        if (permissible.canReload(current)) {
                             completion.add(current.getIdentifier());
                         }
                     }
                 }
 
                 Collections.sort(completion);
+
+                return completion;
             }
         }
 
-        return completion;
+        return Collections.emptyList();
     }
 }

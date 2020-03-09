@@ -1,16 +1,15 @@
 package de.g4memas0n.Chats.channel;
 
-import de.g4memas0n.Chats.chat.ChatFormatter;
-import de.g4memas0n.Chats.chat.ChatPerformer;
-import de.g4memas0n.Chats.chat.IChatFormatter;
-import de.g4memas0n.Chats.chat.IChatPerformer;
+import de.g4memas0n.Chats.IChats;
+import de.g4memas0n.Chats.storage.IStorageFile;
+import de.g4memas0n.Chats.storage.YamlStorageFile;
 import de.g4memas0n.Chats.chatter.IChatter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +20,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: November 14th, 2019
- * changed: February 2nd, 2020
+ * changed: March 5th, 2020
  */
 public final class ChannelManager implements IChannelManager {
 
@@ -31,35 +30,15 @@ public final class ChannelManager implements IChannelManager {
     private static final String DIRECTORY_NAME = "channels";
 
     private final Map<String, IChannel> channels;
+    private final IChats instance;
     private final File directory;
-
-    private final IChatFormatter formatter;
-    private final IChatPerformer performer;
 
     private IChannel def;
 
-    public ChannelManager(@NotNull final File parent) throws IOException, IllegalArgumentException {
-        if (!parent.isDirectory()) {
-            throw new IllegalArgumentException("Parent File must be a directory");
-        }
-
-        this.channels = new HashMap<>();
-        this.directory = new File(parent, DIRECTORY_NAME);
-
-        this.formatter = new ChatFormatter();
-        this.performer = new ChatPerformer(this.formatter);
-
-        this.reload();
-    }
-
-    @Override
-    public @NotNull IChatFormatter getFormatter() {
-        return this.formatter;
-    }
-
-    @Override
-    public @NotNull IChatPerformer getPerformer() {
-        return this.performer;
+    public ChannelManager(@NotNull final IChats instance) {
+        this.channels = new LinkedHashMap<>();
+        this.instance = instance;
+        this.directory = new File(instance.getDataFolder(), DIRECTORY_NAME);
     }
 
     // Default Channel Methods:
@@ -72,9 +51,10 @@ public final class ChannelManager implements IChannelManager {
         return this.def;
     }
 
+    @Override
     public boolean setDefault(@NotNull final IChannel channel) throws IllegalArgumentException {
         if (!channel.isPersist()) {
-            throw new IllegalArgumentException("Channel must be persistent");
+            throw new IllegalArgumentException("Channel is not persistent");
         }
 
         if (channel.equals(this.def)) {
@@ -85,6 +65,7 @@ public final class ChannelManager implements IChannelManager {
             this.channels.put(channel.getFullName(), channel);
         }
 
+        this.instance.getSettings().setDefaultChannel(channel.getFullName());
         this.def = channel;
         return true;
     }
@@ -92,7 +73,7 @@ public final class ChannelManager implements IChannelManager {
     // Channel Collection Methods:
     @Override
     public @NotNull Set<IChannel> getChannels() {
-        return new HashSet<>(this.channels.values());
+        return new LinkedHashSet<>(this.channels.values());
     }
 
     @Override
@@ -110,6 +91,7 @@ public final class ChannelManager implements IChannelManager {
         return true;
     }
 
+    @Override
     public boolean removeChannel(@NotNull final IChannel channel) throws IllegalArgumentException {
         if (channel.equals(this.def)) {
             throw new IllegalArgumentException("Default channel can not be removed");
@@ -123,8 +105,8 @@ public final class ChannelManager implements IChannelManager {
             current.removeChannel(channel);
         }
 
-        if (channel.isPersist()) {
-            channel.delete();
+        if (channel instanceof PersistChannel) {
+            ((PersistChannel) channel).delete();
         }
 
         return true;
@@ -136,85 +118,44 @@ public final class ChannelManager implements IChannelManager {
     }
 
     @Override
-    public boolean hasPersist(@NotNull final String fullName) {
-        if (!this.channels.containsKey(fullName)) {
-            return false;
-        }
-
-        return this.channels.get(fullName).isPersist();
+    public @NotNull IStorageFile getStorageFile(@NotNull final String fullName) {
+        return new YamlStorageFile(new File(this.directory, fullName));
     }
 
     @Override
-    public boolean hasConversation(@NotNull final String fullName) {
-        if (!this.channels.containsKey(fullName)) {
-            return false;
-        }
-
-        return this.channels.get(fullName).isConversation();
-    }
-
-    @Override
-    public @NotNull IChannel create(@NotNull final String fullName) throws IllegalArgumentException {
-        return new StandardChannel(this.formatter, this.performer, fullName);
-    }
-
-    @Override
-    public @NotNull IChannel createPersist(@NotNull final String fullName) throws IllegalArgumentException {
-        final File file = this.getFile(fullName);
-
-        if (file.exists()) {
-            throw new IllegalArgumentException("Storage file for persist channel '" + fullName + "' already exists");
-        }
-
-        return new PersistChannel(this.formatter, this.performer, this.getFile(fullName));
-    }
-
-    @Override
-    public @NotNull IChannel createConversation(@NotNull final IChatter first, @NotNull final IChatter second) {
-        return new ConversationChannel(this.formatter, this.performer, first, second);
-    }
-
     public void reload() throws IOException {
         final File[] files = this.directory.listFiles(File::isFile);
 
         if (files == null) {
-            throw new IOException("Failed to load files from directory " + this.directory.getName());
+            throw new IOException("Unable to load files from directory: " + this.directory.getName());
         }
 
         this.channels.clear();
 
         for (final File current : files) {
             try {
-                final IChannel channel = new PersistChannel(this.formatter, this.performer, current);
-
-                channel.reload();
-
-                this.addChannel(channel);
+                this.addChannel(new PersistChannel(this.instance.getFormatter(), new YamlStorageFile(current)));
             } catch (IllegalArgumentException ignored) {
                 // This should never be the case here.
             }
         }
 
-        if (this.def != null) {
-            try {
-                IChannel channel;
+        try {
+            final String name = this.instance.getSettings().getDefaultChannel();
 
-                if (this.channels.containsKey(this.def.getFullName())) {
-                    channel = this.channels.get(this.def.getFullName());
-                } else {
-                    channel = this.createPersist(this.def.getFullName());
+            if (this.channels.containsKey(name)) {
+                this.setDefault(this.channels.get(name));
+            } else {
+                final PersistChannel def = new PersistChannel(this.instance.getFormatter(), this.getStorageFile(name));
 
-                    channel.save();
-                }
+                this.setDefault(def);
 
-                this.setDefault(channel);
-            } catch (IllegalArgumentException ignored) {
-                // This should never be the case here.
+                def.save();
             }
+        } catch (IllegalArgumentException ex) {
+            // This should never be the case here.
         }
-    }
 
-    private @NotNull File getFile(@NotNull final String name) {
-        return new File(this.directory, name + ".yml");
+        this.instance.getChatterManager().reload();
     }
 }

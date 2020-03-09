@@ -2,11 +2,10 @@ package de.g4memas0n.Chats.command;
 
 import de.g4memas0n.Chats.channel.IChannel;
 import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.Chats.util.InputUtil;
+import de.g4memas0n.Chats.messaging.Messages;
 import de.g4memas0n.Chats.util.Permission;
-import org.bukkit.command.BlockCommandSender;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -14,15 +13,15 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The Leave Command TabExecutor, extends {@link ChatsPluginCommand}.
+ * The Leave Command, extends {@link BasicPluginCommand}.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 11th, 2020
- * changed: February 3rd, 2020
+ * changed: March 3rd, 2020
  */
-public final class LeaveCommand extends ChatsPluginCommand {
+public final class LeaveCommand extends BasicPluginCommand {
 
     private static final String NAME = "leave";
     private static final int MIN_ARGS = 1;
@@ -35,40 +34,33 @@ public final class LeaveCommand extends ChatsPluginCommand {
     }
 
     @Override
-    public boolean onCommand(@NotNull final CommandSender sender,
-                             @NotNull final Command command,
-                             @NotNull final String alias,
-                             @NotNull final String[] arguments) {
-        if (sender instanceof BlockCommandSender || sender instanceof ConsoleCommandSender) {
-            sender.sendMessage(""); //TODO: Add localized 'command_illegalAccess' message.
-            return true;
-        }
-
-        if (!sender.hasPermission(this.getPermission())) {
-            sender.sendMessage(""); //TODO: Add localized 'command_permissionMessage' message.
-            return true;
-        }
-
+    public boolean execute(@NotNull final CommandSender sender,
+                           @NotNull final String alias,
+                           @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
+            if (!(sender instanceof Player)) {
+                return false;
+            }
+
             final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
             final IChannel channel = this.getInstance().getChannelManager().getChannel(arguments[ARG_CHANNEL]);
 
             if (channel == null || channel.isConversation()) {
-                sender.sendMessage(""); //TODO: Add localized 'channel_notExist' message.
+                sender.sendMessage(Messages.tlErr("channelNotExist", arguments[ARG_CHANNEL]));
                 return true;
             }
 
             if (chatter.canLeave(channel)) {
                 if (chatter.removeChannel(channel)) {
-                    sender.sendMessage(""); //TODO: Add localized 'chatter_leaveChannel' message.
+                    sender.sendMessage(Messages.tl("leaveChannel", channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(""); //TODO: Add localized 'chatter_leaveAlready' message.
+                sender.sendMessage(Messages.tl("leaveAlready", channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(""); //TODO: Add localized 'chatter_leaveDenied' message.
+            sender.sendMessage(Messages.tl("leaveDenied", channel.getColoredName()));
             return true;
         }
 
@@ -76,40 +68,34 @@ public final class LeaveCommand extends ChatsPluginCommand {
     }
 
     @Override
-    public @NotNull List<String> onTabComplete(@NotNull final CommandSender sender,
-                                               @NotNull final Command command,
-                                               @NotNull final String alias,
-                                               @NotNull final String[] arguments) {
-        final List<String> completion = new ArrayList<>();
-
-        if (sender instanceof BlockCommandSender || sender instanceof ConsoleCommandSender) {
-            return completion;
-        }
-
-        if (!sender.hasPermission(this.getPermission())) {
-            return completion;
-        }
-
+    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+                                             @NotNull final String alias,
+                                             @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
+            if (!(sender instanceof Player)) {
+                return Collections.emptyList();
+            }
+
+            final List<String> completion = new ArrayList<>();
             final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
 
-            if (arguments.length == this.getMinArgs()) {
-                for (final IChannel current : chatter.getChannels()) {
-                    if (current.isConversation()) {
-                        continue;
-                    }
-
-                    if (chatter.canLeave(current)) {
-                        if (current.getFullName().contains(arguments[ARG_CHANNEL])) {
-                            completion.add(current.getFullName());
-                        }
-                    }
+            for (final IChannel current : chatter.getChannels()) {
+                if (current.isConversation()) {
+                    continue;
                 }
 
-                Collections.sort(completion);
+                if (InputUtil.containsInput(current.getFullName(), arguments[ARG_CHANNEL])) {
+                    if (chatter.canLeave(current)) {
+                        completion.add(current.getFullName());
+                    }
+                }
             }
+
+            Collections.sort(completion);
+
+            return completion;
         }
 
-        return completion;
+        return Collections.emptyList();
     }
 }

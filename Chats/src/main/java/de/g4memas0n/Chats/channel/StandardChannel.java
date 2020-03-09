@@ -1,10 +1,14 @@
 package de.g4memas0n.Chats.channel;
 
-import de.g4memas0n.Chats.channel.type.ChannelType;
-import de.g4memas0n.Chats.chat.IChatFormatter;
-import de.g4memas0n.Chats.chat.IChatPerformer;
+import de.g4memas0n.Chats.event.channel.ChannelAnnounceEvent;
+import de.g4memas0n.Chats.event.channel.ChannelBroadcastEvent;
+import de.g4memas0n.Chats.event.chatter.ChatterChatChannelEvent;
+import de.g4memas0n.Chats.util.logging.Log;
+import de.g4memas0n.Chats.util.type.ChannelType;
+import de.g4memas0n.Chats.messaging.IFormatter;
 import de.g4memas0n.Chats.chatter.IChatter;
-import de.g4memas0n.Chats.util.Placeholder;
+import de.g4memas0n.Chats.messaging.Placeholder;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +22,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * changed: February 3rd, 2020
+ * changed: March 7th, 2020
  */
 public class StandardChannel implements IChannel {
 
@@ -34,55 +38,26 @@ public class StandardChannel implements IChannel {
     private Set<IChatter> chatters;
 
     // Channel Formatter and Performer Variables:
-    private final IChatFormatter formatter;
-    private final IChatPerformer performer;
+    private final IFormatter formatter;
     private String announceFormat;
     private String broadcastFormat;
     private String chatFormat;
-    private boolean useCustomFormat;
+    private boolean customFormat;
 
-    public StandardChannel(@NotNull final IChatFormatter formatter,
-                           @NotNull final IChatPerformer performer,
+    public StandardChannel(@NotNull final IFormatter formatter,
                            @NotNull final String fullName) throws IllegalArgumentException {
         if (fullName.isEmpty()) {
-            throw new IllegalArgumentException("Name can not be empty");
+            throw new IllegalArgumentException("Full name can not be empty");
         }
 
         this.formatter = formatter;
-        this.performer = performer;
 
         this.fullName = fullName;
         this.chatters = new HashSet<>();
 
-        this.reset();
-    }
-
-    @Override
-    public void delete() {
-
-    }
-
-    @Override
-    public void reload() {
-
-    }
-
-    @Override
-    public void reset() {
-        this.setShortName(null);
-        this.setChatColor(null);
-        this.setPassword(null);
-        this.setCrossWorld(true);
-        this.setDistance(-1);
-        this.setAnnounceFormat(null);
-        this.setBroadcastFormat(null);
-        this.setChatFormat(null);
-        this.setUseCustomFormat(false);
-    }
-
-    @Override
-    public void save() {
-
+        this.distance = -1;
+        this.crossWorld = true;
+        this.customFormat = false;
     }
 
     // Channel Properties Methods:
@@ -92,12 +67,17 @@ public class StandardChannel implements IChannel {
     }
 
     @Override
-    public @NotNull String getShortName() {
-        return this.shortName != null && !this.shortName.isEmpty() ? this.shortName : this.fullName;
+    public @NotNull String getColoredName() {
+        return this.chatColor + this.fullName;
     }
 
     @Override
-    public boolean setShortName(@Nullable final String shortName) {
+    public @NotNull String getShortName() {
+        return this.shortName != null ? this.shortName : this.fullName;
+    }
+
+    @Override
+    public boolean setShortName(@Nullable final String shortName) throws IllegalArgumentException {
         if (shortName == null) {
             if (this.shortName == null) {
                 return false;
@@ -105,6 +85,10 @@ public class StandardChannel implements IChannel {
 
             this.shortName = null;
             return true;
+        }
+
+        if (shortName.isEmpty()) {
+            throw new IllegalArgumentException("Short name can not be empty");
         }
 
         if (shortName.equals(this.shortName)) {
@@ -117,11 +101,15 @@ public class StandardChannel implements IChannel {
 
     @Override
     public @NotNull ChatColor getChatColor() {
-        return this.chatColor != null ? this.chatColor : this.formatter.getChatColor();
+        return this.chatColor != null ? this.chatColor : this.formatter.getChannelColor();
     }
 
     @Override
-    public boolean setChatColor(@Nullable final ChatColor color) {
+    public boolean setChatColor(@Nullable final ChatColor color) throws IllegalArgumentException {
+        if (color != null && !color.isColor()) {
+            throw new IllegalArgumentException("Color can not be a format");
+        }
+
         if (this.chatColor == color) {
             return false;
         }
@@ -132,7 +120,7 @@ public class StandardChannel implements IChannel {
 
     @Override
     public boolean hasPassword() {
-        return this.password != null && !this.password.isEmpty();
+        return this.password != null;
     }
 
     @Override
@@ -141,7 +129,7 @@ public class StandardChannel implements IChannel {
     }
 
     @Override
-    public boolean setPassword(@Nullable final String password) {
+    public boolean setPassword(@Nullable final String password) throws IllegalArgumentException {
         if (password == null) {
             if (this.password == null) {
                 return false;
@@ -149,6 +137,10 @@ public class StandardChannel implements IChannel {
 
             this.password = null;
             return true;
+        }
+
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException("Password can not be empty");
         }
 
         if (password.equals(this.password)) {
@@ -220,7 +212,7 @@ public class StandardChannel implements IChannel {
         builder.append(this.isCrossWorld());
         builder.append(";distance=");
         builder.append(this.getDistance());
-        builder.append(";conversion=");
+        builder.append(";conversation=");
         builder.append(this.isConversation());
         builder.append(";persist=");
         builder.append(this.isPersist());
@@ -249,7 +241,7 @@ public class StandardChannel implements IChannel {
 
     @Override
     public int hashCode() {
-        final int prime = 59;
+        final int prime = 41;
         int result = 5;
 
         result = prime * result + this.getFullName().hashCode();
@@ -259,7 +251,7 @@ public class StandardChannel implements IChannel {
 
     // Channel Type Methods:
     @Override
-    public @NotNull ChannelType getTpe() {
+    public @NotNull ChannelType getType() {
         return ChannelType.STANDARD;
     }
 
@@ -304,18 +296,36 @@ public class StandardChannel implements IChannel {
 
     // Channel Formatter and Performer Methods:
     @Override
+    public final @NotNull IFormatter getFormatter() {
+        return this.formatter;
+    }
+
+    @Override
     public @NotNull String getAnnounceFormat() {
-        if (this.announceFormat == null || this.announceFormat.isEmpty()) {
+        if (this.announceFormat == null) {
             return this.formatter.getAnnounceFormat();
         }
 
-        return this.isUseCustomFormat() ? this.announceFormat : this.formatter.getAnnounceFormat();
+        return this.isCustomFormat() ? this.announceFormat : this.formatter.getAnnounceFormat();
     }
 
     @Override
     public boolean setAnnounceFormat(@Nullable final String format) throws IllegalArgumentException {
-        if (format != null && !format.isEmpty() && !format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Invalid format! Format must include the message placeholder");
+        if (format == null) {
+            if (this.announceFormat == null) {
+                return false;
+            }
+
+            this.announceFormat = null;
+            return true;
+        }
+
+        if (format.isEmpty()) {
+            throw new IllegalArgumentException("Format can not be empty");
+        }
+
+        if (!format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format must include the message placeholder");
         }
 
         if (this.announceFormat.equals(format)) {
@@ -328,17 +338,30 @@ public class StandardChannel implements IChannel {
 
     @Override
     public @NotNull String getBroadcastFormat() {
-        if (this.broadcastFormat == null || this.broadcastFormat.isEmpty()) {
+        if (this.broadcastFormat == null) {
             return this.formatter.getBroadcastFormat();
         }
 
-        return this.isUseCustomFormat() ? this.broadcastFormat : this.formatter.getBroadcastFormat();
+        return this.isCustomFormat() ? this.broadcastFormat : this.formatter.getBroadcastFormat();
     }
 
     @Override
     public boolean setBroadcastFormat(@Nullable final String format) throws IllegalArgumentException {
-        if (format != null && !format.isEmpty() && !format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Invalid format! Format must include the message placeholder");
+        if (format == null) {
+            if (this.broadcastFormat == null) {
+                return false;
+            }
+
+            this.broadcastFormat = null;
+            return true;
+        }
+
+        if (format.isEmpty()) {
+            throw new IllegalArgumentException("Format can not be empty");
+        }
+
+        if (!format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format must include the message placeholder");
         }
 
         if (this.broadcastFormat.equals(format)) {
@@ -351,19 +374,30 @@ public class StandardChannel implements IChannel {
 
     @Override
     public @NotNull String getChatFormat() {
-        if (this.chatFormat == null || this.chatFormat.isEmpty()) {
+        if (this.chatFormat == null) {
             return this.formatter.getChatFormat();
         }
 
-        return this.isUseCustomFormat() ? this.chatFormat : this.formatter.getChatFormat();
+        return this.isCustomFormat() ? this.chatFormat : this.formatter.getChatFormat();
     }
 
     @Override
     public boolean setChatFormat(@Nullable final String format) throws IllegalArgumentException {
-        if (format != null && !format.isEmpty()) {
-            if (!format.contains(Placeholder.SENDER.toString()) || !format.contains(Placeholder.MESSAGE.toString())) {
-                throw new IllegalArgumentException("Invalid format! Format must include the sender and message placeholder");
+        if (format == null) {
+            if (this.chatFormat == null) {
+                return false;
             }
+
+            this.chatFormat = null;
+            return true;
+        }
+
+        if (format.isEmpty()) {
+            throw new IllegalArgumentException("Format can not be empty");
+        }
+
+        if (!format.contains(Placeholder.SENDER.toString()) || !format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format must include the sender and message placeholder");
         }
 
         if (this.chatFormat.equals(format)) {
@@ -375,27 +409,92 @@ public class StandardChannel implements IChannel {
     }
 
     @Override
-    public boolean isUseCustomFormat() {
-        return this.useCustomFormat;
+    public boolean isCustomFormat() {
+        return this.customFormat;
     }
 
     @Override
-    public boolean setUseCustomFormat(final boolean enabled) {
-        if (this.useCustomFormat == enabled) {
+    public boolean setCustomFormat(final boolean enabled) {
+        if (this.customFormat == enabled) {
             return false;
         }
 
-        this.useCustomFormat = enabled;
+        this.customFormat = enabled;
         return true;
     }
 
     @Override
-    public final @NotNull IChatFormatter getFormatter() {
-        return this.formatter;
+    public void performAnnounce(@NotNull final String message) {
+        final ChannelAnnounceEvent event = new ChannelAnnounceEvent(this, this.getAnnounceFormat(), message);
+
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
+        final String output = this.getFormatter().formatAnnounce(this, event.getFormat(), event.getMessage());
+
+        Log.getChatLogger().info(output);
+
+        this.getChatters().forEach(chatter -> chatter.getPlayer().sendMessage(output));
     }
 
     @Override
-    public final @NotNull IChatPerformer getPerformer() {
-        return this.performer;
+    public void performBroadcast(@NotNull final String message) {
+        final ChannelBroadcastEvent event = new ChannelBroadcastEvent(this, this.getBroadcastFormat(), message);
+
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
+        final String output = this.getFormatter().formatBroadcast(this, event.getFormat(), event.getMessage());
+
+        Log.getChatLogger().info(output);
+
+        this.getChatters().forEach(chatter -> chatter.getPlayer().sendMessage(output));
+    }
+
+    @Override
+    public void performChat(@NotNull final IChatter sender, @NotNull final String message) {
+        if (!this.hasChatter(sender)) {
+            return;
+        }
+
+        final ChatterChatChannelEvent event = new ChatterChatChannelEvent(sender, this, this.getChatFormat(),
+                message, false);
+
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
+
+        final String output = this.getFormatter().formatChat(this, event.getFormat(), sender,
+                event.getMessage());
+
+        Log.getChatLogger().info(output);
+
+        if (this.hasDistance()) {
+            final int distance = this.getDistance();
+
+            this.getChatters().stream()
+                    .filter(chatter -> chatter.isInRange(sender, distance))
+                    .forEach(chatter -> chatter.getPlayer().sendMessage(output));
+
+            return;
+        }
+
+        if (!this.isCrossWorld()) {
+            this.getChatters().stream()
+                    .filter(chatter -> chatter.isInWorld(sender))
+                    .forEach(chatter -> chatter.getPlayer().sendMessage(output));
+
+            return;
+        }
+
+        this.getChatters().forEach(chatter -> chatter.getPlayer().sendMessage(output));
     }
 }

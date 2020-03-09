@@ -2,8 +2,10 @@ package de.g4memas0n.Chats.chatter;
 
 import de.g4memas0n.Chats.channel.IChannel;
 import de.g4memas0n.Chats.channel.IChannelManager;
-import de.g4memas0n.Chats.channel.type.ChannelType;
-import de.g4memas0n.Chats.channel.type.ModifyType;
+import de.g4memas0n.Chats.messaging.Messages;
+import de.g4memas0n.Chats.util.logging.Log;
+import de.g4memas0n.Chats.util.type.ChannelType;
+import de.g4memas0n.Chats.util.type.ModifyType;
 import de.g4memas0n.Chats.event.chatter.ChatterChannelChangedEvent;
 import de.g4memas0n.Chats.event.chatter.ChatterChannelJoinedEvent;
 import de.g4memas0n.Chats.event.chatter.ChatterChannelLeavedEvent;
@@ -11,13 +13,14 @@ import de.g4memas0n.Chats.storage.IStorageFile;
 import de.g4memas0n.Chats.storage.InvalidStorageFileException;
 import de.g4memas0n.Chats.storage.YamlStorageFile;
 import de.g4memas0n.Chats.util.Permission;
-import de.g4memas0n.Chats.util.ReloadType;
+import de.g4memas0n.Chats.util.type.ReloadType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,13 +34,9 @@ import java.util.stream.Collectors;
  * @since 0.0.1-SNAPSHOT
  *
  * created: August 6th, 2019
- * changed: January 17th, 2020
+ * changed: March 9th, 2020
  */
 public class StandardChatter implements IChatter {
-
-    private static final String PATH_CHANNELS = "channels";
-    private static final String PATH_FOCUS = "focus";
-    private static final String PATH_IGNORES = "ignores";
 
     private final Player player;
 
@@ -62,85 +61,84 @@ public class StandardChatter implements IChatter {
         this.channels = new HashSet<>();
         this.ignores = new HashSet<>();
 
-        this.reload();
+        this.load();
+    }
+
+    @Override
+    public @NotNull IStorageFile getStorageFile() {
+        return this.storage;
     }
 
     @Override
     public void delete() {
-        this.storage.delete();
+        try {
+            this.storage.delete();
+
+            if (Log.isDebug()) {
+                Log.getPluginLogger().info("Deleted chatter file: " + this.storage.getFile().getName()
+                        + " for chatter: " + this.player.getName());
+            }
+        } catch (IOException ex) {
+            Log.getPluginLogger().warning("Unable to delete chatter file: " + this.storage.getFile().getName());
+        }
     }
 
     @Override
-    public void reload() {
+    public void load() {
         try {
             this.storage.load();
+        } catch (FileNotFoundException ex) {
+            Log.getPluginLogger().severe("Unable to find chatter file: " + this.storage.getFile().getName());
+            Log.getPluginLogger().info("Saving default configuration for chatter: " + this.player.getName());
+
+            this.storage.clear();
         } catch (IOException | InvalidStorageFileException ex) {
-            //TODO: Log reload failure.
-            return;
+            Log.getPluginLogger().warning("Unable to load chatter file: " + this.storage.getFile().getName());
+            Log.getPluginLogger().info("Using default configuration for chatter: " + this.player.getName());
+
+            this.storage.clear();
         }
 
-        this.reset();
-
-        for (String current : this.storage.getStringList(PATH_CHANNELS)) {
-            if (current.isEmpty()) {
-                continue;
-            }
-
-            final IChannel channel = this.manager.getChannel(current);
-
-            if (channel != null && channel.isPersist()) {
-                if (this.channels.contains(channel)) {
-                    continue;
-                }
-
-                channel.addChatter(this);
-                this.channels.add(channel);
-            }
+        for (final IChannel current : this.channels) {
+            current.removeChatter(this);
+            this.channels.remove(current);
         }
 
-        if (this.storage.contains(PATH_FOCUS)) {
-            final String name = this.storage.getString(PATH_FOCUS);
-
-            if (name != null && !name.isEmpty()) {
-                final IChannel focused = this.manager.getChannel(name);
-
-                if (focused != null && focused.isPersist()) {
-                    if (!this.channels.contains(focused)) {
-                        focused.addChatter(this);
-                        this.channels.add(focused);
-                    }
-
-                    this.focused = focused;
-                }
-            }
+        for (final IChannel current : this._getChannels()) {
+            this.channels.add(current);
+            current.addChatter(this);
         }
 
-        this.ignores.addAll(this.storage.getUniqueIdList(PATH_IGNORES));
-    }
-
-    @Override
-    public void reset() {
-        this.channels.clear();
         this.ignores.clear();
 
-        this.focused = this.manager.getDefault();
+        for (final UUID current : this._getIgnores()) {
+            if (!current.equals(this.player.getUniqueId())) {
+                this.ignores.add(current);
+            }
+        }
+
+        this.focused = this._getFocus();
         this.lastFocused = null;
         this.lastPersist = null;
         this.lastPartner = null;
 
-        this.channels.add(this.focused);
+        if (Log.isDebug()) {
+            Log.getPluginLogger().info("Loaded chatter file: " + this.storage.getFile().getName()
+                    + " for chatter: " + this.player.getName());
+        }
     }
 
     @Override
     public void save() {
-        this.storage.set(PATH_CHANNELS, this.channels.stream().filter(IChannel::isPersist).collect(Collectors.toSet()));
-        this.storage.set(PATH_IGNORES, this.ignores.stream().map(UUID::toString).collect(Collectors.toSet()));
-        this.storage.set(PATH_FOCUS, this.focused.isPersist() ? this.focused : this.lastPersist);
-
         try {
             this.storage.save();
+
+            if (Log.isDebug()) {
+                Log.getPluginLogger().info("Saved chatter file: " + this.storage.getFile().getName()
+                        + " for chatter: " + this.player.getName());
+            }
         } catch (IOException ex) {
-            //TODO: Log save failure.
+            Log.getPluginLogger().warning("Unable to save chatter file: " + this.storage.getFile().getName());
         }
     }
 
@@ -153,6 +151,24 @@ public class StandardChatter implements IChatter {
     @Override
     public @NotNull IChannel getFocus() {
         return this.focused;
+    }
+
+    private @NotNull IChannel _getFocus() {
+        final String fullName = this.storage.getString("focus");
+
+        if (fullName == null || fullName.isEmpty()) {
+            return this.manager.getDefault();
+        }
+
+        final IChannel focused = this.manager.getChannel(fullName);
+
+        if (focused == null || !focused.isPersist()) {
+            return this.manager.getDefault();
+        }
+
+        this.channels.add(focused);
+
+        return focused;
     }
 
     @Override
@@ -179,8 +195,15 @@ public class StandardChatter implements IChatter {
 
         Bukkit.getServer().getPluginManager().callEvent(event);
 
-        this.save();
+        if (channel.isPersist()) {
+            this._setFocus(channel);
+        }
+
         return true;
+    }
+
+    private void _setFocus(@NotNull final IChannel focus) {
+        this.storage.set("focus", focus.getFullName());
     }
 
     // Last Sources Methods:
@@ -215,6 +238,34 @@ public class StandardChatter implements IChatter {
         return new HashSet<>(this.channels);
     }
 
+    private @NotNull Set<IChannel> _getChannels() {
+        final Set<IChannel> channels = new HashSet<>();
+
+        channels.add(this.manager.getDefault());
+
+        for (final String current : this.storage.getStringList("channels")) {
+            if (current.isEmpty()) {
+                continue;
+            }
+
+            final IChannel channel = this.manager.getChannel(current);
+
+            if (channel != null && channel.isPersist()) {
+                if (channels.contains(channel)) {
+                    continue;
+                }
+
+                channels.add(channel);
+            }
+        }
+
+        return channels;
+    }
+
+    private void _setChannels(@NotNull final Set<IChannel> channels) {
+        this.storage.set("channels", channels.stream().filter(IChannel::isPersist).collect(Collectors.toSet()));
+    }
+
     @Override
     public boolean addChannel(@NotNull final IChannel channel) {
         if (this.channels.contains(channel)) {
@@ -224,14 +275,14 @@ public class StandardChatter implements IChatter {
         this.channels.add(channel);
 
         if (!channel.hasChatter(this)) {
-            channel.getPerformer().performAnnounce(channel, ""); //TODO: Add localized 'channel_chatterJoin' message.
+            channel.performAnnounce(Messages.tl("channelChatterJoin", this.player.getDisplayName()));
             channel.addChatter(this);
         }
 
         Bukkit.getServer().getPluginManager().callEvent(new ChatterChannelJoinedEvent(this, channel));
 
         if (channel.isPersist()) {
-            this.save();
+            this._setChannels(this.channels);
         }
 
         return true;
@@ -257,13 +308,13 @@ public class StandardChatter implements IChatter {
 
         if (channel.hasChatter(this)) {
             channel.removeChatter(this);
-            channel.getPerformer().performAnnounce(channel, ""); //TODO: Add localized 'channel_chatterLeave' message.
+            channel.performAnnounce(Messages.tl("channelChatterLeave", this.player.getDisplayName()));
         }
 
         Bukkit.getServer().getPluginManager().callEvent(new ChatterChannelLeavedEvent(this, channel));
 
         if (channel.isPersist()) {
-            this.save();
+            this._setChannels(this.channels);
         }
 
         return true;
@@ -279,6 +330,14 @@ public class StandardChatter implements IChatter {
         return new HashSet<>(this.ignores);
     }
 
+    private @NotNull Set<UUID> _getIgnores() {
+        return new HashSet<>(this.storage.getUniqueIdList("ignores"));
+    }
+
+    private void _setIgnores(@NotNull final Set<UUID> ignores) {
+        this.storage.set("ignores", ignores.stream().map(UUID::toString).collect(Collectors.toSet()));
+    }
+
     @Override
     public boolean addIgnores(@NotNull final UUID uniqueId) {
         if (this.ignores.contains(uniqueId)) {
@@ -286,7 +345,9 @@ public class StandardChatter implements IChatter {
         }
 
         this.ignores.add(uniqueId);
-        this.save();
+
+        this._setIgnores(this.ignores);
+
         return true;
     }
 
@@ -297,7 +358,9 @@ public class StandardChatter implements IChatter {
         }
 
         this.ignores.remove(uniqueId);
-        this.save();
+
+        this._setIgnores(this.ignores);
+
         return true;
     }
 
@@ -385,6 +448,16 @@ public class StandardChatter implements IChatter {
 
     // IPermissible Implementation:
     @Override
+    public boolean canBroadcast(@NotNull final IChannel channel) {
+        if (channel.isConversation()) {
+            return false;
+        }
+
+        return this.player.hasPermission(Permission.CHANNEL_BROADCAST.formChildren(channel.getFullName()))
+                || this.player.hasPermission(Permission.CHANNEL_BROADCAST.formAll());
+    }
+
+    @Override
     public boolean canCreate(@NotNull final ChannelType type) {
         return this.player.hasPermission(Permission.CHANNEL_CREATE.formChildren(type.getIdentifier()))
                 || this.player.hasPermission(Permission.CHANNEL_CREATE.formAll());
@@ -396,7 +469,7 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.CHANNEL_DELETE.formChildren(channel.getTpe().getIdentifier()))
+        return this.player.hasPermission(Permission.CHANNEL_DELETE.formChildren(channel.getType().getIdentifier()))
                 || this.player.hasPermission(Permission.CHANNEL_DELETE.formAll());
     }
 
@@ -474,6 +547,17 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
+    public boolean canSee(@NotNull final ChannelType type) {
+        return this.player.hasPermission(Permission.CHANNEL_LIST.formChildren(type.getIdentifier()))
+                || this.player.hasPermission(Permission.CHANNEL_LIST.formWildcard());
+    }
+
+    @Override
+    public boolean canSee(@NotNull final IChannel channel) {
+        return this.canSee(channel.getType()) && this.canJoin(channel);
+    }
+
+    @Override
     public boolean canSpeak(@NotNull final IChannel channel) {
         if (channel.isConversation()) {
             return channel.hasChatter(this);
@@ -481,6 +565,11 @@ public class StandardChatter implements IChatter {
 
         return this.player.hasPermission(Permission.CHANNEL_SPEAK.formChildren(channel.getFullName()))
                 || this.player.hasPermission(Permission.CHANNEL_SPEAK.formAll());
+    }
+
+    @Override
+    public boolean canView(@NotNull final IChannel channel) {
+        return true; //TODO: Correct result.
     }
 
     @Override

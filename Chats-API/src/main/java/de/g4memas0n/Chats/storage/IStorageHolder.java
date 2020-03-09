@@ -1,12 +1,39 @@
 package de.g4memas0n.Chats.storage;
 
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * StorageHolder Interface that provide storage methods for Objects with a persistent storage.
+ *
+ * @author G4meMason
+ * @since 0.1.0-SNAPSHOT
+ *
+ * created: January 29th, 2020
+ * changed: March 5th, 2020
+ */
 public interface IStorageHolder {
 
+    /**
+     * Returns the storage file of this storage holder.
+     * @return the storage file.
+     */
+    @NotNull IStorageFile getStorageFile();
+
+    /**
+     * Deletes the storage file for this storage holder.
+     * Any errors deleting the storage file will be logged and then ignored.
+     */
     void delete();
 
-    void reload();
+    /**
+     * (Re)Loads the storage file and updates this storage holder to the new state.
+     * Any errors loading the storage file will be logged and the previous state will be kept.
+     */
+    void load();
 
-    void reset();
-
+    /**
+     * Saves the storage file of this storage holder.
+     * Any errors saving the storage file will be logged and then ignored.
+     */
     void save();
 }

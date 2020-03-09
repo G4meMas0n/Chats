@@ -1,8 +1,6 @@
 package de.g4memas0n.Chats.channel;
 
-import de.g4memas0n.Chats.chat.IChatFormatter;
-import de.g4memas0n.Chats.chat.IChatPerformer;
-import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.Chats.storage.IStorageFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
@@ -15,21 +13,9 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 4th, 2019
- * changed: February 1st, 2020
+ * changed: March 4th, 2020
  */
 public interface IChannelManager {
-
-    /**
-     * Returns the chat formatter of this channel manager, that is used for all channels.
-     * @return the chat formatter.
-     */
-    @NotNull IChatFormatter getFormatter();
-
-    /**
-     * Returns the chat performer of this channel manager, that is used for all channels.
-     * @return the chat performer.
-     */
-    @NotNull IChatPerformer getPerformer();
 
     // Default Channel Methods:
     /**
@@ -86,45 +72,11 @@ public interface IChannelManager {
     boolean hasChannel(@NotNull final String fullName);
 
     /**
-     * Returns whether this channel manager contains a channel with the given full name that is specified as a persist
-     * channel.
-     * @param fullName the full name of the persist channel that should be checked.
-     * @return true when this channel manager contains a persist channel with the given full name, false otherwise.
+     * Returns a storage file for a channel with the given full name.
+     * @param fullName the full name of the channel.
+     * @return the storage file of the given channel full name.
      */
-    boolean hasPersist(@NotNull final String fullName);
-
-    /**
-     * Returns whether this channel manager contains a channel with the given full name that is specified as a
-     * conversation channel.
-     * @param fullName the full name of the conversion channel that should be checked.
-     * @return true when this channel manager contains a conversation channel with the given full name, false otherwise.
-     */
-    boolean hasConversation(@NotNull final String fullName);
-
-    /**
-     * Create and returns a new channel that is not specified as a persist or conversation channel.
-     * This method will not add the created channel to this channel manager.
-     * @param fullName the full name for the channel that should be created.
-     * @return the channel that was created.
-     */
-    @NotNull IChannel create(@NotNull final String fullName);
-
-    /**
-     * Create and returns a new channel that is specified as a persist channel.
-     * This method will not add the created channel to this channel manager.
-     * @param fullName the full name for the channel that should be created.
-     * @return the channel that was created.
-     */
-    @NotNull IChannel createPersist(@NotNull final String fullName);
-
-    /**
-     * Create and returns a new channel that is specified as a conversation channel.
-     * This method will not add the created channel to this channel manager.
-     * @param first the first chatter that should be in the channel.
-     * @param second the second chatter that should be in the channel.
-     * @return the channel that was created.
-     */
-    @NotNull IChannel createConversation(@NotNull final IChatter first, @NotNull final IChatter second);
+    @NotNull IStorageFile getStorageFile(@NotNull final String fullName);
 
     /**
      * Reloads this channel manager. Removes all channels of this channel manager and loads all persist channels of the

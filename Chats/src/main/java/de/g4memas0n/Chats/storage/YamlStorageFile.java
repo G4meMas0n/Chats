@@ -12,7 +12,6 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +21,16 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
+ * Representation of the storage file, implements {@link IStorageFile}.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 29th, 2020
- * changed: February 1st, 2020
+ * changed: March 8th, 2020
  */
 public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
+
     private final File file;
 
     public YamlStorageFile(@NotNull final File file) throws IllegalArgumentException {
@@ -41,113 +42,37 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     }
 
     @Override
+    public @NotNull File getFile() {
+        return this.file;
+    }
+
+    public synchronized void clear() {
+        try {
+            this.loadFromString(BLANK_CONFIG);
+        } catch (InvalidConfigurationException ignored) {
+            // A blank config can not be invalid.
+        }
+    }
+
+    @Override
+    public synchronized void delete() throws IOException {
+        if (!this.file.delete()) {
+            throw new IOException("File can not be deleted: " + this.file.getName());
+        }
+    }
+
+    @Override
     public synchronized void load() throws IOException, InvalidStorageFileException {
         try {
             super.load(this.file);
-        } catch (FileNotFoundException ex) {
-            this.save();
         } catch (InvalidConfigurationException ex) {
             throw new InvalidStorageFileException(this.file, ex);
         }
     }
 
     @Override
-    public synchronized void delete() {
-        if (this.file.delete()) {
-            //TODO: Log storage deletion
-        }
-    }
-
-    @Override
     public synchronized void save() throws IOException {
         super.save(file);
-    }
-
-    @Override
-    public @NotNull File getFile() {
-        return this.file;
-    }
-
-    @Override
-    public synchronized @Nullable ChatColor getChatColor(@NotNull final String path) {
-        return this.getChatColor(path, null);
-    }
-
-    @Override
-    public synchronized @Nullable ChatColor getChatColor(@NotNull final String path, @Nullable final ChatColor def) {
-        try {
-            return ChatColor.valueOf(super.getString(path));
-        } catch (IllegalArgumentException ignored) {
-            return def;
-        }
-    }
-
-    @Override
-    public synchronized @Nullable Locale getLocale(@NotNull final String path) {
-        return this.getLocale(path, null);
-    }
-
-    @Override
-    public synchronized @Nullable Locale getLocale(@NotNull final String path, @Nullable final Locale def) {
-        final String locale = super.getString(path);
-
-        if (locale != null && !locale.isEmpty()) {
-            final String[] parts = locale.split("_");
-
-            if (parts.length == 1) {
-                return new Locale(parts[0]);
-            } else if (parts.length == 2) {
-                return new Locale(parts[0], parts[1]);
-            } else if (parts.length == 3) {
-                return new Locale(parts[0], parts[1], parts[2]);
-            }
-        }
-
-        return def;
-    }
-
-    @Override
-    public synchronized @Nullable UUID getUniqueId(@NotNull final String path) {
-        return this.getUniqueId(path, null);
-    }
-
-    @Override
-    public synchronized @Nullable UUID getUniqueId(@NotNull final String path, @Nullable final UUID def) {
-        try {
-            return UUID.fromString(super.getString(path));
-        } catch (IllegalArgumentException ignored) {
-            return def;
-        }
-    }
-
-    @Override
-    public synchronized @NotNull List<UUID> getUniqueIdList(@NotNull final String path) {
-        final List<UUID> uuidList = new ArrayList<>();
-
-        for (final String current : super.getStringList(path)) {
-            try {
-                uuidList.add(UUID.fromString(current));
-            } catch (IllegalArgumentException ignored) {
-
-            }
-        }
-
-        return uuidList;
-    }
-
-    @Override
-    public synchronized boolean isChatColor(@NotNull final String path) {
-        return this.getChatColor(path) != null;
-    }
-
-    @Override
-    public synchronized boolean isLocale(@NotNull final String path) {
-        return this.getLocale(path) != null;
-    }
-
-    @Override
-    public synchronized boolean isUniqueId(@NotNull final String path) {
-        return this.getUniqueId(path) != null;
     }
 
     @Override
@@ -173,6 +98,20 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     @Override
     public synchronized @NotNull List<Character> getCharacterList(@NotNull final String path) {
         return super.getCharacterList(path);
+    }
+
+    @Override
+    public synchronized @Nullable ChatColor getChatColor(@NotNull final String path) {
+        return this.getChatColor(path, null);
+    }
+
+    @Override
+    public synchronized @Nullable ChatColor getChatColor(@NotNull final String path, @Nullable final ChatColor def) {
+        try {
+            return ChatColor.valueOf(super.getString(path));
+        } catch (IllegalArgumentException ignored) {
+            return def;
+        }
     }
 
     @Override
@@ -251,6 +190,30 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     }
 
     @Override
+    public synchronized @Nullable Locale getLocale(@NotNull final String path) {
+        return this.getLocale(path, null);
+    }
+
+    @Override
+    public synchronized @Nullable Locale getLocale(@NotNull final String path, @Nullable final Locale def) {
+        final String locale = super.getString(path);
+
+        if (locale != null && !locale.isEmpty()) {
+            final String[] parts = locale.split("_");
+
+            if (parts.length == 1) {
+                return new Locale(parts[0]);
+            } else if (parts.length == 2) {
+                return new Locale(parts[0], parts[1]);
+            } else if (parts.length == 3) {
+                return new Locale(parts[0], parts[1], parts[2]);
+            }
+        }
+
+        return def;
+    }
+
+    @Override
     public synchronized @Nullable Location getLocation(@NotNull final String path) {
         return super.getLocation(path);
     }
@@ -279,6 +242,17 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     @Override
     public synchronized @NotNull List<Map<?, ?>> getMapList(@NotNull final String path) {
         return super.getMapList(path);
+    }
+
+    @Override
+    public synchronized @Nullable Object get(@NotNull final String path) {
+        return super.get(path);
+    }
+
+    @Override
+    public synchronized @Nullable Object get(@NotNull final String path,
+                                             @Nullable final Object def) {
+        return super.get(path, def);
     }
 
     @Override
@@ -314,6 +288,41 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     }
 
     @Override
+    public synchronized @Nullable UUID getUniqueId(@NotNull final String path) {
+        return this.getUniqueId(path, null);
+    }
+
+    @Override
+    public synchronized @Nullable UUID getUniqueId(@NotNull final String path, @Nullable final UUID def) {
+        try {
+            final String uuid = super.getString(path);
+
+            if (uuid == null) {
+                return def;
+            }
+
+            return UUID.fromString(uuid);
+        } catch (IllegalArgumentException ignored) {
+            return def;
+        }
+    }
+
+    @Override
+    public synchronized @NotNull List<UUID> getUniqueIdList(@NotNull final String path) {
+        final List<UUID> uuidList = new ArrayList<>();
+
+        for (final String current : super.getStringList(path)) {
+            try {
+                uuidList.add(UUID.fromString(current));
+            } catch (IllegalArgumentException ignored) {
+
+            }
+        }
+
+        return uuidList;
+    }
+
+    @Override
     public synchronized @NotNull Map<String, Object> getValues(final boolean deep) {
         return super.getValues(deep);
     }
@@ -331,6 +340,15 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     @Override
     public synchronized boolean isBoolean(@NotNull final String path) {
         return super.isBoolean(path);
+    }
+
+    @Override
+    public synchronized boolean isChatColor(@NotNull final String path) {
+        if (!this.contains(path) || !this.isString(path)) {
+            return false;
+        }
+
+        return this.getChatColor(path) != null;
     }
 
     @Override
@@ -364,6 +382,15 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     }
 
     @Override
+    public synchronized boolean isLocale(@NotNull final String path) {
+        if (!this.contains(path) || !this.isString(path)) {
+            return false;
+        }
+
+        return this.getLocale(path) != null;
+    }
+
+    @Override
     public synchronized boolean isLocation(@NotNull final String path) {
         return super.isLocation(path);
     }
@@ -386,6 +413,15 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     @Override
     public synchronized boolean isString(@NotNull final String path) {
         return super.isString(path);
+    }
+
+    @Override
+    public synchronized boolean isUniqueId(@NotNull final String path) {
+        if (!this.contains(path) || !this.isString(path)) {
+            return false;
+        }
+
+        return this.getUniqueId(path) != null;
     }
 
     @Override

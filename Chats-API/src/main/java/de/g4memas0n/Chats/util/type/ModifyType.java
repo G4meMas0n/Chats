@@ -1,6 +1,5 @@
-package de.g4memas0n.Chats.channel.type;
+package de.g4memas0n.Chats.util.type;
 
-import de.g4memas0n.Chats.util.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,28 +10,44 @@ import org.jetbrains.annotations.Nullable;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 3rd, 2020
- * changed: February 3rd, 2020
+ * changed: March 3rd, 2020
  */
 public enum ModifyType implements Type {
-    ANNOUNCE_FORMAT("announce-format"),
-    BROADCAST_FORMAT("broadcast-format"),
-    CHAT_FORMAT("chat-format"),
-    CROSS_WORLD("cross-world"),
-    COLOR("color"),
-    DISTANCE("distance"),
-    PASSWORD("password"),
-    SHORT_NAME("short-name"),
-    USE_CUSTOM_FORMAT("use-custom-format");
+    ANNOUNCE_FORMAT("announce", true, true),
+    BROADCAST_FORMAT("broadcast", true, true),
+    CHAT_FORMAT("chat", true, false),
+    COLOR("color", true, false),
+    CROSS_WORLD("cross-world", true, false),
+    CUSTOM_FORMAT("custom-format", true, false),
+    DISTANCE("distance", true, false),
+    PASSWORD("password", true, true),
+    SHORT_NAME("short-name", true, true);
 
     private final String identifier;
 
-    ModifyType(@NotNull final String identifier) {
+    private final boolean adjustable;
+    private final boolean removable;
+
+    ModifyType(@NotNull final String identifier,
+               final boolean adjustable,
+               final boolean removable) {
         this.identifier = identifier;
+
+        this.adjustable = adjustable;
+        this.removable = removable;
     }
 
     @Override
     public final @NotNull String getIdentifier() {
         return this.identifier;
+    }
+
+    public final boolean isAdjustable() {
+        return this.adjustable;
+    }
+
+    public final boolean isRemovable() {
+        return this.removable;
     }
 
     @Override

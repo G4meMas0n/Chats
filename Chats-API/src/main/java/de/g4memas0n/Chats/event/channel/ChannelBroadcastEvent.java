@@ -1,7 +1,7 @@
 package de.g4memas0n.Chats.event.channel;
 
 import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.util.Placeholder;
+import de.g4memas0n.Chats.messaging.Placeholder;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;

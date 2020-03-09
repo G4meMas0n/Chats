@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.util;
+package de.g4memas0n.Chats.util.logging;
 
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;

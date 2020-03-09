@@ -1,9 +1,9 @@
 package de.g4memas0n.Chats.chatter;
 
 import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.channel.type.ChannelType;
-import de.g4memas0n.Chats.channel.type.ModifyType;
-import de.g4memas0n.Chats.util.ReloadType;
+import de.g4memas0n.Chats.util.type.ChannelType;
+import de.g4memas0n.Chats.util.type.ModifyType;
+import de.g4memas0n.Chats.util.type.ReloadType;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,9 +15,17 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 8th, 2020
- * changed: February 2nd, 2020
+ * changed: February 8th, 2020
  */
 public interface IPermissible {
+
+    /**
+     * Returns whether this permissible is permitted to broadcast to the given channel.
+     * When the given channel represents a conversation channel it returns false.
+     * @param channel the channel to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canBroadcast(@NotNull final IChannel channel);
 
     /**
      * Returns whether this permissible is permitted to create a channel of the given type.
@@ -98,12 +106,33 @@ public interface IPermissible {
     boolean canReload(@NotNull final ReloadType type);
 
     /**
+     * Returns whether this permissible is permitted to see the given channel type.
+     * @param type the channel type to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canSee(@NotNull final ChannelType type);
+
+    /**
+     * Returns whether this permissible is permitted to see the given channel.
+     * @param channel the channel to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canSee(@NotNull final IChannel channel);
+
+    /**
      * Returns whether this permissible is permitted to speak in the given channel. When the given channel represents
      * a conversation channel it returns whether the given channel contains this permissible.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
     boolean canSpeak(@NotNull final IChannel channel);
+
+    /**
+     * Returns whether this permissible is permitted to view information's of the given channel.
+     * @param channel the channel to check the permission.
+     * @return true when this permissible it permitted, false otherwise.
+     */
+    boolean canView(@NotNull final IChannel channel);
 
     /**
      * Returns whether this permissible is forced to focus the given channel on connect.

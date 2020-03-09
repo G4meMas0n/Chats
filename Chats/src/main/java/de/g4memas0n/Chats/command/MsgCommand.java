@@ -2,29 +2,29 @@ package de.g4memas0n.Chats.command;
 
 import de.g4memas0n.Chats.channel.ConversationChannel;
 import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chat.ConversationRunnable;
-import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.Chats.util.ChatRunnable;
 import de.g4memas0n.Chats.util.Permission;
-import org.bukkit.command.BlockCommandSender;
-import org.bukkit.command.Command;
+import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.Chats.util.InputUtil;
+import de.g4memas0n.Chats.messaging.Messages;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * The Msg Command TabExecutor, extends {@link ChatsPluginCommand}.
+ * The Msg Command, extends {@link BasicPluginCommand}.
  *
  * @author G4meMas0n
  * @since 0.0.1-SNAPSHOT
  *
  * created: September 13th, 2019
- * changed: February 3rd, 2020
+ * changed: March 4th, 2020
  */
-public final class MsgCommand extends ChatsPluginCommand {
+public final class MsgCommand extends BasicPluginCommand {
 
     private static final String NAME = "msg";
     private static final int MIN_ARGS = 1;
@@ -34,118 +34,99 @@ public final class MsgCommand extends ChatsPluginCommand {
     private static final int ARG_MESSAGE = 1;
 
     public MsgCommand() {
-        super(NAME, Permission.CHATTER_MSG.getName(), MIN_ARGS, MAX_ARGS);
+        super(NAME, Permission.CHATTER_MSG.getName(), MIN_ARGS, MAX_ARGS, Arrays.asList("pm", "tell", "whisper", "w"));
     }
 
     @Override
-    public boolean onCommand(@NotNull final CommandSender sender,
-                             @NotNull final Command command,
-                             @NotNull final String alias,
-                             @NotNull final String[] arguments) {
-        if (sender instanceof BlockCommandSender || sender instanceof ConsoleCommandSender) {
-            sender.sendMessage(""); //TODO: Add localized 'command_illegalAccess' message.
-            return true;
-        }
-
-        if (!sender.hasPermission(this.getPermission())) {
-            sender.sendMessage(""); //TODO: Add localized 'command_permissionMessage' message.
-            return true;
-        }
-
+    public boolean execute(@NotNull final CommandSender sender,
+                           @NotNull final String alias,
+                           @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
+            if (!(sender instanceof Player)) {
+                return false;
+            }
+
             final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
 
-            if (chatter.getPlayer().getName().equals(arguments[ARG_PARTNER])) {
-                sender.sendMessage(""); //TODO: Add localized 'chatter_msgSelf' message.
+            if (chatter.getPlayer().getName().equalsIgnoreCase(arguments[ARG_PARTNER])) {
+                sender.sendMessage(Messages.tlErr("msgSelf"));
                 return true;
             }
 
             final Player target = this.getInstance().getServer().getPlayer(arguments[ARG_PARTNER]);
 
             if (target == null || !chatter.getPlayer().canSee(target)) {
-                sender.sendMessage(""); //TODO: Add localized 'chatter_msgNoPlayer' message.
+                sender.sendMessage(Messages.tlErr("playerNotFound", arguments[ARG_PARTNER]));
                 return true;
             }
 
             if (chatter.canMessage(target)) {
                 final IChatter partner = this.getInstance().getChatterManager().getChatter(target);
 
+                IChannel channel = this.getInstance().getChannelManager()
+                        .getChannel(IChannel.buildConversationName(chatter, partner));
+
+                if (channel == null || !channel.isConversation()) {
+                    channel = new ConversationChannel(this.getInstance().getChannelManager(),
+                            this.getInstance().getFormatter(), chatter, partner);
+
+                    this.getInstance().getChannelManager().addChannel(channel);
+                }
+
                 if (arguments.length == this.getMinArgs()) {
-                    IChannel channel = this.getInstance().getChannelManager().getChannel(
-                            ConversationChannel.buildName(chatter, partner));
-
-                    if (channel == null) {
-                        channel = this.getInstance().getChannelManager().createConversation(chatter, partner);
-
-                        // This should never be true, because there is no channel when the channel manager return null.
-                        if (!this.getInstance().getChannelManager().addChannel(channel)) {
-                            sender.sendMessage(""); //TODO: Add localized 'command_performUnable' message.
-                            return true;
-                        }
-                    }
-
-                    // This should never be true, because conversation channels should have a another name regex.
-                    if (!channel.isConversation()) {
-                        sender.sendMessage(""); //TODO: Add localized 'command_performUnable' message.
-                        return true;
-                    }
-
                     if (chatter.setFocus(channel)) {
-                        sender.sendMessage(""); //TODO: Add localized 'command_msgFocusPartner' message.
+                        sender.sendMessage(Messages.tl("focusConversation", target.getDisplayName()));
                         return true;
                     }
 
-                    sender.sendMessage(""); //TODO: Add localized 'command_msgFocusAlready' message.
+                    sender.sendMessage(Messages.tl("focusAlreadyConversation", target.getDisplayName()));
                     return true;
                 }
 
-                final String message = this.getMessage(arguments, ARG_MESSAGE);
-                final Runnable runnable = new ConversationRunnable(
-                        this.getInstance().getChannelManager().getPerformer(), chatter, partner, message);
+                final Runnable runnable = new ChatRunnable(channel, chatter, copyMessage(arguments, ARG_MESSAGE));
 
                 this.getInstance().getServer().getScheduler().scheduleSyncDelayedTask(this.getInstance(), runnable);
                 return true;
             }
+
+            sender.sendMessage(Messages.tl("msgDenied", target.getName()));
+            return true;
         }
 
         return false;
     }
 
     @Override
-    public @NotNull List<String> onTabComplete(@NotNull final CommandSender sender,
-                                               @NotNull final Command command,
-                                               @NotNull final String alias,
-                                               @NotNull final String[] arguments) {
-        final List<String> completion = new ArrayList<>();
-
-        if (sender instanceof BlockCommandSender || sender instanceof ConsoleCommandSender) {
-            return completion;
-        }
-
-        if (!sender.hasPermission(this.getPermission())) {
-            return completion;
-        }
-
+    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+                                             @NotNull final String alias,
+                                             @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
-
             if (arguments.length == this.getMinArgs()) {
+                if (!(sender instanceof Player)) {
+                    return Collections.emptyList();
+                }
+
+                final List<String> completion = new ArrayList<>();
+                final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
+
                 for (final Player current : this.getInstance().getServer().getOnlinePlayers()) {
                     if (current.equals(chatter.getPlayer())) {
                         continue;
                     }
 
-                    if (chatter.canMessage(current)) {
-                        if (current.getName().contains(arguments[ARG_PARTNER])) {
+                    if (InputUtil.containsInput(current.getName(), arguments[ARG_PARTNER])) {
+                        if (chatter.canMessage(current)) {
                             completion.add(current.getName());
                         }
                     }
                 }
 
                 Collections.sort(completion);
+
+                return completion;
             }
         }
 
-        return completion;
+        return Collections.emptyList();
     }
 }

@@ -2,11 +2,10 @@ package de.g4memas0n.Chats.command;
 
 import de.g4memas0n.Chats.channel.IChannel;
 import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.Chats.util.InputUtil;
+import de.g4memas0n.Chats.messaging.Messages;
 import de.g4memas0n.Chats.util.Permission;
-import org.bukkit.command.BlockCommandSender;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -14,15 +13,15 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The Focus Command TabExecutor, extends {@link ChatsPluginCommand}.
+ * The Focus Command, extends {@link BasicPluginCommand}.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 11th, 2020
- * changed: February 2nd, 2020
+ * changed: March 3rd, 2020
  */
-public final class FocusCommand extends ChatsPluginCommand {
+public final class FocusCommand extends BasicPluginCommand {
 
     private static final String NAME = "focus";
     private static final int MIN_ARGS = 1;
@@ -36,26 +35,19 @@ public final class FocusCommand extends ChatsPluginCommand {
     }
 
     @Override
-    public boolean onCommand(@NotNull final CommandSender sender,
-                             @NotNull final Command command,
-                             @NotNull final String alias,
-                             @NotNull final String[] arguments) {
-        if (sender instanceof BlockCommandSender || sender instanceof ConsoleCommandSender) {
-            sender.sendMessage(""); //TODO: Add localized 'command_illegalAccess' message.
-            return true;
-        }
-
-        if (!sender.hasPermission(this.getPermission())) {
-            sender.sendMessage(""); //TODO: Add localized 'command_permissionMessage' message.
-            return true;
-        }
-
+    public boolean execute(@NotNull final CommandSender sender,
+                           @NotNull final String alias,
+                           @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
+            if (!(sender instanceof Player)) {
+                return false;
+            }
+
             final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
             final IChannel channel = this.getInstance().getChannelManager().getChannel(arguments[ARG_CHANNEL]);
 
             if (channel == null || channel.isConversation()) {
-                sender.sendMessage(""); //TODO: Add localized 'channel_notExist' message.
+                sender.sendMessage(Messages.tlErr("channelNotExist", arguments[ARG_CHANNEL]));
                 return true;
             }
 
@@ -64,36 +56,36 @@ public final class FocusCommand extends ChatsPluginCommand {
                     if (chatter.canJoin(channel)) {
                         if (channel.hasPassword()) {
                             if (arguments.length != this.getMaxArgs()) {
-                                sender.sendMessage(""); //TODO: Add localized 'chatter_joinMissingPassword' message.
+                                sender.sendMessage(Messages.tlErr("passwordMissing"));
                                 return true;
                             }
 
                             if (!arguments[ARG_PASSWORD].equals(channel.getPassword())) {
-                                sender.sendMessage(""); //TODO: Add localized 'chatter_joinInvalidPassword' message.
+                                sender.sendMessage(Messages.tlErr("passwordInvalid"));
                                 return true;
                             }
                         }
 
                         if (chatter.addChannel(channel)) {
-                            sender.sendMessage(""); //TODO: Add localized 'chatter_joinChannel' message.
+                            sender.sendMessage(Messages.tl("joinChannel", channel.getColoredName()));
                             return true;
                         }
                     }
 
-                    sender.sendMessage(""); //TODO: Add localized 'chatter_joinDenied' message.
+                    sender.sendMessage(Messages.tl("joinDenied", channel.getColoredName()));
                     return true;
                 }
 
                 if (chatter.setFocus(channel)) {
-                    sender.sendMessage(""); //TODO: Add localized 'chatter_focusChannel' message.
+                    sender.sendMessage(Messages.tl("focusChannel", channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(""); //TODO: Add localized 'chatter_focusAlready' message.
+                sender.sendMessage(Messages.tl("focusAlreadyChannel", channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(""); //TODO: Add localized 'chatter_focusDenied' message.
+            sender.sendMessage(Messages.tl("focusDenied", channel.getColoredName()));
             return true;
         }
 
@@ -101,44 +93,40 @@ public final class FocusCommand extends ChatsPluginCommand {
     }
 
     @Override
-    public @NotNull List<String> onTabComplete(@NotNull final CommandSender sender,
-                                               @NotNull final Command command,
-                                               @NotNull final String alias,
-                                               @NotNull final String[] arguments) {
-        final List<String> completion = new ArrayList<>();
-
-        if (sender instanceof BlockCommandSender || sender instanceof ConsoleCommandSender) {
-            return completion;
-        }
-
-        if (!sender.hasPermission(this.getPermission())) {
-            return completion;
-        }
-
+    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+                                             @NotNull final String alias,
+                                             @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
-
             if (arguments.length == this.getMinArgs()) {
+                if (!(sender instanceof Player)) {
+                    return Collections.emptyList();
+                }
+
+                final List<String> completion = new ArrayList<>();
+                final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
+
                 for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
                     if (current.isConversation() || chatter.getFocus().equals(current)) {
                         continue;
                     }
 
-                    if  (chatter.canFocus(current)) {
-                        if (!chatter.hasChannel(current) && !chatter.canJoin(current)) {
-                            continue;
-                        }
+                    if (InputUtil.containsInput(current.getFullName(), arguments[ARG_CHANNEL])) {
+                        if (chatter.canFocus(current)) {
+                            if (!chatter.hasChannel(current) && !chatter.canJoin(current)) {
+                                continue;
+                            }
 
-                        if (current.getFullName().contains(arguments[ARG_CHANNEL])) {
                             completion.add(current.getFullName());
                         }
                     }
                 }
 
                 Collections.sort(completion);
+
+                return completion;
             }
         }
 
-        return completion;
+        return Collections.emptyList();
     }
 }

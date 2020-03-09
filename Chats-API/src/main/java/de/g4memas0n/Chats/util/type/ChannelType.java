@@ -1,6 +1,5 @@
-package de.g4memas0n.Chats.channel.type;
+package de.g4memas0n.Chats.util.type;
 
-import de.g4memas0n.Chats.util.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.chat;
+package de.g4memas0n.Chats.util;
 
 import de.g4memas0n.Chats.channel.IChannel;
 import de.g4memas0n.Chats.chatter.IChatter;
@@ -29,6 +29,6 @@ public final class ChatRunnable implements Runnable {
 
     @Override
     public void run() {
-        this.channel.getPerformer().performChat(this.channel, this.sender, this.message);
+        this.channel.performChat(this.sender, this.message);
     }
 }

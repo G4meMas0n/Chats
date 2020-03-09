@@ -1,10 +1,8 @@
 package de.g4memas0n.Chats.channel;
 
-import de.g4memas0n.Chats.channel.type.ChannelType;
-import de.g4memas0n.Chats.chat.IChatFormatter;
-import de.g4memas0n.Chats.chat.IChatPerformer;
+import de.g4memas0n.Chats.messaging.IFormatter;
+import de.g4memas0n.Chats.util.type.ChannelType;
 import de.g4memas0n.Chats.chatter.IChatter;
-import de.g4memas0n.Chats.storage.IStorageHolder;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,33 +15,40 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * changed: February 3rd, 2020
+ * changed: March 5th, 2020
  */
-public interface IChannel extends IStorageHolder, Comparable<IChannel> {
+public interface IChannel extends Comparable<IChannel> {
 
     // Channel Properties Methods:
     /**
-     * Returns the listed full name of this channel.
+     * Returns the full name of this channel.
      * @return the full name of this channel.
      */
     @NotNull String getFullName();
 
     /**
-     * Returns the listed short name of this channel.
+     * Returns the full name colored with the chat color if this channel.
+     * @return the colored full name of this channel.
+     */
+    @NotNull String getColoredName();
+
+    /**
+     * Returns the short name of this channel.
      * @return the short name of this channel.
      */
     @NotNull String getShortName();
 
     /**
-     * Sets a new short name for this channel or removes it when the given argument is null or empty.
+     * Sets a new short name for this channel or removes it when the given argument is null.
      * @param name the new short name for this channel.
      * @return true when the short name was changed as result of this call.
      *         false when the short name was not changed or when this channel do not support this feature.
+     * @throws IllegalArgumentException Thrown when the given name is empty.
      */
-    boolean setShortName(@Nullable final String name);
+    boolean setShortName(@Nullable final String name) throws IllegalArgumentException;
 
     /**
-     * Returns the listed chat color of this channel.
+     * Returns the chat color of this channel.
      * @return the color of this channel.
      */
     @NotNull ChatColor getChatColor();
@@ -70,12 +75,13 @@ public interface IChannel extends IStorageHolder, Comparable<IChannel> {
     @Nullable String getPassword();
 
     /**
-     * Sets a new password for this channel or removes it when the given argument is null or empty.
+     * Sets a new password for this channel or removes it when the given argument is null.
      * @param password the new password for this channel.
      * @return true when the password was changed as result of this call.
      *         false when the password was not changed or when this channel do not support this feature.
+     * @throws IllegalArgumentException Thrown when the given password is empty.
      */
-    boolean setPassword(@Nullable final String password);
+    boolean setPassword(@Nullable final String password) throws IllegalArgumentException;
 
     /**
      * Returns if this channel is worlds across.
@@ -116,7 +122,7 @@ public interface IChannel extends IStorageHolder, Comparable<IChannel> {
      * Returns the type of this channel.
      * @return the channel type.
      */
-    @NotNull ChannelType getTpe();
+    @NotNull ChannelType getType();
 
     /**
      * Returns whether this channel represents a conversion channel or not.
@@ -164,6 +170,8 @@ public interface IChannel extends IStorageHolder, Comparable<IChannel> {
     boolean hasChatter(@NotNull final IChatter chatter);
 
     // Channel Formatter and Performer Methods:
+    @NotNull IFormatter getFormatter();
+
     /**
      * Returns the announce format that is used for this channel.
      * When the 'use-custom-format' option is active then it will return the custom announce format if it is specified.
@@ -221,7 +229,7 @@ public interface IChannel extends IStorageHolder, Comparable<IChannel> {
      * will return the default formats that are specified in the formatter of this channel.
      * @return true when this channel use a custom format, false otherwise.
      */
-    boolean isUseCustomFormat();
+    boolean isCustomFormat();
 
     /**
      * Sets whether this channel uses custom formats or the default formats.
@@ -231,17 +239,47 @@ public interface IChannel extends IStorageHolder, Comparable<IChannel> {
      * @return true when the use custom format option was changed as result of this call.
      *         false when the option was not changed or when this channel do not support this feature.
      */
-    boolean setUseCustomFormat(final boolean state);
+    boolean setCustomFormat(final boolean state);
 
     /**
-     * Returns the message formatter that is used to format all messages.
-     * @return the used message formatter of this channel.
+     * Performs the announce action. This method will run this action synchronized.
+     * Checks all conditions to perform this action successfully and then sends all chatters of this channel the
+     * given announce message.
+     * @param message the announce message.
      */
-    @NotNull IChatFormatter getFormatter();
+    void performAnnounce(@NotNull final String message);
 
     /**
-     * Returns the action performer that is used to perform all channel actions.
-     * @return the used action performer of this channel.
+     * Performs the broadcast action. This method will run this action synchronized.
+     * Checks all conditions to perform this action successfully and then sends all chatters of this channel the
+     * given broadcast message.
+     * @param message the broadcast message.
      */
-    @NotNull IChatPerformer getPerformer();
+    void performBroadcast(@NotNull final String message);
+
+    /**
+     * Performs the chat action. This method will run this action synchronized.
+     * Checks all conditions to perform this action successfully and then sends all chatters of this channel that can
+     * see the given chat message from the given sender.
+     * @param sender the sender of the given message.
+     * @param message the chat message from the sender.
+     */
+    void performChat(@NotNull final IChatter sender, @NotNull final String message);
+
+    /**
+     * Builds the full name for conversation channels.
+     * The full name is build of the uniqueId of both players concatenated with a underscore ("_").
+     * The order in which the chatters are specified as arguments does not matter as they are compared before. So
+     * buildConversationName(first, second) will return the same as buildConversationName(second, first).
+     * @param first the first chatter to build the full name of the conversation.
+     * @param second the second chatter to build the full name of the conversation.
+     * @return the full name of the conversation for the given chatters.
+     */
+    static @NotNull String buildConversationName(@NotNull final IChatter first, @NotNull final IChatter second) {
+        if (first.compareTo(second) >= 0) {
+            return first.getPlayer().getUniqueId() + "_" + second.getPlayer().getUniqueId();
+        } else {
+            return second.getPlayer().getUniqueId() + "_" + first.getPlayer().getUniqueId();
+        }
+    }
 }

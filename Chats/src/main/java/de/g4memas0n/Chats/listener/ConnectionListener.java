@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The Connection Listener, listening to player join and quit events, extends {@link AbstractListener}.
+ * The Connection Listener, listening to player join and quit events, extends {@link BasicListener}.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
  * created: January 7th, 2020
  * changed: February 3rd, 2020
  */
-public final class ConnectionListener extends AbstractListener {
+public final class ConnectionListener extends BasicListener {
 
     public ConnectionListener() { }
 

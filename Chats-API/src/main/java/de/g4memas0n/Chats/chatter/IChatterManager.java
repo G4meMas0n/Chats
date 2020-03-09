@@ -1,6 +1,5 @@
 package de.g4memas0n.Chats.chatter;
 
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,16 +13,9 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 4th, 2019
- * changed: February 2nd, 2020
+ * changed: February 8th, 2020
  */
 public interface IChatterManager {
-
-    /**
-     * Returns a permissible object that represents the given sender.
-     * @param sender the sender that should be represented by a permissible object.
-     * @return the permissible object that represents the given sender.
-     */
-    @NotNull IPermissible getPermissible(@NotNull final CommandSender sender);
 
     /**
      * Returns all chatters that are listed in this chatter manager.
