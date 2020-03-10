@@ -11,6 +11,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Representation of a persist channel that can be a default channel, extends the {@link StandardChannel} class.
@@ -19,7 +23,7 @@ import java.io.IOException;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 3rd, 2020
- * changed: March 8th, 2020
+ * changed: March 9th, 2020
  */
 public class PersistChannel extends StandardChannel implements IStorageHolder {
 
@@ -72,13 +76,63 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         }
 
         super.setShortName(this._getShortName());
-        super.setChatColor(this._getChatColor());
+
+        try {
+            super.setChatColor(this._getChatColor());
+        } catch (IllegalArgumentException ex) {
+            Log.getPluginLogger().warning("Invalid color in channel file: " + this.storage.getFile().getName()
+                    + " reason: " + ex.getMessage());
+        }
+
         super.setPassword(this._getPassword());
         super.setCrossWorld(this._getCrossWorld());
         super.setDistance(this._getDistance());
-        super.setAnnounceFormat(this._getAnnounceFormat());
-        super.setBroadcastFormat(this._getBroadcastFormat());
-        super.setChatFormat(this._getChatFormat());
+
+        for (final UUID current : this.getBanned()) {
+            super.setBanned(current, false);
+        }
+
+        for (final UUID current : this._getBanned()) {
+            super.setBanned(current, true);
+        }
+
+        for (final UUID current : this.getMuted()) {
+            super.setMuted(current, false);
+        }
+
+        for (final UUID current : this._getMuted()) {
+            super.setMuted(current, true);
+        }
+
+        for (final UUID current : this.getModerators()) {
+            super.setModerator(current, false);
+        }
+
+        for (final UUID current : this._getModerators()) {
+            super.setModerator(current, true);
+        }
+
+        try {
+            super.setAnnounceFormat(this._getAnnounceFormat());
+        } catch (IllegalArgumentException ex) {
+            Log.getPluginLogger().warning("Invalid announce format in channel file: "
+                    + this.storage.getFile().getName() + " reason: " + ex.getMessage());
+        }
+
+        try {
+            super.setBroadcastFormat(this._getBroadcastFormat());
+        } catch (IllegalArgumentException ex) {
+            Log.getPluginLogger().warning("Invalid broadcast format in channel file: "
+                    + this.storage.getFile().getName() + " reason: " + ex.getMessage());
+        }
+
+        try {
+            super.setChatFormat(this._getChatFormat());
+        } catch (IllegalArgumentException ex) {
+            Log.getPluginLogger().warning("Invalid chat format in channel file: "
+                    + this.storage.getFile().getName() + " reason: " + ex.getMessage());
+        }
+
         super.setCustomFormat(this._getCustomFormat());
 
         if (Log.isDebug()) {
@@ -103,13 +157,7 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
 
     // Channel Properties Methods:
     private @Nullable String _getShortName() {
-        final String shortName = this.storage.getString("short-name");
-
-        if (shortName == null || shortName.isEmpty()) {
-            return null;
-        }
-
-        return shortName;
+        return this.storage.getString("short-name");
     }
 
     @Override
@@ -141,17 +189,11 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
     }
 
     private void _setChatColor(@Nullable final ChatColor color) {
-        this.storage.set("color", color != null ? color.name() : null);
+        this.storage.set("color", color != null ? color.name() : "");
     }
 
     private @Nullable String _getPassword() {
-        final String password = this.storage.getString("password");
-
-        if (password == null || password.isEmpty()) {
-            return null;
-        }
-
-        return password;
+        return this.storage.getString("password");
     }
 
     @Override
@@ -234,24 +276,97 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
 
     // Channel Type Methods:
     @Override
-    public @NotNull ChannelType getType() {
+    public final @NotNull ChannelType getType() {
         return ChannelType.PERSIST;
     }
 
+    public final boolean isConversation() {
+        return false;
+    }
+
     @Override
-    public boolean isPersist() {
+    public final boolean isPersist() {
         return true;
     }
 
-    // Channel Formatter and Performer Methods:
-    private @Nullable String _getAnnounceFormat() {
-        final String format = this.storage.getString("format.announce");
+    // Member, Banned, Muted, Moderator and Owner Methods:
+    private @NotNull List<UUID> _getBanned() {
+        return this.storage.getUniqueIdList("banned");
+    }
 
-        if (format == null || format.isEmpty()) {
-            return null;
+    @Override
+    public boolean setBanned(@NotNull final UUID uniqueId, final boolean banned) {
+        if (super.setBanned(uniqueId, banned)) {
+            this._setBanned(this.getBanned());
+            return true;
         }
 
-        return format;
+        return false;
+    }
+
+    private void _setBanned(@NotNull final Set<UUID> banned) {
+        this.storage.set("banned", banned.stream().map(UUID::toString).collect(Collectors.toSet()));
+    }
+
+    private @NotNull List<UUID> _getMuted() {
+        return this.storage.getUniqueIdList("muted");
+    }
+
+    @Override
+    public boolean setMuted(@NotNull final UUID uniqueId, final boolean muted) {
+        if (super.setMuted(uniqueId, muted)) {
+            this._setMuted(this.getMuted());
+            return true;
+        }
+
+        return false;
+    }
+
+    private void _setMuted(@NotNull final Set<UUID> muted) {
+        this.storage.set("muted", muted.stream().map(UUID::toString).collect(Collectors.toSet()));
+    }
+
+    private @NotNull List<UUID> _getModerators() {
+        return this.storage.getUniqueIdList("moderators");
+    }
+
+    @Override
+    public boolean setModerator(@NotNull final UUID uniqueId, final boolean moderator) {
+        if (super.setModerator(uniqueId, moderator)) {
+            this._setModerators(this.getModerators());
+            return true;
+        }
+
+        return false;
+    }
+
+    private void _setModerators(@NotNull final Set<UUID> moderators) {
+        this.storage.set("moderators", moderators.stream().map(UUID::toString).collect(Collectors.toSet()));
+    }
+
+    @Override
+    public @Nullable UUID getOwner() {
+        return null;
+    }
+
+    @Override
+    public boolean hasOwner() {
+        return false;
+    }
+
+    @Override
+    public boolean setOwner(@Nullable final UUID uniqueId) {
+        return false;
+    }
+
+    @Override
+    public boolean isOwner(@NotNull final UUID uniqueId) {
+        return false;
+    }
+
+    // Formatting Methods:
+    private @Nullable String _getAnnounceFormat() {
+        return this.storage.getString("format.announce");
     }
 
     @Override
@@ -269,13 +384,7 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
     }
 
     private @Nullable String _getBroadcastFormat() {
-        final String format = this.storage.getString("format.broadcast");
-
-        if (format == null || format.isEmpty()) {
-            return null;
-        }
-
-        return format;
+        return this.storage.getString("format.broadcast");
     }
 
     @Override
@@ -293,13 +402,7 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
     }
 
     private @Nullable String _getChatFormat() {
-        final String format = this.storage.getString("format.chat");
-
-        if (format == null || format.isEmpty()) {
-            return null;
-        }
-
-        return format;
+        return this.storage.getString("format.chat");
     }
 
     @Override

@@ -18,7 +18,7 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: March 5th, 2020
- * changed: March 5th, 2020
+ * changed: March 10th, 2020
  */
 public final class InfoCommand extends BasicCommand {
 
@@ -29,7 +29,7 @@ public final class InfoCommand extends BasicCommand {
     private static final int ARG_CHANNEL = 0;
 
     public InfoCommand() {
-        super(NAME, Permission.CHANNEL_INFO.getName(), MIN_ARGS, MAX_ARGS);
+        super(NAME, Permission.CHANNEL_VIEW.formChildren("info"), MIN_ARGS, MAX_ARGS);
     }
 
     @Override
@@ -45,7 +45,7 @@ public final class InfoCommand extends BasicCommand {
                 return true;
             }
 
-            if (permissible.canView(channel)) {
+            if (permissible.canViewInfo(channel)) {
                 sender.sendMessage(Messages.tl("infoHeader", channel.getColoredName()));
 
                 sender.sendMessage(Messages.tl("infoFullName", channel.getFullName()));
@@ -103,7 +103,7 @@ public final class InfoCommand extends BasicCommand {
                 }
 
                 if (InputUtil.containsInput(current.getFullName(), arguments[ARG_CHANNEL])) {
-                    if (permissible.canView(current)) {
+                    if (permissible.canViewInfo(current)) {
                         completion.add(current.getFullName());
                     }
                 }

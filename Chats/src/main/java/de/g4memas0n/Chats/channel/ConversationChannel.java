@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.UUID;
 
 /**
  * Representation of a conversation channel, extends the {@link StandardChannel} class.
@@ -18,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 3rd, 2020
- * changed: March 4th, 2020
+ * changed: March 9th, 2020
  */
 public class ConversationChannel extends StandardChannel {
 
@@ -57,13 +58,13 @@ public class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean hasPassword() {
-        return false;
+    public @Nullable String getPassword() {
+        return null;
     }
 
     @Override
-    public @Nullable String getPassword() {
-        return null;
+    public boolean hasPassword() {
+        return false;
     }
 
     @Override
@@ -82,13 +83,13 @@ public class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean hasDistance() {
-        return false;
+    public int getDistance() {
+        return -1;
     }
 
     @Override
-    public int getDistance() {
-        return -1;
+    public boolean hasDistance() {
+        return false;
     }
 
     @Override
@@ -126,18 +127,23 @@ public class ConversationChannel extends StandardChannel {
 
     // Channel Type Methods:
     @Override
-    public @NotNull ChannelType getType() {
+    public final @NotNull ChannelType getType() {
         return ChannelType.CONVERSATION;
     }
 
     @Override
-    public boolean isConversation() {
+    public final boolean isConversation() {
         return true;
     }
 
+    @Override
+    public final boolean isPersist() {
+        return false;
+    }
+
     // Channel Collection Methods:
-    public @Nullable IChatter getPartner(@NotNull final IChatter sender) {
-        for (final IChatter current : this.getChatters()) {
+    public final @Nullable IChatter getPartner(@NotNull final IChatter sender) {
+        for (final IChatter current : this.getMembers()) {
             if (current.equals(sender)) {
                 continue;
             }
@@ -151,26 +157,35 @@ public class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean addChatter(@NotNull final IChatter chatter) {
-        if (this.hasChatter(chatter) || this.getChatters().size() >= 2) {
+    public boolean setMember(@NotNull final IChatter chatter, final boolean member) {
+        if (member && this.getFullName().contains(chatter.getPlayer().getUniqueId().toString())) {
+            return super.setMember(chatter, true);
+        } else {
+            return super.setMember(chatter, false);
+        }
+    }
+
+    @Override
+    public boolean addMember(@NotNull final IChatter chatter) {
+        if (this.isMember(chatter) || this.getMembers().size() >= 2) {
             return false;
         }
 
         if (this.getFullName().contains(chatter.getPlayer().getUniqueId().toString())) {
-            return super.addChatter(chatter);
+            return super.addMember(chatter);
         }
 
         return false;
     }
 
     @Override
-    public boolean removeChatter(@NotNull final IChatter chatter) {
-        if (!this.hasChatter(chatter)) {
+    public boolean removeMember(@NotNull final IChatter chatter) {
+        if (!this.isMember(chatter)) {
             return false;
         }
 
-        if (super.removeChatter(chatter)) {
-            if (this.getChatters().size() < 2) {
+        if (super.removeMember(chatter)) {
+            if (this.getMembers().size() < 2) {
                 this.manager.removeChannel(this);
             }
 
@@ -180,7 +195,91 @@ public class ConversationChannel extends StandardChannel {
         return false;
     }
 
-    // Channel Formatter and Performer Methods:
+    @Override
+    public boolean setBanned(@NotNull final UUID uniqueId, final boolean banned) {
+        return false;
+    }
+
+    @Override
+    public boolean banMember(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean unBanMember(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean isBanned(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean kickMember(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean setMuted(@NotNull final UUID uniqueId, final boolean muted) {
+        return false;
+    }
+
+    @Override
+    public boolean muteMember(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean unMuteMember(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean isMuted(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean setModerator(@NotNull final UUID uniqueId, final boolean moderator) {
+        return false;
+    }
+
+    @Override
+    public boolean addModerator(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean removeModerator(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean isModerator(@NotNull final IChatter chatter) {
+        return false;
+    }
+
+    @Override
+    public boolean hasOwner() {
+        return false;
+    }
+
+    public @Nullable UUID getOwner() {
+        return null;
+    }
+
+    @Override
+    public boolean setOwner(@Nullable final UUID uniqueId) {
+        return false;
+    }
+
+    @Override
+    public boolean isOwner(@NotNull final UUID uniqueId) {
+        return false;
+    }
+
+    // Formatting Methods:
     @Override
     public boolean setAnnounceFormat(@Nullable final String format) {
         return false;
@@ -189,6 +288,11 @@ public class ConversationChannel extends StandardChannel {
     @Override
     public boolean setBroadcastFormat(@Nullable final String format) {
         return false;
+    }
+
+    @Override
+    public @NotNull String getChatFormat() {
+        return this.getFormatter().getConversationFormat();
     }
 
     @Override
@@ -202,13 +306,14 @@ public class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean setCustomFormat(final boolean enabled) {
+    public boolean setCustomFormat(final boolean customFormat) {
         return false;
     }
 
+    // Performing Methods:
     @Override
     public void performChat(@NotNull final IChatter sender, @NotNull final String message) {
-        if (!this.hasChatter(sender)) {
+        if (!this.isMember(sender)) {
             return;
         }
 
@@ -231,9 +336,9 @@ public class ConversationChannel extends StandardChannel {
         //Log.conversation(sender, partner, event.getMessage());
 
         if (event.getFormat().contains(Placeholder.CON_ADDRESS.toString())) {
-            final String to = this.getFormatter().formatAddress(event.getFormat(), Messages.tl("addressTo"),
+            final String to = this.getFormatter().formatAddress(event.getFormat(), Messages.tl("to"),
                     partner, event.getMessage());
-            final String from = this.getFormatter().formatAddress(event.getFormat(), Messages.tl("From"),
+            final String from = this.getFormatter().formatAddress(event.getFormat(), Messages.tl("from"),
                     sender, event.getMessage());
 
             sender.getPlayer().sendMessage(to);

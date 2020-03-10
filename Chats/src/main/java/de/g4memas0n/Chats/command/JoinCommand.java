@@ -19,7 +19,7 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 11th, 2020
- * changed: March 3rd, 2020
+ * changed: March 10th, 2020
  */
 public final class JoinCommand extends BasicPluginCommand {
 
@@ -52,6 +52,11 @@ public final class JoinCommand extends BasicPluginCommand {
             }
 
             if (chatter.canJoin(channel)) {
+                if (channel.isBanned(chatter)) {
+                    sender.sendMessage(Messages.tl("banned", channel.getColoredName()));
+                    return true;
+                }
+
                 if (channel.hasPassword()) {
                     if (arguments.length != this.getMaxArgs()) {
                         sender.sendMessage(Messages.tlErr("passwordMissing"));
@@ -64,7 +69,7 @@ public final class JoinCommand extends BasicPluginCommand {
                     }
                 }
 
-                if (chatter.addChannel(channel)) {
+                if (chatter.joinChannel(channel)) {
                     sender.sendMessage(Messages.tl("joinChannel", channel.getColoredName()));
                     return true;
                 }

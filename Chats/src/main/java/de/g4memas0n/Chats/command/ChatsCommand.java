@@ -16,7 +16,7 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: March 5th, 2020
- * changed: March 5th, 2020
+ * changed: March 10th, 2020
  */
 public final class ChatsCommand extends BasicPluginCommand {
 
@@ -46,7 +46,7 @@ public final class ChatsCommand extends BasicPluginCommand {
                 return true;
             }
 
-            if (!command.execute(sender, alias, copyArguments(arguments, ARG_COMMAND + 1))) {
+            if (!command.execute(sender, arguments[ARG_COMMAND], copyArguments(arguments, ARG_COMMAND + 1))) {
                 sender.sendMessage(command.getDescription());
                 sender.sendMessage(command.getUsage());
             }
@@ -81,7 +81,8 @@ public final class ChatsCommand extends BasicPluginCommand {
             final BasicCommand command = this.getRegistered(arguments[ARG_COMMAND]);
 
             if (command != null && sender.hasPermission(command.getPermission())) {
-                return command.tabComplete(sender, alias, copyArguments(arguments, ARG_COMMAND + 1));
+                return command.tabComplete(sender, arguments[ARG_COMMAND],
+                        copyArguments(arguments, ARG_COMMAND + 1));
             }
         }
 

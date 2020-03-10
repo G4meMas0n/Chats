@@ -10,6 +10,7 @@ import de.g4memas0n.Chats.chatter.IPermissible;
 import de.g4memas0n.Chats.util.InputUtil;
 import de.g4memas0n.Chats.messaging.Messages;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 8th, 2020
- * changed: March 3rd, 2020
+ * changed: March 10th, 2020
  */
 public final class CreateCommand extends BasicCommand {
 
@@ -75,6 +76,10 @@ public final class CreateCommand extends BasicCommand {
                     channel = new PersistChannel(this.getInstance().getFormatter(), storage);
                 } else {
                     channel = new StandardChannel(this.getInstance().getFormatter(), fullName);
+
+                    if (sender instanceof Player) {
+                        channel.setOwner(((Player) sender).getUniqueId());
+                    }
                 }
 
                 if (this.getInstance().getChannelManager().addChannel(channel)) {
@@ -82,7 +87,7 @@ public final class CreateCommand extends BasicCommand {
                     return true;
                 }
 
-                sender.sendMessage(Messages.tlErr("channelAlreadyExist", fullName));
+                sender.sendMessage(Messages.tlErr("createAlready", channel.getFullName()));
                 return true;
             }
 

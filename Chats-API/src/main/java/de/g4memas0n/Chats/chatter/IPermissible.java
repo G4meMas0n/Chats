@@ -15,13 +15,12 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 8th, 2020
- * changed: February 8th, 2020
+ * changed: March 9th, 2020
  */
 public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to broadcast to the given channel.
-     * When the given channel represents a conversation channel it returns false.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -29,22 +28,20 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to create a channel of the given type.
-     * @param type the create type to check the permission.
+     * @param type the channel type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
     boolean canCreate(@NotNull final ChannelType type);
 
     /**
      * Returns whether this permissible is permitted to delete the given channel.
-     * When the given channel represents a conversation channel it returns false.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
     boolean canDelete(@NotNull final IChannel channel);
 
     /**
-     * Returns whether this permissible is permitted to focus the given channel. When the given channel represents
-     * a conversation channel it returns whether the given channel contains this permissible.
+     * Returns whether this permissible is permitted to focus the given channel.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -58,8 +55,7 @@ public interface IPermissible {
     boolean canIgnore(@NotNull final Player player);
 
     /**
-     * Returns whether this permissible is permitted to join the given channel. When the given channel represents
-     * a conversation channel it returns whether the given channel contains this permissible.
+     * Returns whether this permissible is permitted to join the given channel.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -67,11 +63,17 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to leave the given channel.
-     * When the given channel represents a conversation channel it returns false.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
     boolean canLeave(@NotNull final IChannel channel);
+
+    /**
+     * Returns whether this permissible is permitted to list the given channel type.
+     * @param type the channel type to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canList(@NotNull final ChannelType type);
 
     /**
      * Returns whether this permissible is permitted to message the given player.
@@ -82,8 +84,14 @@ public interface IPermissible {
     boolean canMessage(@NotNull final Player player);
 
     /**
+     * Returns whether this permissible is permitted to moderate the given channel.
+     * @param channel the channel to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canModerate(@NotNull final IChannel channel);
+
+    /**
      * Returns whether this permissible is permitted to modify the given channel.
-     * When the given channel represents a conversation channel it returns false.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -91,7 +99,6 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to modify the given channel.
-     * When the given channel represents a conversation channel it returns false.
      * @param channel the channel to check the permission.
      * @param type the modify type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
@@ -106,33 +113,25 @@ public interface IPermissible {
     boolean canReload(@NotNull final ReloadType type);
 
     /**
-     * Returns whether this permissible is permitted to see the given channel type.
-     * @param type the channel type to check the permission.
-     * @return true when this permissible is permitted, false otherwise.
-     */
-    boolean canSee(@NotNull final ChannelType type);
-
-    /**
-     * Returns whether this permissible is permitted to see the given channel.
-     * @param channel the channel to check the permission.
-     * @return true when this permissible is permitted, false otherwise.
-     */
-    boolean canSee(@NotNull final IChannel channel);
-
-    /**
-     * Returns whether this permissible is permitted to speak in the given channel. When the given channel represents
-     * a conversation channel it returns whether the given channel contains this permissible.
+     * Returns whether this permissible is permitted to speak in the given channel.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
     boolean canSpeak(@NotNull final IChannel channel);
 
     /**
-     * Returns whether this permissible is permitted to view information's of the given channel.
+     * Returns whether this permissible is permitted to view the information's of the given channel.
      * @param channel the channel to check the permission.
      * @return true when this permissible it permitted, false otherwise.
      */
-    boolean canView(@NotNull final IChannel channel);
+    boolean canViewInfo(@NotNull final IChannel channel);
+
+    /**
+     * Returns whether this permissible is permitted to view the members of the given channel.
+     * @param channel the channel to check the permission.
+     * @return true when this permissible it permitted, false otherwise.
+     */
+    boolean canViewWho(@NotNull final IChannel channel);
 
     /**
      * Returns whether this permissible is forced to focus the given channel on connect.

@@ -17,7 +17,7 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 10th, 2020
- * changed: March 3rd, 2020
+ * changed: March 10th, 2020
  */
 public final class ChannelCommand extends BasicPluginCommand {
 
@@ -31,7 +31,7 @@ public final class ChannelCommand extends BasicPluginCommand {
             "modify"};
 
     public ChannelCommand() {
-        super(NAME, Permission.CHANNEL_COMMAND.getName(), MIN_ARGS, MAX_ARGS);
+        super(NAME, Permission.CHANNEL.getName(), MIN_ARGS, MAX_ARGS);
     }
 
     @Override
@@ -50,7 +50,7 @@ public final class ChannelCommand extends BasicPluginCommand {
                 return true;
             }
 
-            if (!command.execute(sender, alias, copyArguments(arguments, ARG_COMMAND + 1))) {
+            if (!command.execute(sender, arguments[ARG_COMMAND], copyArguments(arguments, ARG_COMMAND + 1))) {
                 sender.sendMessage(command.getDescription());
                 sender.sendMessage(command.getUsage());
             }
@@ -85,7 +85,8 @@ public final class ChannelCommand extends BasicPluginCommand {
             final BasicCommand command = this.getSubCommand(arguments[ARG_COMMAND]);
 
             if (command != null && sender.hasPermission(command.getPermission())) {
-                return command.tabComplete(sender, alias, copyArguments(arguments, ARG_COMMAND + 1));
+                return command.tabComplete(sender, arguments[ARG_COMMAND],
+                        copyArguments(arguments, ARG_COMMAND + 1));
             }
         }
 

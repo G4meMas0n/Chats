@@ -9,28 +9,34 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 8th, 2020
- * changed: February 8th, 2020
+ * changed: March 9th, 2020
  */
 public enum Permission {
     ADMIN_RELOAD("admin.reload", true, false, true),
+
+    CHANNEL("channel", false, false, false),
     CHANNEL_BROADCAST("channel.broadcast", true, true, false),
-    CHANNEL_COMMAND("channel", false, false, false),
     CHANNEL_CREATE("channel.create", true, false, true),
-    CHANNEL_DELETE("channel.delete", true, true, false),
+    CHANNEL_DELETE("channel.delete", true, false, true),
     CHANNEL_FOCUS("channel.focus", true, true, false),
-    CHANNEL_INFO("channel.info", true, true, false),
     CHANNEL_JOIN("channel.join", true, true, false),
     CHANNEL_LEAVE("channel.leave", true, true, false),
     CHANNEL_LIST("channel.list", true, false, true),
-    CHANNEL_MODIFY("channel.modify", true, true, false),
+    CHANNEL_MODERATE("channel.moderate", true, true, false),
+    CHANNEL_MODIFY("channel.modify", true, true, true),
     CHANNEL_SPEAK("channel.speak", true, true, false),
+    CHANNEL_VIEW("channel.view", true, false, true),
+
     CHATTER_IGNORE("chatter.ignore", false, false, false),
     CHATTER_MSG("chatter.msg", false, false, false),
+
     EXCEPT_IGNORE("except.ignore", true, false, false),
     EXCEPT_MSG("except.msg", true, false, false),
+
     FORCE_FOCUS("force.focus", true, false, false),
     FORCE_JOIN("force.join", true, false, false),
     FORCE_LEAVE("force.leave", true, false, false),
+
     HELP("help", false, false, false),
     USE("use", false, false, false);
 

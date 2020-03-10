@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,7 +20,7 @@ import java.util.Set;
  * @since 0.0.1-SNAPSHOT
  *
  * created: November 14th, 2019
- * changed: March 5th, 2020
+ * changed: March 9th, 2020
  */
 public final class ChannelManager implements IChannelManager {
 
@@ -36,7 +36,7 @@ public final class ChannelManager implements IChannelManager {
     private IChannel def;
 
     public ChannelManager(@NotNull final IChats instance) {
-        this.channels = new LinkedHashMap<>();
+        this.channels = new HashMap<>();
         this.instance = instance;
         this.directory = new File(instance.getDataFolder(), DIRECTORY_NAME);
     }
@@ -73,7 +73,7 @@ public final class ChannelManager implements IChannelManager {
     // Channel Collection Methods:
     @Override
     public @NotNull Set<IChannel> getChannels() {
-        return new LinkedHashSet<>(this.channels.values());
+        return new HashSet<>(this.channels.values());
     }
 
     @Override
@@ -101,8 +101,8 @@ public final class ChannelManager implements IChannelManager {
             return false;
         }
 
-        for (IChatter current : channel.getChatters()) {
-            current.removeChannel(channel);
+        for (IChatter current : channel.getMembers()) {
+            current.leaveChannel(channel);
         }
 
         if (channel instanceof PersistChannel) {

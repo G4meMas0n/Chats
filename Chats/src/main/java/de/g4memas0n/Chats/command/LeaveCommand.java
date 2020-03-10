@@ -19,7 +19,7 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 11th, 2020
- * changed: March 3rd, 2020
+ * changed: March 10th, 2020
  */
 public final class LeaveCommand extends BasicPluginCommand {
 
@@ -51,7 +51,7 @@ public final class LeaveCommand extends BasicPluginCommand {
             }
 
             if (chatter.canLeave(channel)) {
-                if (chatter.removeChannel(channel)) {
+                if (chatter.leaveChannel(channel)) {
                     sender.sendMessage(Messages.tl("leaveChannel", channel.getColoredName()));
                     return true;
                 }

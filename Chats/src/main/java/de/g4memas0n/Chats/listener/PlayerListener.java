@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 9th, 2020
- * changed: February 17th, 2020
+ * changed: March 10th, 2020
  */
 public final class PlayerListener extends BasicListener {
 
@@ -30,6 +30,10 @@ public final class PlayerListener extends BasicListener {
 
         final IChannel focus = chatter.getFocus();
 
+        if (focus.isMuted(chatter)) {
+            event.getPlayer().sendMessage(Messages.tl("muted", focus.getColoredName()));
+        }
+
         if (chatter.canSpeak(focus)) {
             final Runnable runnable = new ChatRunnable(chatter.getFocus(), chatter, event.getMessage());
 
@@ -38,7 +42,7 @@ public final class PlayerListener extends BasicListener {
             return;
         }
 
-        event.getPlayer().sendMessage(Messages.tl("chatDenied", focus.getFullName()));
+        event.getPlayer().sendMessage(Messages.tl("chatDenied", focus.getColoredName()));
     }
 
     @Override

@@ -1,6 +1,6 @@
 main: de.g4memas0n.Chats.Chats
 name: Chats
-version: 0.1.0-SNAPSHOT
+version: 0.2.0-SNAPSHOT
 description: A Plugin that provides a channel based chat.
 author: G4meMas0n
 api-version: '1.15'
@@ -15,6 +15,9 @@ commands:
   chat:
     description: Sends a message in a channel.
     permission: chats.channel.speak
+  chats:
+    description: Manages all commands.
+    permission: chats.use
   focus:
     description: Focuses a new channel.
     permission: chats.channel.focus
@@ -68,23 +71,21 @@ permissions:
     children:
       chats.channel.broadcast.all: true
       chats.channel.create.*: true
-      chats.channel.delete.all: true
+      chats.channel.delete.*: true
       chats.channel.focus.all: true
       chats.channel.join.all: true
       chats.channel.leave.all: true
-      chats.channel.modify.all: true
+      chats.channel.list.*: true
+      chats.channel.moderate.all: true
+      chats.channel.modify.*: true
+      chats.channel.speak.all: true
+      chats.channel.view.*: true
 
   chats.channel.broadcast:
     description: Allows to access the channel broadcast command.
     default: op
   chats.channel.broadcast.all:
     description: Allows to broadcast to all channels.
-    default: op
-    children:
-      chats.channel.broadcast: true
-      chats.channel.broadcast.own: true
-  chats.channel.broadcast.own:
-    description: Allows to broadcast to owning channels.
     default: op
     children:
       chats.channel.broadcast: true
@@ -101,14 +102,8 @@ permissions:
   chats.channel.delete:
     description: Allows to access the channel delete command.
     default: op
-  chats.channel.delete.all:
-    description: Allows to delete all channels.
-    default: op
-    children:
-      chats.channel.delete: true
-      chats.channel.delete.own: true
-  chats.channel.delete.own:
-    description: Allows to delete owning channels.
+  chats.channel.delete.*:
+    description: Allows to delete all channel types.
     default: op
     children:
       chats.channel.delete: true
@@ -140,23 +135,38 @@ permissions:
     children:
       chats.channel.leave: true
 
+  chats.channel.list:
+    description: Allows to access the channel list command.
+    default: op
+  chats.channel.list.*:
+    description: Allows to list all channel types.
+    default: op
+    children:
+      chats.channel.list: true
+
+  chats.channel.moderate:
+    description: Allows to access the channel ban, kick, mute command.
+    default: op
+  chats.channel.moderate.all:
+    description: Allows to moderate all channels.
+    default: op
+    children:
+      chats.channel.moderate: true
+
   chats.channel.modify:
     description: Allows to access the channel modify command.
-    default: op
-  chats.channel.modify.*:
-    description: Allows to modify all modify types of channels.
     default: op
   chats.channel.modify.all:
     description: Allows to modify all channels.
     default: op
     children:
       chats.channel.modify: true
-      chats.channel.modify.own: true
-  chats.channel.modify.own:
-    description: Allows to modify owning channels.
+  chats.channel.modify.*:
+    description: Allows to modify all channels with all modify types.
     default: op
     children:
       chats.channel.modify: true
+      chats.channel.modify.all: true
 
   chats.channel.speak:
     description: Allows to speak and to access the chat command.
@@ -167,9 +177,27 @@ permissions:
     children:
       chats.channel.speak: true
 
+  chats.channel.view.info:
+    description: Allows to access the channel info command.
+    default: op
+  chats.channel.view.who:
+    description: Allows to access the channel who command.
+    default: true
+  chats.channel.view.*:
+    description: Allows to access the channel info and who command.
+    default: op
+    children:
+      chats.channel.view.info: true
+      chats.channel.view.who: true
+
   chats.chatter.ignore:
     description: Allows to ignore or unignore chatters.
     default: true
+
+  chats.chatter.msg:
+    description: Allows to start conversations or send private messages.
+    default: true
+
   chats.except.ignore:
     description: Allows to be excepted from ignore actions.
     default: op
@@ -183,9 +211,6 @@ permissions:
       chats.except.ignore: true
       chats.except.ignore.bypass: true
 
-  chats.chatter.msg:
-    description: Allows to start conversations or send private messages.
-    default: true
   chats.except.msg:
     description: Allows to be excepted from start conversations or send private messages.
     default: false
@@ -201,4 +226,7 @@ permissions:
 
   chats.help:
     description: Allows to access the help command.
+    default: true
+  chats.use:
+    description: Allows to access the main chats command.
     default: true

@@ -9,13 +9,14 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Chatter Interface that defines a chatter representation, extends the {@link Comparable} interface.
+ * Chatter Interface that defines a chatter representation, extends {@link IPermissible}, {@link IFilterable},
+ * {@link IStorageHolder} and {@link Comparable}.
  *
  * @author G4meMas0n
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 12th, 2019
- * changed: February 2nd, 2020
+ * changed: March 9th, 2020
  */
 public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Comparable<IChatter> {
 
@@ -79,22 +80,18 @@ public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Com
     @NotNull Set<IChannel> getChannels();
 
     /**
-     * Adds a new channel to the collection of channels this chatter is in.
-     * This method will check whether this chatter is listed in the given channel and will add it to the channel when
-     * it is not listed.
-     * @param channel the new channel that should be added to this chatter.
-     * @return true when the collection of channels was updated as result of this call, false otherwise.
+     * Joins a new channel. Adds the given channel to this chatter and calls {@link IChannel#addMember(IChatter)}.
+     * @param channel the channel to join.
+     * @return true when the channel was joined as result of this call, false otherwise.
      */
-    boolean addChannel(@NotNull final IChannel channel);
+    boolean joinChannel(@NotNull final IChannel channel);
 
     /**
-     * Removes a given channel from the collection of channels this chatter is in when it is contained.
-     * This method will check whether this chatter is listed in the given channel and will remove it from the channel
-     * when it is listed.
-     * @param channel the channel that should be removed from this chatter.
-     * @return true when the collection of channels was updated as result of this call, false otherwise.
+     * Leaves a channel. Removes the given channel from this chatter and calls {@link IChannel#removeMember(IChatter)}.
+     * @param channel the channel to leave.
+     * @return true when the channel was left as result of this call, false otherwise.
      */
-    boolean removeChannel(@NotNull final IChannel channel);
+    boolean leaveChannel(@NotNull final IChannel channel);
 
     /**
      * Returns whether this chatter contains the given channel or not.

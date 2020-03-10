@@ -19,7 +19,7 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  *
  * created: October 4th, 2019
- * changed: February 15th, 2020
+ * changed: March 9th, 2020
  */
 public final class ChatterManager implements IChatterManager {
 
@@ -74,7 +74,7 @@ public final class ChatterManager implements IChatterManager {
         }
 
         for (final IChannel current : chatter.getChannels()) {
-            current.removeChatter(chatter);
+            current.setMember(chatter, false);
         }
 
         this.chatters.remove(chatter.getPlayer().getUniqueId());

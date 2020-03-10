@@ -2,13 +2,10 @@ package de.g4memas0n.Chats.chatter;
 
 import de.g4memas0n.Chats.channel.IChannel;
 import de.g4memas0n.Chats.channel.IChannelManager;
-import de.g4memas0n.Chats.messaging.Messages;
 import de.g4memas0n.Chats.util.logging.Log;
 import de.g4memas0n.Chats.util.type.ChannelType;
 import de.g4memas0n.Chats.util.type.ModifyType;
 import de.g4memas0n.Chats.event.chatter.ChatterChannelChangedEvent;
-import de.g4memas0n.Chats.event.chatter.ChatterChannelJoinedEvent;
-import de.g4memas0n.Chats.event.chatter.ChatterChannelLeavedEvent;
 import de.g4memas0n.Chats.storage.IStorageFile;
 import de.g4memas0n.Chats.storage.InvalidStorageFileException;
 import de.g4memas0n.Chats.storage.YamlStorageFile;
@@ -100,13 +97,13 @@ public class StandardChatter implements IChatter {
         }
 
         for (final IChannel current : this.channels) {
-            current.removeChatter(this);
             this.channels.remove(current);
+            current.setMember(this, false);
         }
 
         for (final IChannel current : this._getChannels()) {
             this.channels.add(current);
-            current.addChatter(this);
+            current.setMember(this, true);
         }
 
         this.ignores.clear();
@@ -177,8 +174,8 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        if (!this.channels.contains(channel)) {
-            this.addChannel(channel);
+        if (!this.hasChannel(channel)) {
+            this.joinChannel(channel);
         }
 
         if (!this.focused.isConversation()) {
@@ -267,29 +264,28 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
-    public boolean addChannel(@NotNull final IChannel channel) {
+    public boolean joinChannel(@NotNull final IChannel channel) {
         if (this.channels.contains(channel)) {
             return false;
         }
 
-        this.channels.add(channel);
+        if (this.channels.add(channel)) {
+            if (channel.addMember(this)) {
+                if (channel.isPersist()) {
+                    this._setChannels(this.channels);
+                }
 
-        if (!channel.hasChatter(this)) {
-            channel.performAnnounce(Messages.tl("channelChatterJoin", this.player.getDisplayName()));
-            channel.addChatter(this);
+                return true;
+            }
+
+            this.channels.remove(channel);
         }
 
-        Bukkit.getServer().getPluginManager().callEvent(new ChatterChannelJoinedEvent(this, channel));
-
-        if (channel.isPersist()) {
-            this._setChannels(this.channels);
-        }
-
-        return true;
+        return false;
     }
 
     @Override
-    public boolean removeChannel(@NotNull final IChannel channel) {
+    public boolean leaveChannel(@NotNull final IChannel channel) {
         if (!this.channels.contains(channel) || channel.equals(this.manager.getDefault())) {
             return false;
         }
@@ -304,20 +300,19 @@ public class StandardChatter implements IChatter {
             }
         }
 
-        this.channels.remove(channel);
+        if (this.channels.remove(channel)) {
+            if (channel.removeMember(this)) {
+                if (channel.isPersist()) {
+                    this._setChannels(this.channels);
+                }
 
-        if (channel.hasChatter(this)) {
-            channel.removeChatter(this);
-            channel.performAnnounce(Messages.tl("channelChatterLeave", this.player.getDisplayName()));
+                return true;
+            }
+
+            this.channels.add(channel);
         }
 
-        Bukkit.getServer().getPluginManager().callEvent(new ChatterChannelLeavedEvent(this, channel));
-
-        if (channel.isPersist()) {
-            this._setChannels(this.channels);
-        }
-
-        return true;
+        return false;
     }
 
     @Override
@@ -453,14 +448,22 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.CHANNEL_BROADCAST.formChildren(channel.getFullName()))
-                || this.player.hasPermission(Permission.CHANNEL_BROADCAST.formAll());
+        if (this.canModerate(channel)) {
+            return true;
+        }
+
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.CHANNEL_BROADCAST.formChildren(channel.getFullName()))
+                    || this.player.hasPermission(Permission.CHANNEL_BROADCAST.formAll());
+        }
+
+        return false;
     }
 
     @Override
     public boolean canCreate(@NotNull final ChannelType type) {
         return this.player.hasPermission(Permission.CHANNEL_CREATE.formChildren(type.getIdentifier()))
-                || this.player.hasPermission(Permission.CHANNEL_CREATE.formAll());
+                || this.player.hasPermission(Permission.CHANNEL_CREATE.formWildcard());
     }
 
     @Override
@@ -469,18 +472,26 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
+        if (channel.isOwner(this.player.getUniqueId())) {
+            return true;
+        }
+
         return this.player.hasPermission(Permission.CHANNEL_DELETE.formChildren(channel.getType().getIdentifier()))
-                || this.player.hasPermission(Permission.CHANNEL_DELETE.formAll());
+                || this.player.hasPermission(Permission.CHANNEL_DELETE.formWildcard());
     }
 
     @Override
     public boolean canFocus(@NotNull final IChannel channel) {
         if (channel.isConversation()) {
-            return channel.hasChatter(this);
+            return channel.isMember(this);
         }
 
-        return this.player.hasPermission(Permission.CHANNEL_FOCUS.formChildren(channel.getFullName()))
-                || this.player.hasPermission(Permission.CHANNEL_FOCUS.formAll());
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.CHANNEL_FOCUS.formChildren(channel.getFullName()))
+                    || this.player.hasPermission(Permission.CHANNEL_FOCUS.formAll());
+        }
+
+        return true;
     }
 
     @Override
@@ -498,8 +509,12 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.CHANNEL_JOIN.formChildren(channel.getFullName()))
-                || this.player.hasPermission(Permission.CHANNEL_JOIN.formWildcard());
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.CHANNEL_JOIN.formChildren(channel.getFullName()))
+                    || this.player.hasPermission(Permission.CHANNEL_JOIN.formAll());
+        }
+
+        return true;
     }
 
     @Override
@@ -508,8 +523,18 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.CHANNEL_LEAVE.formChildren(channel.getFullName()))
-                || this.getPlayer().hasPermission(Permission.CHANNEL_LEAVE.formAll());
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.CHANNEL_LEAVE.formChildren(channel.getFullName()))
+                    || this.getPlayer().hasPermission(Permission.CHANNEL_LEAVE.formAll());
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean canList(@NotNull final ChannelType type) {
+        return this.player.hasPermission(Permission.CHANNEL_LIST.formChildren(type.getIdentifier()))
+                || this.player.hasPermission(Permission.CHANNEL_LIST.formWildcard());
     }
 
     @Override
@@ -522,12 +547,35 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
+    public boolean canModerate(@NotNull final IChannel channel) {
+        if (channel.isConversation()) {
+            return false;
+        }
+
+        if (channel.isModerator(this) || channel.isOwner(this.player.getUniqueId())) {
+            return true;
+        }
+
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.CHANNEL_MODERATE.formChildren(channel.getFullName()))
+                    || this.player.hasPermission(Permission.CHANNEL_MODERATE.formAll());
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean canModify(@NotNull final IChannel channel) {
         if (channel.isConversation()) {
             return false;
         }
 
-        return this.player.hasPermission(Permission.CHANNEL_MODIFY.formAll());
+        if (channel.isOwner(this.getPlayer().getUniqueId())) {
+            return true;
+        }
+
+        return this.player.hasPermission(Permission.CHANNEL_MODIFY.formChildren(channel.getFullName()))
+                || this.player.hasPermission(Permission.CHANNEL_MODIFY.formAll());
     }
 
     @Override
@@ -536,8 +584,12 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.CHANNEL_MODIFY.formChildren(type.getIdentifier()))
-                || this.player.hasPermission(Permission.CHANNEL_MODIFY.formAll());
+        if (this.canModify(channel)) {
+            return this.player.hasPermission(Permission.CHANNEL_MODIFY.formChildren(type.getIdentifier()))
+                    || this.player.hasPermission(Permission.CHANNEL_MODIFY.formWildcard());
+        }
+
+        return false;
     }
 
     @Override
@@ -547,29 +599,37 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
-    public boolean canSee(@NotNull final ChannelType type) {
-        return this.player.hasPermission(Permission.CHANNEL_LIST.formChildren(type.getIdentifier()))
-                || this.player.hasPermission(Permission.CHANNEL_LIST.formWildcard());
-    }
-
-    @Override
-    public boolean canSee(@NotNull final IChannel channel) {
-        return this.canSee(channel.getType()) && this.canJoin(channel);
-    }
-
-    @Override
     public boolean canSpeak(@NotNull final IChannel channel) {
         if (channel.isConversation()) {
-            return channel.hasChatter(this);
+            return channel.isMember(this);
         }
 
-        return this.player.hasPermission(Permission.CHANNEL_SPEAK.formChildren(channel.getFullName()))
-                || this.player.hasPermission(Permission.CHANNEL_SPEAK.formAll());
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.CHANNEL_SPEAK.formChildren(channel.getFullName()))
+                    || this.player.hasPermission(Permission.CHANNEL_SPEAK.formAll());
+        }
+
+        return true;
     }
 
     @Override
-    public boolean canView(@NotNull final IChannel channel) {
-        return true; //TODO: Correct result.
+    public boolean canViewInfo(@NotNull final IChannel channel) {
+        if (channel.isOwner(this.player.getUniqueId())) {
+            return true;
+        }
+
+        return this.player.hasPermission(Permission.CHANNEL_VIEW.formChildren("info"))
+                || this.player.hasPermission(Permission.CHANNEL_VIEW.formWildcard());
+    }
+
+    @Override
+    public boolean canViewWho(@NotNull final IChannel channel) {
+        if (channel.isOwner(this.player.getUniqueId())) {
+            return true;
+        }
+
+        return this.player.hasPermission(Permission.CHANNEL_VIEW.formChildren("who"))
+                || this.player.hasPermission(Permission.CHANNEL_VIEW.formWildcard());
     }
 
     @Override
@@ -578,7 +638,11 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.FORCE_FOCUS.formChildren(channel.getFullName()));
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.FORCE_FOCUS.formChildren(channel.getFullName()));
+        }
+
+        return false;
     }
 
     @Override
@@ -587,7 +651,11 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.FORCE_JOIN.formChildren(channel.getFullName()));
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.FORCE_JOIN.formChildren(channel.getFullName()));
+        }
+
+        return false;
     }
 
     @Override
@@ -596,6 +664,10 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.FORCE_LEAVE.formChildren(channel.getFullName()));
+        if (channel.isPersist()) {
+            return this.player.hasPermission(Permission.FORCE_LEAVE.formChildren(channel.getFullName()));
+        }
+
+        return false;
     }
 }

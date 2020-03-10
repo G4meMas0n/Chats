@@ -20,7 +20,7 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 11th, 2020
- * changed: March 3rd, 2020
+ * changed: March 10th, 2020
  */
 public final class ChatCommand extends BasicPluginCommand {
 
@@ -53,6 +53,10 @@ public final class ChatCommand extends BasicPluginCommand {
             }
 
             if (chatter.hasChannel(channel)) {
+                if (channel.isMuted(chatter)) {
+                    sender.sendMessage(Messages.tl("muted", channel.getColoredName()));
+                }
+
                 if (chatter.canSpeak(channel)) {
                     final Runnable runnable = new ChatRunnable(channel, chatter, copyMessage(arguments, ARG_MSG));
 
@@ -61,11 +65,11 @@ public final class ChatCommand extends BasicPluginCommand {
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("chatDenied", channel.getFullName()));
+                sender.sendMessage(Messages.tl("chatDenied", channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tlErr("leaveAlready", channel.getFullName()));
+            sender.sendMessage(Messages.tlErr("leaveAlready", channel.getColoredName()));
             return true;
         }
 

@@ -19,7 +19,7 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 8th, 2020
- * changed: March 3rd, 2020
+ * changed: March 10th, 2020
  */
 public final class ListCommand extends BasicCommand {
 
@@ -44,34 +44,42 @@ public final class ListCommand extends BasicCommand {
 
             if (arguments.length == this.getMaxArgs()) {
                 final ChannelType type = ChannelType.getType(arguments[ARG_TYPE]);
-                final List<String> channels = new ArrayList<>();
 
-                if (type == null || permissible.canSee(type)) {
+                if (type == null) {
                     return false;
                 }
 
-                for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
-                    if (current.getType() != type) {
-                        continue;
-                    }
+                if (permissible.canList(type)) {
+                    final List<String> channels = new ArrayList<>();
 
-                    if (permissible.canSee(current)) {
+                    for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
+                        if (current.getType() != type) {
+                            continue;
+                        }
+
                         channels.add(current.getColoredName());
                     }
+
+                    Collections.sort(channels);
+
+                    sender.sendMessage(Messages.tl("listHeader", type.getIdentifier()));
+                    sender.sendMessage(String.join(Messages.tl("listDelimiter"), channels));
+                    return true;
                 }
 
-                sender.sendMessage(Messages.tl("listHeader", type.getIdentifier()));
-                sender.sendMessage(String.join(Messages.tl("listDelimiter"), channels));
+                sender.sendMessage(Messages.tl("listDenied", type.getIdentifier()));
                 return true;
             }
 
             final List<String> channels = new ArrayList<>();
 
             for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
-                if (permissible.canSee(current)) {
+                if (permissible.canList(current.getType())) {
                     channels.add(current.getColoredName());
                 }
             }
+
+            Collections.sort(channels);
 
             sender.sendMessage(Messages.tl("listHeader", ALL));
             sender.sendMessage(String.join(Messages.tl("listDelimiter"), channels));
@@ -92,7 +100,7 @@ public final class ListCommand extends BasicCommand {
 
                 for (final ChannelType current : ChannelType.values()) {
                     if (InputUtil.containsInput(current.getIdentifier(), arguments[ARG_TYPE])) {
-                        if (permissible.canSee(current)) {
+                        if (permissible.canList(current)) {
                             completion.add(current.getIdentifier());
                         }
                     }

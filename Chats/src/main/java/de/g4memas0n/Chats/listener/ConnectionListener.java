@@ -2,6 +2,7 @@ package de.g4memas0n.Chats.listener;
 
 import de.g4memas0n.Chats.channel.IChannel;
 import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.Chats.messaging.Messages;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 7th, 2020
- * changed: February 3rd, 2020
+ * changed: March 10th, 2020
  */
 public final class ConnectionListener extends BasicListener {
 
@@ -27,7 +28,7 @@ public final class ConnectionListener extends BasicListener {
 
         for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
             if (chatter.forcedJoin(current)) {
-                chatter.addChannel(current);
+                chatter.joinChannel(current);
             }
         }
 
@@ -36,6 +37,8 @@ public final class ConnectionListener extends BasicListener {
                 chatter.setFocus(current);
             }
         }
+
+        chatter.getPlayer().sendMessage(Messages.tl("focusCurrent", chatter.getFocus().getColoredName()));
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -44,7 +47,7 @@ public final class ConnectionListener extends BasicListener {
 
         for (final IChannel current : chatter.getChannels()) {
             if (chatter.forcedLeave(current)) {
-                chatter.removeChannel(current);
+                chatter.leaveChannel(current);
             }
         }
 

@@ -9,6 +9,15 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Permissible representation for console and command block sender, implements {@link IPermissible}.
+ *
+ * @author G4meMason
+ * @since 0.1.0-SNAPSHOT
+ *
+ * created: February 8th, 2020
+ * changed: March 9th, 2020
+ */
 public class SenderPermissible implements IPermissible {
 
     private final boolean console;
@@ -53,7 +62,17 @@ public class SenderPermissible implements IPermissible {
     }
 
     @Override
+    public boolean canList(@NotNull final ChannelType type) {
+        return false;
+    }
+
+    @Override
     public boolean canMessage(@NotNull final Player player) {
+        return false;
+    }
+
+    @Override
+    public boolean canModerate(@NotNull IChannel channel) {
         return false;
     }
 
@@ -72,22 +91,17 @@ public class SenderPermissible implements IPermissible {
     }
 
     @Override
-    public boolean canSee(@NotNull final ChannelType type) {
-        return this.console;
-    }
-
-    @Override
-    public boolean canSee(@NotNull final IChannel channel) {
-        return this.console;
-    }
-
-    @Override
     public boolean canSpeak(@NotNull final IChannel channel) {
         return false;
     }
 
     @Override
-    public boolean canView(@NotNull final IChannel channel) {
+    public boolean canViewInfo(@NotNull final IChannel channel) {
+        return this.console;
+    }
+
+    @Override
+    public boolean canViewWho(@NotNull final IChannel channel) {
         return this.console;
     }
 
