@@ -1,7 +1,7 @@
-package de.g4memas0n.Chats.event.chatter;
+package de.g4memas0n.chats.event.chatter;
 
-import de.g4memas0n.Chats.chatter.IChatter;
-import de.g4memas0n.Chats.messaging.Placeholder;
+import de.g4memas0n.chats.chatter.IChatter;
+import de.g4memas0n.chats.messaging.Placeholder;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 12th, 2019
- * changed: January 17th, 2020
+ * changed: May 1st, 2020
  */
 public final class ChatterChatConversationEvent extends ChatterEvent implements Cancellable {
 
@@ -27,8 +27,9 @@ public final class ChatterChatConversationEvent extends ChatterEvent implements 
     public ChatterChatConversationEvent(@NotNull final IChatter sender,
                                         @NotNull final IChatter partner,
                                         @NotNull final String format,
-                                        @NotNull final String message) {
-        super(sender, false);
+                                        @NotNull final String message,
+                                        final boolean async) {
+        super(sender, async);
 
         this.partner = partner;
         this.format = format;
@@ -55,18 +56,16 @@ public final class ChatterChatConversationEvent extends ChatterEvent implements 
     }
 
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
-        if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Invalid format! Missing " + Placeholder.MESSAGE + " Placeholder");
+        if (!format.contains(Placeholder.CON_ADDRESS.toString())) {
+            throw new IllegalArgumentException("Format is missing {con-address} placeholder: " + format);
         }
 
         if (!format.contains(Placeholder.CON_PARTNER.toString())) {
-            throw new IllegalArgumentException("Invalid format! Missing " + Placeholder.CON_PARTNER + " Placeholder");
+            throw new IllegalArgumentException("Format is missing {con-partner} placeholder: " + format);
         }
 
-        if (!format.contains(Placeholder.CON_SENDER.toString())
-                || !format.contains(Placeholder.CON_ADDRESS.toString())) {
-            throw new IllegalArgumentException("Invalid format! Missing " + Placeholder.CON_SENDER + " or "
-                    + Placeholder.CON_ADDRESS + " Placeholder");
+        if (!format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
         }
 
         this.format = format;

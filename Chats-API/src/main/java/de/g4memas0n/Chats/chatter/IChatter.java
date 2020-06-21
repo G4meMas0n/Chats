@@ -1,7 +1,6 @@
-package de.g4memas0n.Chats.chatter;
+package de.g4memas0n.chats.chatter;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.storage.IStorageHolder;
+import de.g4memas0n.chats.channel.IChannel;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,22 +8,28 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Chatter Interface that defines a chatter representation, extends {@link IPermissible}, {@link IFilterable},
- * {@link IStorageHolder} and {@link Comparable}.
+ * IChatter Interface that defines a online chatter representation, extends {@link ICommandSource}, {@link IFilterable},
+ * {@link IForcible}, {@link IOfflineChatter} and {@link Comparable<IChatter>}.
  *
  * @author G4meMas0n
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 12th, 2019
- * changed: March 9th, 2020
+ * changed: June 18th, 2020
  */
-public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Comparable<IChatter> {
+public interface IChatter extends ICommandSource, IFilterable, IForcible, IOfflineChatter, Comparable<IChatter> {
 
     /**
-     * Returns the listed Player of this chatter.
+     * Returns the player of this chatter.
      * @return the player of this chatter.
      */
     @NotNull Player getPlayer();
+
+    /**
+     * Returns the "friendly" name to display of this chatter.
+     * @return the display name of this chatter.
+     */
+    @NotNull String getDisplayName();
 
     // Active Channel Methods:
     /**
@@ -34,13 +39,14 @@ public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Com
     @NotNull IChannel getFocus();
 
     /**
-     * Sets a new channel as the currently focused channel of this chatter.
-     * The old focused channel will be saved as 'last-focused-channel' when it is a non conversation channel.
-     * When the old focused channel is a persist channel then it will additionally saved as 'last-persist-channel'.
-     * @param channel the new channel that should be the currently focused channel of this chatter.
+     * Sets a new channel as the currently focused channel of this chatter. Can be null when the default channel should
+     * be the new focused channel.
+     * The old focused channel will be saved as 'last-focused-channel' when it is a non conversation channel, and will
+     * be saved as 'last-persist-channel' when it is a persistent channel.
+     * @param channel the new channel that should be the currently focused channel of this chatter, or null.
      * @return true when the currently focused channel was changed as result of this call, false otherwise.
      */
-    boolean setFocus(@NotNull final IChannel channel);
+    boolean setFocus(@Nullable final IChannel channel);
 
     // Last Sources Methods:
     /**
@@ -48,6 +54,7 @@ public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Com
      * This Channel can be any non conversation channel.
      * @return the last focused channel of this chatter. or null when there is no last focused channel.
      */
+    @SuppressWarnings("unused")
     @Nullable IChannel getLastFocused();
 
     /**
@@ -56,6 +63,7 @@ public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Com
      * This Channel can only be persist channels.
      * @return the last focused persist channel of this chatter or null when there is no last focused channel.
      */
+    @SuppressWarnings("unused")
     @Nullable IChannel getLastPersist();
 
     /**
@@ -70,7 +78,7 @@ public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Com
      * @param partner the new last conversation partner.
      * @return true when the last conversation partner was changed as result of this call, false otherwise.
      */
-    boolean setLastPartners(@NotNull final IChatter partner);
+    boolean setLastPartner(@NotNull final IChatter partner);
 
     // Channels Collection Methods:
     /**
@@ -102,35 +110,29 @@ public interface IChatter extends IPermissible, IFilterable, IStorageHolder, Com
 
     // Ignored Chatter Collection Methods:
     /**
-     * Returns all UUIDs of chatters this chatter is ignoring.
-     * @return a copy of a set of chatter UUIDs this chatter is ignoring.
+     * Adds a ignored player for this chatter.
+     * @param uniqueId the uniqueId of the player to add.
+     * @return true when the player was ignored as result of this call, false otherwise.
      */
-    @NotNull Set<UUID> getIgnores();
+    boolean addIgnore(@NotNull final UUID uniqueId);
 
     /**
-     * Adds a new UUID of a chatter to the collection of ignoring chatter UUIDs of this chatter.
-     * @param uuid the UUID of a chatter that should be ignored from this chatter.
-     * @return true when the collection of ignoring chatter UUIDs was updated as result of this call, false otherwise.
+     * Removes a ignored player from this chatter.
+     * @param uniqueId the uniqueId of the player to remove.
+     * @return true when the player was unignored as result of this call, false otherwise.
      */
-    boolean addIgnores(@NotNull final UUID uuid);
+    boolean removeIgnore(@NotNull final UUID uniqueId);
 
     /**
-     * Removes a given UUID of a chatter from the collection of ignoring chatter UUIDs of this chatter.
-     * @param uuid the UUID of a chatter that should be no longer ignored from this chatter.
-     * @return true when the collection of ignoring chatter UUIDs was updated as result of this call, false otherwise.
+     * Returns whether the given uniqueId is ignored from this chatter.
+     * @param uniqueId the uniqueId of the player to check.
+     * @return true when the given uniqueId is ignored, false otherwise.
      */
-    boolean removeIgnores(@NotNull final UUID uuid);
-
-    /**
-     * Returns whether the given UUID of a chatter is ignored from this chatter.
-     * @param uuid the UUID of a chatter that should be checked.
-     * @return true when the collection of ignoring chatter UUIDs contains the given UUID of a chatter, false otherwise.
-     */
-    boolean isIgnoring(@NotNull final UUID uuid);
+    boolean isIgnore(@NotNull final UUID uniqueId);
 
     /**
      * Returns whether this chatter is ignoring someone.
-     * @return true when the collection of ignoring chatter UUIDs is not empty, false otherwise.
+     * @return true when someone is ignored, false otherwise.
      */
-    boolean isIgnoring();
+    boolean isIgnore();
 }

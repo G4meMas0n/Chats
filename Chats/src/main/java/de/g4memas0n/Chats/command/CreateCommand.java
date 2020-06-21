@@ -1,22 +1,18 @@
-package de.g4memas0n.Chats.command;
+package de.g4memas0n.chats.command;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.channel.PersistChannel;
-import de.g4memas0n.Chats.channel.StandardChannel;
-import de.g4memas0n.Chats.storage.IStorageFile;
-import de.g4memas0n.Chats.util.Permission;
-import de.g4memas0n.Chats.util.type.ChannelType;
-import de.g4memas0n.Chats.chatter.IPermissible;
-import de.g4memas0n.Chats.util.InputUtil;
-import de.g4memas0n.Chats.messaging.Messages;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
+import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.storage.IStorageHolder;
+import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.type.ChannelType;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The Create Command, extends {@link BasicCommand}.
@@ -25,73 +21,81 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 8th, 2020
- * changed: March 10th, 2020
+ * changed: June 20th, 2020
  */
 public final class CreateCommand extends BasicCommand {
 
-    private static final String NAME = "create";
-    private static final int MIN_ARGS = 1;
-    private static final int MAX_ARGS = 2;
-
-    private static final String CREATE_P = "create-p";
-    private static final String CREATE_S = "create-s";
-
-    private static final int ARG_NAME = 0;
-    private static final int ARG_TYPE = 1;
+    private static final int NAME = 0;
+    private static final int TYPE = 1;
 
     public CreateCommand() {
-        super(NAME, Permission.CHANNEL_CREATE.getName(), MIN_ARGS, MAX_ARGS, Arrays.asList(CREATE_P, CREATE_S));
+        super("create", 1, 2);
+
+        this.setDescription("Creates a new channel.");
+        this.setPermission(Permission.CREATE.getNode());
+        this.setUsage("/channel create <full-name> [<type>]");
     }
 
     @Override
-    public boolean execute(@NotNull final CommandSender sender,
+    public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final String alias,
                            @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            final IPermissible permissible = this.getPermissible(sender);
-            final String fullName = arguments[ARG_NAME];
-
-            if (fullName.isEmpty()) {
-                sender.sendMessage(Messages.tlErr("invalidName"));
+            if (this.getInstance().getChannelManager().hasChannel(arguments[NAME])) {
+                sender.sendMessage(Messages.tlErr("channelAlreadyExist", arguments[NAME]));
                 return true;
             }
 
-            if (this.getInstance().getChannelManager().hasChannel(fullName)) {
-                sender.sendMessage(Messages.tlErr("channelAlreadyExist", fullName));
-                return true;
-            }
-
-            final ChannelType type = this.getType(alias, arguments);
+            final ChannelType type = arguments.length == this.getMaxArgs()
+                    ? ChannelType.getType(arguments[TYPE]) : ChannelType.getDefault();
 
             if (type == null || type == ChannelType.CONVERSATION) {
-                return false;
+                sender.sendMessage(Messages.tlErr("invalidType"));
+                return true;
             }
 
-            if (permissible.canCreate(type)) {
-                IChannel channel;
+            if (sender.canCreate(type)) {
+                if (sender instanceof IChatter && sender.hasPermission(Permission.CREATE.formChildren("limit"))) {
+                    final UUID uniqueId = ((IChatter) sender).getUniqueId();
 
-                if (type == ChannelType.PERSIST) {
-                    final IStorageFile storage = this.getInstance().getChannelManager().getStorageFile(fullName);
-
-                    channel = new PersistChannel(this.getInstance().getFormatter(), storage);
-                } else {
-                    channel = new StandardChannel(this.getInstance().getFormatter(), fullName);
-
-                    if (sender instanceof Player) {
-                        channel.setOwner(((Player) sender).getUniqueId());
+                    for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                        if (channel.isOwner(uniqueId)) {
+                            sender.sendMessage(Messages.tl("createLimit", 1));
+                            return true;
+                        }
                     }
                 }
 
-                if (this.getInstance().getChannelManager().addChannel(channel)) {
-                    sender.sendMessage(Messages.tl("createChannel", channel.getFullName(), type.getIdentifier()));
+                try {
+                    final IChannel channel = this.getInstance().getChannelManager().addChannel(arguments[NAME], type);
+
+                    if (channel == null) {
+                        sender.sendMessage(Messages.tlErr("createAlready", arguments[NAME]));
+                        return true;
+                    }
+
+                    if (channel.isStandard() && sender instanceof IChatter) {
+                        final IChatter chatter = (IChatter) sender;
+
+                        channel.setOwner(chatter.getUniqueId());
+                        channel.addMember(chatter);
+                    }
+
+                    if (channel.isPersist() && channel instanceof IStorageHolder) {
+                        final IStorageHolder holder = (IStorageHolder) channel;
+
+                        this.getInstance().runStorageTask(holder::save);
+                    }
+
+                    sender.sendMessage(Messages.tl("createChannel", channel.getFullName(), Messages.tlType(type)));
+                    return true;
+                } catch (IllegalArgumentException ex) {
+                    sender.sendMessage(Messages.tlErr("invalidName"));
                     return true;
                 }
-
-                sender.sendMessage(Messages.tlErr("createAlready", channel.getFullName()));
-                return true;
             }
 
-            sender.sendMessage(Messages.tl("createDenied", type.getIdentifier()));
+            sender.sendMessage(Messages.tl("createDenied", Messages.tlType(type)));
             return true;
         }
 
@@ -99,48 +103,27 @@ public final class CreateCommand extends BasicCommand {
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+    public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                              @NotNull final String alias,
                                              @NotNull final String[] arguments) {
-        if (this.argsInRange(arguments.length)) {
-            if (alias.equalsIgnoreCase(CREATE_P) || alias.equalsIgnoreCase(CREATE_S)) {
-                return Collections.emptyList();
-            }
+        if (arguments.length == TYPE + 1) {
+            final List<String> completion = new ArrayList<>();
 
-            if (arguments.length == this.getMaxArgs()) {
-                final List<String> completion = new ArrayList<>();
-                final IPermissible permissible = this.getPermissible(sender);
-
-                for (final ChannelType current : ChannelType.values()) {
-                    if (current == ChannelType.CONVERSATION) {
-                        continue;
-                    }
-
-                    if (InputUtil.containsInput(current.getIdentifier(), arguments[ARG_TYPE])) {
-                        if (permissible.canCreate(current)) {
-                            completion.add(current.getIdentifier());
-                        }
-                    }
+            for (final ChannelType type : ChannelType.values()) {
+                if (type == ChannelType.CONVERSATION) {
+                    continue;
                 }
 
-                Collections.sort(completion);
-
-                return completion;
+                if (sender.canCreate(type)) {
+                    if (StringUtil.startsWithIgnoreCase(type.getIdentifier(), arguments[TYPE])) {
+                        completion.add(type.getIdentifier());
+                    }
+                }
             }
+
+            return completion;
         }
 
         return Collections.emptyList();
-    }
-
-    private @Nullable ChannelType getType(@NotNull final String alias, @NotNull final String[] arguments) {
-        if (arguments.length == this.getMaxArgs()) {
-            return alias.equalsIgnoreCase(this.getName()) ? ChannelType.getType(arguments[ARG_TYPE]) : null;
-        } else if (alias.equalsIgnoreCase(CREATE_P)) {
-            return ChannelType.PERSIST;
-        } else if (alias.equalsIgnoreCase(CREATE_S)) {
-            return ChannelType.STANDARD;
-        } else {
-            return ChannelType.STANDARD;
-        }
     }
 }

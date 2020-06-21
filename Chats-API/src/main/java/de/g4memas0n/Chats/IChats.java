@@ -1,14 +1,15 @@
-package de.g4memas0n.Chats;
+package de.g4memas0n.chats;
 
-import de.g4memas0n.Chats.channel.IChannelManager;
-import de.g4memas0n.Chats.messaging.IFormatter;
-import de.g4memas0n.Chats.chatter.IChatterManager;
-import de.g4memas0n.Chats.storage.configuration.ISettings;
-import de.g4memas0n.Chats.util.type.ReloadType;
+import de.g4memas0n.chats.channel.IChannelManager;
+import de.g4memas0n.chats.chatter.IChatterManager;
+import de.g4memas0n.chats.messaging.IFormatter;
+import de.g4memas0n.chats.storage.configuration.ISettings;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.concurrent.Future;
 
 /**
  * Chats Interface, that defines the main class of this plugin.
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 26th, 2019
- * changed: March 5th, 2020
+ * changed: June 17th, 2020
  */
 public interface IChats extends Plugin {
 
@@ -57,4 +58,38 @@ public interface IChats extends Plugin {
      * @param service the by vault registered chat service.
      */
     void setChatService(@Nullable final Chat service);
+
+    /**
+     * Submits a task for execution on the storage thread and returns a Future representing that task.
+     * The Future's get method will return null upon successful completion.
+     * @param task the task to submit.
+     * @return a Future representing pending completion of the task.
+     */
+    @NotNull Future<?> runStorageTask(@NotNull final Runnable task);
+
+    /**
+     * Submits a task for execution on the next server tick on the main server thread and returns a BukkitTask
+     * representing that task.
+     * @param task the task to run.
+     * @return a BukkitTask that contains the id number.
+     */
+    @NotNull BukkitTask runSyncTask(@NotNull final Runnable task);
+
+    /**
+     * Schedules a task for execution after the delay specified in the settings on the storage thread and returns a
+     * Future representing that task. The Future's get method will return null upon successful completion.
+     * @param task the task to schedule.
+     * @return a Future representing pending completion of the task.
+     */
+    @NotNull Future<?> scheduleStorageTask(@NotNull final Runnable task);
+
+    /**
+     * Schedules a task for execution after the given ticks on the main server thread and returns a BukkitTask
+     * representing that task.
+     * @param task the task to schedule.
+     * @param delay the ticks to wait before running the task
+     * @return a BukkitTask that contains the id number
+     */
+    @SuppressWarnings("unused")
+    @NotNull BukkitTask scheduleSyncTask(@NotNull final Runnable task, final long delay);
 }

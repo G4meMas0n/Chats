@@ -1,5 +1,6 @@
-package de.g4memas0n.Chats.chatter;
+package de.g4memas0n.chats.chatter;
 
+import de.g4memas0n.chats.storage.IStorageContainer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,15 +14,23 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 4th, 2019
- * changed: February 8th, 2020
+ * changed: June 18th, 2020
  */
-public interface IChatterManager {
+public interface IChatterManager extends IStorageContainer {
 
     /**
      * Returns all chatters that are listed in this chatter manager.
-     * @return a copy of the collection of all listed chatters in this chatter manager.
+     * @return the chatters in this chatter manager.
      */
     @NotNull Set<IChatter> getChatters();
+
+    /**
+     * Returns the chatter with the given name of this manager. Can be null when there is no chatter with the given
+     * name in this manager.
+     * @param name the name of the chatter that should be returned.
+     * @return the chatter with the given name or null when there is no chatter with the given name.
+     */
+    @Nullable IChatter getChatter(@NotNull final String name);
 
     /**
      * Returns the chatter with the given uniqueId of this manager. Can be null when there is no chatter with the given
@@ -48,22 +57,39 @@ public interface IChatterManager {
     @NotNull IChatter loadChatter(@NotNull final Player player);
 
     /**
-     * Unloads the given chatter and removes it from this manager, when it is contained in this manager.
-     * @param chatter the chatter that should be unloaded and removed from this manager.
-     * @return true when chatter was unloaded and removed from this manager as result of this call, false otherwise.
+     * Unloads the chatter that represents the given player, removes it from this manager and returns it.
+     * @param player the player of the chatter to unload.
+     * @return the unloaded chatter that represents the given player.
      */
-    boolean unloadChatter(@NotNull final IChatter chatter);
+    @NotNull IChatter unloadChatter(@NotNull final Player player);
 
     /**
-     * Returns whether this manager contains a chatter with the given uniqueId.
-     * @param uniqueId the uniqueId of the chatter that should be checked.
-     * @return true when this manager contains a chatter with the given uniqueId, false otherwise.
+     * Returns whether this chatter manager contains chatters.
+     * @return true when this chatter manager contains chatters, false otherwise.
      */
-    boolean hasChatter(@NotNull final UUID uniqueId);
+    @SuppressWarnings("unused")
+    boolean hasChatters();
 
     /**
-     * Reloads this chatter manager.
-     * This method will reload all chatters that are listed in this chatter manager.
+     * Returns all offline chatters that exists in this chatter manager.
+     * @return the offline chatters in this chatter manager.
      */
-    void reload();
+    @SuppressWarnings("unused")
+    @NotNull Set<IOfflineChatter> getOfflineChatters();
+
+    /**
+     * Returns the offline chatter with the given name. Can be null when there is no offline chatter with the given
+     * name in this manager.
+     * @param name the name of the offline chatter.
+     * @return the offline chatter with the given name or null if it does not exist.
+     */
+    @Nullable IOfflineChatter getOfflineChatter(@NotNull final String name);
+
+    /**
+     * Returns the offline chatter with the given uniqueId. Can be null when there is no offline chatter with the given
+     * uniqueId in this manager.
+     * @param uniqueId the uniqueId of the offline chatter.
+     * @return the offline chatter with the given uniqueId or null if it does not exist.
+     */
+    @Nullable IOfflineChatter getOfflineChatter(@NotNull final UUID uniqueId);
 }

@@ -1,11 +1,12 @@
-package de.g4memas0n.Chats.command;
+package de.g4memas0n.chats.command;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chatter.IPermissible;
-import de.g4memas0n.Chats.messaging.Messages;
-import de.g4memas0n.Chats.util.InputUtil;
-import de.g4memas0n.Chats.util.Permission;
-import org.bukkit.command.CommandSender;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.chatter.IOfflineChatter;
+import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.type.InfoType;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,66 +19,81 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: March 5th, 2020
- * changed: March 10th, 2020
+ * changed: June 20th, 2020
  */
 public final class InfoCommand extends BasicCommand {
 
-    private static final String NAME = "info";
-    private static final int MIN_ARGS = 1;
-    private static final int MAX_ARGS = 1;
-
-    private static final int ARG_CHANNEL = 0;
+    private static final int CHANNEL = 0;
 
     public InfoCommand() {
-        super(NAME, Permission.CHANNEL_VIEW.formChildren("info"), MIN_ARGS, MAX_ARGS);
+        super("info", 1, 1);
+
+        this.setDescription("Shows information's of a channel.");
+        this.setPermission(Permission.VIEW_INFO.getNode());
+        this.setUsage("/channel info <channel>");
     }
 
     @Override
-    public boolean execute(@NotNull final CommandSender sender,
+    public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final String alias,
                            @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            final IPermissible permissible = this.getPermissible(sender);
-            final IChannel channel = this.getInstance().getChannelManager().getChannel(arguments[ARG_CHANNEL]);
+            final IChannel channel = this.getInstance().getChannelManager().getChannel(arguments[CHANNEL]);
 
-            if (channel == null) {
-                sender.sendMessage(Messages.tlErr("channelNotExist"));
+            if (channel == null || channel.isConversation()) {
+                sender.sendMessage(Messages.tlErr("channelNotExist", arguments[CHANNEL]));
                 return true;
             }
 
-            if (permissible.canViewInfo(channel)) {
+            if (sender.canViewInfo(channel)) {
                 sender.sendMessage(Messages.tl("infoHeader", channel.getColoredName()));
-
                 sender.sendMessage(Messages.tl("infoFullName", channel.getFullName()));
-                sender.sendMessage(Messages.tl("infoShortName", channel.getShortName()));
-                sender.sendMessage(Messages.tl("infoColor",
-                        channel.getChatColor() + channel.getChatColor().name()));
 
-                sender.sendMessage(Messages.tl("infoPassword", channel.getPassword() != null ?
-                        channel.getPassword() : ""));
-                sender.sendMessage(Messages.tl("infoCrossWorld", channel.isCrossWorld() ?
-                        Messages.tl("enabled") : Messages.tl("disabled")));
-                sender.sendMessage(Messages.tl("infoDistance", channel.getDistance()));
+                if (sender.canView(channel, InfoType.SHORT_NAME)) {
+                    sender.sendMessage(Messages.tl("infoShortName", channel.getShortName()));
+                }
 
-                sender.sendMessage(Messages.tl("infoType", channel.getType().name()));
+                if (sender.canView(channel, InfoType.COLOR)) {
+                    sender.sendMessage(Messages.tl("infoColor", channel.getColor() + channel.getColor().name().toLowerCase()));
+                }
 
-                String format = channel.getAnnounceFormat();
-                boolean equalsDefault = format.equals(this.getInstance().getSettings().getAnnounceFormat());
+                if (channel.getPassword() != null && sender.canView(channel, InfoType.PASSWORD)) {
+                    sender.sendMessage(Messages.tl("infoPassword", channel.getPassword()));
+                }
 
-                sender.sendMessage(Messages.tl("infoAnnounceFormat", format, Messages.tlBool(equalsDefault)));
+                if (sender.canView(channel, InfoType.CROSS_WORLD)) {
+                    sender.sendMessage(Messages.tl("infoCrossWorld", Messages.tlState(channel.isCrossWorld())));
+                }
 
-                format = channel.getBroadcastFormat();
-                equalsDefault = format.equals(this.getInstance().getSettings().getBroadcastFormat());
+                if (sender.canView(channel, InfoType.DISTANCE)) {
+                    sender.sendMessage(Messages.tl("infoDistance", channel.getDistance()));
+                }
 
-                sender.sendMessage(Messages.tl("infoBroadcastFormat", format, Messages.tlBool(equalsDefault)));
+                if (sender.canView(channel, InfoType.TYPE)) {
+                    sender.sendMessage(Messages.tl("infoType", Messages.tlType(channel.getType())));
+                }
 
-                format = channel.getChatFormat();
-                equalsDefault = format.equals(this.getInstance().getSettings().getChatFormat());
+                if (channel.getOwner() != null && sender.canView(channel, InfoType.OWNER)) {
+                    final IOfflineChatter owner = this.getInstance().getChatterManager().getOfflineChatter(channel.getOwner());
 
-                sender.sendMessage(Messages.tl("infoChatFormat", format, Messages.tlBool(equalsDefault)));
+                    sender.sendMessage(Messages.tl("infoOwner", owner != null ? owner.getName() : channel.getOwner().toString()));
+                }
 
-                sender.sendMessage(Messages.tl("infoCustomFormat", channel.isCustomFormat() ?
-                        Messages.tl("enabled") : Messages.tl("disabled")));
+                if (sender.canView(channel, InfoType.FORMATS)) {
+                    sender.sendMessage(Messages.tl("infoCustomFormat", Messages.tlState(channel.isCustomFormat())));
+
+                    String format = channel.getAnnounceFormat();
+                    sender.sendMessage(Messages.tl("infoFormat", Messages.tl("announce"), format,
+                            Messages.tlBool(this.getInstance().getSettings().getAnnounceFormat().equals(format))));
+
+                    format = channel.getBroadcastFormat();
+                    sender.sendMessage(Messages.tl("infoFormat", Messages.tl("broadcast"), format,
+                            Messages.tlBool(this.getInstance().getSettings().getBroadcastFormat().equals(format))));
+
+                    format = channel.getChatFormat();
+                    sender.sendMessage(Messages.tl("infoFormat", Messages.tl("chat"), format,
+                            Messages.tlBool(this.getInstance().getSettings().getChatFormat().equals(format))));
+                }
 
                 return true;
             }
@@ -90,21 +106,20 @@ public final class InfoCommand extends BasicCommand {
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+    public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                              @NotNull final String alias,
                                              @NotNull final String[] arguments) {
-        if (this.argsInRange(arguments.length)) {
+        if (arguments.length == CHANNEL + 1) {
             final List<String> completion = new ArrayList<>();
-            final IPermissible permissible = this.getPermissible(sender);
 
-            for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
-                if (current.isConversation()) {
+            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                if (channel.isConversation()) {
                     continue;
                 }
 
-                if (InputUtil.containsInput(current.getFullName(), arguments[ARG_CHANNEL])) {
-                    if (permissible.canViewInfo(current)) {
-                        completion.add(current.getFullName());
+                if (sender.canViewInfo(channel)) {
+                    if (StringUtil.startsWithIgnoreCase(channel.getFullName(), arguments[CHANNEL])) {
+                        completion.add(channel.getFullName());
                     }
                 }
             }

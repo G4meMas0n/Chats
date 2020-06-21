@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.util.type;
+package de.g4memas0n.chats.util.type;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 3rd, 2020
- * changed: February 3rd, 2020
+ * changed: May 29th, 2020
  */
 public interface Type {
 
@@ -18,4 +18,10 @@ public interface Type {
      * @return the type identifier.
      */
     @NotNull String getIdentifier();
+
+    /**
+     * Returns the translation key of this type.
+     * @return the translation key.
+     */
+    @NotNull String getKey();
 }

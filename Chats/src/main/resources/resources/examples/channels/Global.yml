@@ -1,0 +1,58 @@
+##################################################
+# Chats - Example Channel YAML-Storage-File:     #
+#                                                #
+# Version: 0.2.3-SNAPSHOT                        #
+##################################################
+
+# Sets the full-name of the channel: (Type: String)
+# Note: Must be equal to the file name without extension. (Correct file name: Global.yml)
+full-name: "Global"
+
+# Sets the short-name of the channel: (Type: String)
+# Note: An empty string removes the short-name from the channel.
+short-name: "G"
+
+# Sets the chat-color that the channel will have: (Type: String)
+# Note: Must be the name of an existing chat color.
+color: "GRAY"
+
+# Sets the password of the channel that will be required to join the channel: (Type: String)
+# Note: An empty string removes the password from the channel.
+password: ""
+
+# Sets the maximal distance that the channels chat will have: (Type: Integer)
+# Note: A value <= 0 removes the distance from the channel.
+distance: -1
+
+# Sets whether the channels chat is cross over multiple worlds: (Type: Boolean)
+# Note: Will be ignored when the channel has a distance. (When distance > 0)
+cross-world: true
+
+# Sets the various formats options of the channel:
+format:
+  # Sets whether the channel uses its custom formats:
+  use-custom: false
+
+  # Sets the announce format of the channel:
+  # Note: Will be ignored when the use-custom option is disabled.
+  announce: "{color}{message}"
+
+  # Sets the broadcast format of the channel:
+  # Note: Will be ignored when the use-custom option is disabled.
+  broadcast: "{color}[{bc-prefix}{color}] {message}"
+
+  # Sets the chat format of the channel:
+  # Note: Will be ignored when the use-custom option is disabled.
+  chat: "{color}[{nick}]{sender}{color}: {message}"
+
+# Sets the chatters that are banned from the channel: (Type: String Array)
+# Note: Each entry must be the uniqueId of an existing chatter.
+bans: []
+
+# Sets the chatters that are moderators of the channel: (Type: String Array)
+# Note: Each entry must be the uniqueId of an existing chatter.
+moderators: []
+
+# Sets the chatters that are muted in this channel: (Type: String Array)
+# Note: Each entry must be the uniqueId of an existing chatter.
+mutes: []

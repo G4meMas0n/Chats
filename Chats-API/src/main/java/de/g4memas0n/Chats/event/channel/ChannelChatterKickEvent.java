@@ -1,7 +1,7 @@
-package de.g4memas0n.Chats.event.channel;
+package de.g4memas0n.chats.event.channel;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.2.0-SNAPSHOT
  *
  * created: March 10th, 2020
- * changed: March 10th, 2020
+ * changed: March 14th, 2020
  */
 public class ChannelChatterKickEvent extends ChannelEvent implements Cancellable {
 

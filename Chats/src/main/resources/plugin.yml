@@ -1,0 +1,309 @@
+main: de.g4memas0n.chats.Chats
+name: Chats
+version: 0.2.4-SNAPSHOT
+description: A Plugin that provides a channel based chat.
+author: G4meMas0n
+api-version: '1.15'
+
+softdepend:
+  - Vault
+loadbefore:
+  - Herochat
+
+commands:
+  channel:
+    aliases: [ch]
+    description: Manages the channels.
+    permission: chats.channel
+    usage: /channel <command> <arguments>
+  chat:
+    description: Sends a message in a channel without changing the focused channel.
+    permission: chats.speak
+    usage: /chat <channel> <message>
+  chats:
+    description: The main plugin command.
+    permission: chats.use
+    usage: /chats <command> [<arguments>]
+  focus:
+    description: Focuses a new channel.
+    permission: chats.focus
+    usage: /focus <channel> [<password>]
+  ignore:
+    aliases: [unignore]
+    description: Ignores or unignores a player.
+    permission: chats.ignore
+    usage: /ignore|unignore <player>
+  join:
+    description: Joins a new channel.
+    permission: chats.join
+    usage: /join <channel> [<password>]
+  leave:
+    description: Leaves a channel.
+    permission: chats.leave
+    usage: /leave <channel>
+  msg:
+    aliases: [pm, tell, whisper, w]
+    description: Starts a conversation with or sends a private message to a chatter.
+    permission: chats.msg
+    usage: /msg <player> [<message>]
+  reply:
+    aliases: [r]
+    description: Starts a conversation with or sends a private message to the last conversation partner.
+    permission: chats.msg
+    usage: /reply [<message>]
+
+permissions:
+  # Moderate permissions:
+  chats.ban:
+    description: Allows to access the channel ban command. Sub permission to regulate moderate permissions.
+    default: false
+    children:
+      chats.channel: true
+  chats.broadcast:
+    description: Allows to access the channel broadcast command. Sub permission to regulate moderate permissions.
+    default: false
+    children:
+      chats.channel: true
+  chats.kick:
+    description: Allows to access the channel kick command. Sub permission to regulate moderate permissions.
+    default: false
+    children:
+      chats.channel: true
+  chats.mute:
+    description: Allows to access the channel mute command. Sub permission to regulate moderate permissions.
+    default: false
+    children:
+      chats.channel: true
+  chats.pardon:
+    description: Allows to access the channel pardon command. Sub permission to regulate moderate permissions.
+    default: false
+    children:
+      chats.channel: true
+  chats.unmute:
+    description: Allows to access the channel unmute command. Sub permission to regulate moderate permissions.
+    default: false
+    children:
+      chats.channel: true
+  chats.moderate:
+    description: Allows to access moderating channel commands.
+    default: false
+    children:
+      chats.channel: true
+      chats.ban: true
+      chats.broadcast: true
+      chats.kick: true
+      chats.mute: true
+      chats.pardon: true
+      chats.unmute: true
+
+  # Channel permissions:
+  chats.channel:
+    description: Allows to access the channel command.
+    default: false
+  chats.create:
+    description: Allows to access the channel create command.
+    default: false
+    children:
+      chats.channel: true
+  chats.create.type.*:
+    description: Allows to create all channel types.
+    default: false
+    children:
+      chats.create.type.persist: true
+      chats.create.type.standard: true
+  chats.delete:
+    description: Allows to access the channel delete command.
+    default: false
+    children:
+      chats.channel: true
+  chats.delete.type.*:
+    description: Allows to delete all channel types.
+    default: false
+    children:
+      chats.delete.type.persist: true
+      chats.delete.type.standard: true
+  chats.focus:
+    description: Allows to access the channel focus command.
+    default: false
+    children:
+      chats.channel: true
+  chats.join:
+    description: Allows to access the channel join command.
+    default: false
+    children:
+      chats.channel: true
+  chats.leave:
+    description: Allows to access the channel leave command.
+    default: false
+    children:
+      chats.channel: true
+  chats.list:
+    description: Allows to access the channel list command.
+    default: false
+    children:
+      chats.channel: true
+  chats.list.type.*:
+    description: Allows to list all channel types.
+    default: false
+    children:
+      chats.list.type.conversation: true
+      chats.list.type.standard: true
+      chats.list.type.persist: true
+  chats.modify:
+    description: Allows to access the channel modify command.
+    default: false
+    children:
+      chats.channel: true
+  chats.modify.type.*:
+    description: Allows to modify all modify types.
+    default: false
+    children:
+      chats.modify.type.announce-format: true
+      chats.modify.type.broadcast-format: true
+      chats.modify.type.chat-format: true
+      chats.modify.type.color: true
+      chats.modify.type.cross-world: true
+      chats.modify.type.custom-format: true
+      chats.modify.type.distance: true
+      chats.modify.type.moderators: true
+      chats.modify.type.owner: true
+      chats.modify.type.password: true
+      chats.modify.type.short-name: true
+  chats.speak:
+    description: Allows to speak and to access the chat command.
+    default: false
+    children:
+      chats.channel: true
+  chats.view.type.*:
+    description: Allows to view all info types.
+    default: false
+    children:
+      chats.view.type.bans: true
+      chats.view.type.color: true
+      chats.view.type.cross-world: true
+      chats.view.type.distance: true
+      chats.view.type.format: true
+      chats.view.type.moderators: true
+      chats.view.type.mutes: true
+      chats.view.type.owner: true
+      chats.view.type.password: true
+      chats.view.type.short-name: true
+      chats.view.type.type: true
+  chats.view.info:
+    description: Allows to access the channel info command.
+    default: false
+    children:
+      chats.channel: true
+  chats.view.who:
+    description: Allows to access the channel who command.
+    default: false
+    children:
+      chats.channel: true
+  chats.view.*:
+    description: Allows to view all channel informations.
+    default: false
+    children:
+      chats.view.type.*: true
+      chats.view.info: true
+      chats.view.info.persist.all: true
+      chats.view.info.standard.all: true
+      chats.view.who: true
+      chats.view.who.persist.all: true
+      chats.view.who.standard.all: true
+
+  # Chatter permissions:
+  chats.ignore:
+    description: Allows to ignore or unignore chatters.
+    default: false
+  chats.msg:
+    description: Allows to start conversations or send private messages.
+    default: false
+
+  # Chats permissions:
+  chats.use:
+    description: Allows to access the main chats command.
+    default: false
+  chats.cleanup:
+    description: Allows to access the cleanup command.
+    default: false
+    children:
+      chats.use: true
+  chats.help:
+    description: Allows to access the chats help command.
+    default: false
+    children:
+      chats.use: true
+  chats.reload:
+    description: Allows to access the chats reload command.
+    default: false
+    children:
+      chats.use: true
+  chats.reload.type.*:
+    description: Allows to reload all reload types.
+    default: false
+    children:
+      chats.reload.type.all: true
+      chats.reload.type.channels: true
+      chats.reload.type.chatters: true
+      chats.reload.type.config: true
+  chats.social-spy:
+    description: Allows to access the chats social-spy command-
+    default: false
+    children:
+      chats.use: true
+  chats.version:
+    description: Allows to access the chats version command.
+    default: false
+    children:
+      chats.use: true
+
+  # Admin permission:
+  chats.admin:
+    description: Permission for granting access to everything.
+    default: op
+    children:
+      chats.ban: true
+      chats.ban.exempt: true
+      chats.broadcast: true
+      chats.channel: true
+      chats.cleanup: true
+      chats.create: true
+      chats.create.limit: false
+      chats.create.type.*: true
+      chats.delete: true
+      chats.delete.type.*: true
+      chats.focus: true
+      chats.focus.persist.all: true
+      chats.help: true
+      chats.ignore: true
+      chats.ignore.exempt: true
+      chats.join: true
+      chats.join.persist.all: true
+      chats.kick: true
+      chats.kick.exempt: true
+      chats.leave: true
+      chats.leave.persist.all: true
+      chats.list: true
+      chats.list.type.*: true
+      chats.moderate: true
+      chats.moderate.persist.all: true
+      chats.moderate.standard.all: true
+      chats.modify: true
+      chats.modify.persist.all: true
+      chats.modify.standard.all: true
+      chats.modify.type.*: true
+      chats.msg: true
+      chats.msg.exempt: false
+      chats.msg.exempt.bypass: true
+      chats.mute: true
+      chats.mute.exempt: true
+      chats.pardon: true
+      chats.reload: true
+      chats.reload.type.*: true
+      chats.social-spy: true
+      chats.speak: true
+      chats.speak.persist.all: true
+      chats.unmute: true
+      chats.use: true
+      chats.version: true
+      chats.view.*: true

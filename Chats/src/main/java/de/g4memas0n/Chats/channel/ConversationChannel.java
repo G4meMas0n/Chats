@@ -1,15 +1,18 @@
-package de.g4memas0n.Chats.channel;
+package de.g4memas0n.chats.channel;
 
-import de.g4memas0n.Chats.messaging.IFormatter;
-import de.g4memas0n.Chats.event.chatter.ChatterChatConversationEvent;
-import de.g4memas0n.Chats.messaging.Messages;
-import de.g4memas0n.Chats.messaging.Placeholder;
-import de.g4memas0n.Chats.util.type.ChannelType;
-import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.chatter.IChatter;
+import de.g4memas0n.chats.event.chatter.ChatterChatConversationEvent;
+import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -19,41 +22,35 @@ import java.util.UUID;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 3rd, 2020
- * changed: March 9th, 2020
+ * changed: June 21th, 2020
  */
-public class ConversationChannel extends StandardChannel {
+public final class ConversationChannel extends StandardChannel {
 
-    private static final String CONVERSATION_NAME = "Conversation";
-
-    private final IChannelManager manager;
-
-    public ConversationChannel(@NotNull final IChannelManager manager,
-                               @NotNull final IFormatter formatter,
+    public ConversationChannel(@NotNull final IChats instance,
                                @NotNull final IChatter first,
                                @NotNull final IChatter second) throws IllegalArgumentException {
-        super(formatter, IChannel.buildConversationName(first, second));
+        super(instance, buildName(first, second));
 
-        this.manager = manager;
+        super.setShortName(buildShort(first, second));
+        super.setColor(ChatColor.LIGHT_PURPLE);
+
+        this.addMember(first);
+        this.addMember(second);
     }
 
     // Channel Properties Methods:
-    @Override
-    public @NotNull String getShortName() {
-        return CONVERSATION_NAME;
-    }
-
     @Override
     public boolean setShortName(@Nullable final String shortName) {
         return false;
     }
 
     @Override
-    public @NotNull ChatColor getChatColor() {
-        return this.getFormatter().getConversationColor();
+    public boolean setColor(@Nullable final ChatColor color) {
+        return false;
     }
 
     @Override
-    public boolean setChatColor(@Nullable final ChatColor color) {
+    public boolean hasPassword() {
         return false;
     }
 
@@ -63,12 +60,22 @@ public class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean hasPassword() {
+    public boolean setPassword(@Nullable final String password) {
         return false;
     }
 
     @Override
-    public boolean setPassword(@Nullable final String password) {
+    public boolean hasDistance() {
+        return false;
+    }
+
+    @Override
+    public int getDistance() {
+        return -1;
+    }
+
+    @Override
+    public boolean setDistance(final int distance) {
         return false;
     }
 
@@ -83,46 +90,42 @@ public class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public int getDistance() {
-        return -1;
-    }
-
-    @Override
-    public boolean hasDistance() {
+    public boolean isCustomFormat() {
         return false;
     }
 
     @Override
-    public boolean setDistance(final int distance) {
+    public boolean setCustomFormat(final boolean customFormat) {
         return false;
     }
 
     @Override
-    public boolean equals(@Nullable final Object object) {
-        if (object == null) {
-            return false;
-        }
-
-        if (this == object) {
-            return true;
-        }
-
-        if (this.getClass() != object.getClass()) {
-            return false;
-        }
-
-        final ConversationChannel channel = (ConversationChannel) object;
-        return this.getFullName().equals(channel.getFullName());
+    public @NotNull String getAnnounceFormat() {
+        return this.getInstance().getFormatter().getAnnounceFormat();
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 67;
-        int result = 2;
+    public boolean setAnnounceFormat(@Nullable final String format) {
+        return false;
+    }
 
-        result = prime * result + this.getFullName().hashCode();
+    public @NotNull String getBroadcastFormat() {
+        return this.getInstance().getFormatter().getBroadcastFormat();
+    }
 
-        return result;
+    @Override
+    public boolean setBroadcastFormat(@Nullable final String format) {
+        return false;
+    }
+
+    @Override
+    public @NotNull String getChatFormat() {
+        return this.getInstance().getFormatter().getConversationFormat();
+    }
+
+    @Override
+    public boolean setChatFormat(@Nullable final String format) {
+        return false;
     }
 
     // Channel Type Methods:
@@ -131,24 +134,14 @@ public class ConversationChannel extends StandardChannel {
         return ChannelType.CONVERSATION;
     }
 
-    @Override
-    public final boolean isConversation() {
-        return true;
-    }
-
-    @Override
-    public final boolean isPersist() {
-        return false;
-    }
-
     // Channel Collection Methods:
-    public final @Nullable IChatter getPartner(@NotNull final IChatter sender) {
+    protected final @Nullable IChatter getPartner(@NotNull final IChatter sender) {
         for (final IChatter current : this.getMembers()) {
             if (current.equals(sender)) {
                 continue;
             }
 
-            if (this.getFullName().contains(current.getPlayer().getUniqueId().toString())) {
+            if (this.getFullName().contains(current.getUniqueId().toString())) {
                 return current;
             }
         }
@@ -156,42 +149,72 @@ public class ConversationChannel extends StandardChannel {
         return null;
     }
 
-    @Override
-    public boolean setMember(@NotNull final IChatter chatter, final boolean member) {
-        if (member && this.getFullName().contains(chatter.getPlayer().getUniqueId().toString())) {
-            return super.setMember(chatter, true);
-        } else {
-            return super.setMember(chatter, false);
-        }
-    }
-
-    @Override
-    public boolean addMember(@NotNull final IChatter chatter) {
-        if (this.isMember(chatter) || this.getMembers().size() >= 2) {
+    public synchronized boolean setMember(@NotNull final IChatter chatter, final boolean member) {
+        if (!this.getFullName().contains(chatter.getUniqueId().toString())) {
             return false;
         }
 
-        if (this.getFullName().contains(chatter.getPlayer().getUniqueId().toString())) {
-            return super.addMember(chatter);
+        if (member) {
+            return super.setMember(chatter, true);
+        }
+
+        if (super.setMember(chatter, false)) {
+            // Ensures that the IChannelManager#removeChannel() method is always called synchronous.
+            this.getInstance().runSyncTask(() -> this.getInstance().getChannelManager().removeChannel(this));
+            return true;
         }
 
         return false;
     }
 
     @Override
-    public boolean removeMember(@NotNull final IChatter chatter) {
-        if (!this.isMember(chatter)) {
-            return false;
-        }
-
-        if (super.removeMember(chatter)) {
-            if (this.getMembers().size() < 2) {
-                this.manager.removeChannel(this);
+    public synchronized boolean addMember(@NotNull final IChatter chatter) {
+        if (this.setMember(chatter, true)) {
+            if (!chatter.hasChannel(this)) {
+                chatter.joinChannel(this);
             }
 
             return true;
         }
 
+        return false;
+    }
+
+    @Override
+    public synchronized boolean removeMember(@NotNull final IChatter chatter) {
+        if (this.setMember(chatter, false)) {
+            if (chatter.hasChannel(this)) {
+                chatter.leaveChannel(this);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean kickMember(@NotNull final IChatter member) {
+        return false;
+    }
+
+    @Override
+    public boolean banMember(@NotNull final IChatter member) {
+        return false;
+    }
+
+    @Override
+    public boolean muteMember(@NotNull final IChatter member) {
+        return false;
+    }
+
+    @Override
+    public @NotNull Set<UUID> getBans() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public boolean setBans(@NotNull final Set<UUID> bans) {
         return false;
     }
 
@@ -201,42 +224,17 @@ public class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean banMember(@NotNull final IChatter chatter) {
+    public boolean isBanned(@NotNull final UUID uniqueId) {
         return false;
     }
 
     @Override
-    public boolean unBanMember(@NotNull final IChatter chatter) {
-        return false;
+    public @NotNull Set<UUID> getModerators() {
+        return Collections.emptySet();
     }
 
     @Override
-    public boolean isBanned(@NotNull final IChatter chatter) {
-        return false;
-    }
-
-    @Override
-    public boolean kickMember(@NotNull final IChatter chatter) {
-        return false;
-    }
-
-    @Override
-    public boolean setMuted(@NotNull final UUID uniqueId, final boolean muted) {
-        return false;
-    }
-
-    @Override
-    public boolean muteMember(@NotNull final IChatter chatter) {
-        return false;
-    }
-
-    @Override
-    public boolean unMuteMember(@NotNull final IChatter chatter) {
-        return false;
-    }
-
-    @Override
-    public boolean isMuted(@NotNull final IChatter chatter) {
+    public boolean setModerators(@NotNull final Set<UUID> moderators) {
         return false;
     }
 
@@ -246,17 +244,27 @@ public class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean addModerator(@NotNull final IChatter chatter) {
+    public boolean isModerator(@NotNull final UUID uniqueId) {
         return false;
     }
 
     @Override
-    public boolean removeModerator(@NotNull final IChatter chatter) {
+    public @NotNull Set<UUID> getMutes() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public boolean setMutes(@NotNull final Set<UUID> mutes) {
         return false;
     }
 
     @Override
-    public boolean isModerator(@NotNull final IChatter chatter) {
+    public boolean setMuted(@NotNull final UUID uniqueId, final boolean muted) {
+        return false;
+    }
+
+    @Override
+    public boolean isMuted(@NotNull final UUID uniqueId) {
         return false;
     }
 
@@ -279,84 +287,93 @@ public class ConversationChannel extends StandardChannel {
         return false;
     }
 
-    // Formatting Methods:
-    @Override
-    public boolean setAnnounceFormat(@Nullable final String format) {
-        return false;
-    }
-
-    @Override
-    public boolean setBroadcastFormat(@Nullable final String format) {
-        return false;
-    }
-
-    @Override
-    public @NotNull String getChatFormat() {
-        return this.getFormatter().getConversationFormat();
-    }
-
-    @Override
-    public boolean setChatFormat(@Nullable final String format) {
-        return false;
-    }
-
-    @Override
-    public boolean isCustomFormat() {
-        return false;
-    }
-
-    @Override
-    public boolean setCustomFormat(final boolean customFormat) {
-        return false;
-    }
-
     // Performing Methods:
     @Override
     public void performChat(@NotNull final IChatter sender, @NotNull final String message) {
-        if (!this.isMember(sender)) {
+        if (!this.isMember(sender) || !sender.getPlayer().isOnline()) {
             return;
         }
 
         final IChatter partner = this.getPartner(sender);
 
         if (partner == null) {
-            sender.getPlayer().sendMessage(Messages.tlErr("partnerNotFound"));
+            sender.sendMessage(Messages.tlErr("partnerNotFound"));
+            return;
+        }
+
+        if (sender.isIgnore(partner.getUniqueId())) {
+            sender.sendMessage(Messages.tl("ignoredPartner", partner.getDisplayName()));
+            return;
+        }
+
+        if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.formChildren("bypass"))) {
+            sender.sendMessage(Messages.tl("ignoredSender", partner.getDisplayName()));
             return;
         }
 
         final ChatterChatConversationEvent event = new ChatterChatConversationEvent(sender, partner,
-                this.getFormatter().getConversationFormat(), message);
+                this.getInstance().getFormatter().getConversationFormat(), message, !Bukkit.isPrimaryThread());
 
-        Bukkit.getPluginManager().callEvent(event);
+        this.getInstance().getServer().getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
             return;
         }
 
-        //Log.conversation(sender, partner, event.getMessage());
+        final String format = this.getInstance().getFormatter().formatConversation(this, event.getFormat(), event.getMessage());
 
-        if (event.getFormat().contains(Placeholder.CON_ADDRESS.toString())) {
-            final String to = this.getFormatter().formatAddress(event.getFormat(), Messages.tl("to"),
-                    partner, event.getMessage());
-            final String from = this.getFormatter().formatAddress(event.getFormat(), Messages.tl("from"),
-                    sender, event.getMessage());
+        sender.sendMessage(MessageFormat.format(format, Messages.tl("to"), partner.getDisplayName()));
+        sender.setLastPartner(partner);
 
-            sender.getPlayer().sendMessage(to);
-            sender.setLastPartners(partner);
+        partner.sendMessage(MessageFormat.format(format, Messages.tl("from"), sender.getDisplayName()));
+        partner.setLastPartner(sender);
 
-            partner.getPlayer().sendMessage(from);
-            partner.setLastPartners(sender);
+        if (!sender.hasPermission(Permission.SOCIAL_SPY.formChildren("exempt"))) {
+            final String spy = Messages.tl("spyFormat", sender.getDisplayName(), partner.getDisplayName(), event.getMessage());
 
-            return;
+            for (final IChatter chatter : this.getInstance().getChatterManager().getChatters()) {
+                if (chatter.equals(sender) || chatter.equals(partner)) {
+                    continue;
+                }
+
+                if (chatter.isSocialSpy()) {
+                    chatter.sendMessage(spy);
+                }
+            }
         }
+    }
 
-        final String output = this.getFormatter().formatConversation(event.getFormat(), sender, partner,
-                event.getMessage());
+    /**
+     * Builds the full name for conversation channels.
+     * The full name is build of the uniqueId of both players concatenated with a underscore ("_").
+     * The order in which the chatters are specified as arguments does not matter as they are compared before. So
+     * buildConversationName(first, second) will return the same as buildConversationName(second, first).
+     * @param first the first chatter to build the full name of the conversation.
+     * @param second the second chatter to build the full name of the conversation.
+     * @return the full name of the conversation for the given chatters.
+     */
+    static @NotNull String buildName(@NotNull final IChatter first, @NotNull final IChatter second) {
+        if (first.compareTo(second) >= 0) {
+            return first.getPlayer().getUniqueId() + "_" + second.getPlayer().getUniqueId();
+        } else {
+            return second.getPlayer().getUniqueId() + "_" + first.getPlayer().getUniqueId();
+        }
+    }
 
-        sender.getPlayer().sendMessage(output);
-        sender.setLastPartners(partner);
-
-        partner.getPlayer().sendMessage(output);
-        partner.setLastPartners(sender);
+    /**
+     * Builds the short name for conversation channels.
+     * The short name is build of the name of both players concatenated with a underscore ("_").
+     * The order in which the chatters are specified as arguments does not matter as they are compared before. So
+     * buildConversationName(first, second) will return the same as buildConversationName(second, first).
+     * @param first the first chatter to build the short name of the conversation.
+     * @param second the second chatter to build the short name of the conversation.
+     * @return the short name of the conversation for the given chatters.
+     */
+    static @NotNull String buildShort(@NotNull final IChatter first, @NotNull final IChatter second) {
+        if (first.compareTo(second) >= 0) {
+            return first.getPlayer().getName() + "_" + second.getPlayer().getName();
+        } else {
+            return second.getPlayer().getName() + "_" + first.getPlayer().getName();
+        }
     }
 }

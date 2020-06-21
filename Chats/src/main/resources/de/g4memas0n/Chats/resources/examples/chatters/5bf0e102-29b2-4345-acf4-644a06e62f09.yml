@@ -1,9 +1,0 @@
-###############################
-#  Example Chatter YAML-File  #
-###############################
-
-last-name: "TheGameMason"
-active-channel: "Default"
-channels:
-  - "Default"
-ignores: []

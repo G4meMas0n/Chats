@@ -1,11 +1,10 @@
-package de.g4memas0n.Chats.chatter;
+package de.g4memas0n.chats.chatter;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Filterable Interface that provides methods to filter chatters.
- * This Interface is only used for the IChatter Interface, so the implementation of this interface is in the
- * representation of a chatter.
+ * This Interface is only used for the {@link IChatter} Interface, to filter chatters.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT

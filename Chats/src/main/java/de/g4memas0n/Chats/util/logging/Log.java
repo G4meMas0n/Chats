@@ -1,7 +1,8 @@
-package de.g4memas0n.Chats.util.logging;
+package de.g4memas0n.chats.util.logging;
 
+import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.storage.configuration.ISettings;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -12,114 +13,115 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 /**
- * Logging class, that is used for all logging actions of this plugin.
+ * Logging class, that is used to access the plugin and chat logger.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 12th, 2020
- * changed: March 9th, 2020
+ * changed: June 15th, 2020
  */
 public final class Log {
 
-    private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private static final String DIRECTORY_LOGS = "logs";
 
-    private static Logger pluginLogger;
-    private static Logger chatLogger;
-
-    private static boolean colored;
-    private static boolean debug;
+    private static BasicLogger pluginLogger;
+    private static BasicLogger chatLogger;
 
     private Log() { }
 
-    public static @NotNull Logger getPluginLogger() {
+    public static @NotNull BasicLogger getPlugin() {
+        if (pluginLogger == null) {
+            throw new IllegalStateException("Tried to get plugin logger before it was set");
+        }
+
         return pluginLogger;
     }
 
-    public static void setPluginLogger(@NotNull final Logger logger) {
-        pluginLogger = logger;
-    }
+    public static @NotNull BasicLogger getChat() {
+        if (chatLogger == null) {
+            throw new IllegalStateException("Tried to get plugin logger before it was set");
+        }
 
-    public static @NotNull Logger getChatLogger() {
         return chatLogger;
     }
 
-    public static void setChatLogger(@NotNull final Logger logger) {
-        chatLogger = logger;
-    }
-
-    public static boolean isColored() {
-        return colored;
-    }
-
-    public static void setColored(final boolean enabled) {
-        if (enabled == colored) {
+    public static void initialize(@NotNull final Logger parent, @NotNull final IChats instance) {
+        if (pluginLogger != null && chatLogger != null) {
+            pluginLogger.severe("Tried to initialize loggers twice. They are already initialized.");
             return;
         }
 
-        colored = enabled;
-    }
-
-    public static boolean isDebug() {
-        return debug;
-    }
-
-    public static void setDebug(final boolean enabled) {
-        if (enabled == debug) {
-            return;
-        }
-
-        debug = enabled;
-    }
-
-    /**
-     * Setups a new File Handler and returns it. This method will use the given directory as parent directory to
-     * create a logs folder, if it not exist, where the returning file handler saves the log files. Can be null, when
-     * the file handler can not open the log file for any reason.
-     * @param directory The parent directory for the log folder.
-     * @return The created file handler or null when the file handler can not created for any reason.
-     */
-    public static @Nullable FileHandler setupFileHandler(@NotNull final File directory) {
-        final File logFolder = new File(directory, DIRECTORY_LOGS);
-        final String logPattern = logFolder.getAbsolutePath().replace("\\", "/") + "/"
-                + FILE_DATE_FORMAT.format(new Date(System.currentTimeMillis())) + "%u.log";
+        pluginLogger = new BasicLogger(parent, "Plugin", instance.getDescription().getName());
+        chatLogger = new BasicLogger(parent, "Chat");
 
         try {
-            final FileHandler handler = new FileHandler(logPattern, true);
+            final File directory = new File(instance.getDataFolder(), DIRECTORY_LOGS);
 
-            handler.setFormatter(new LogFileFormatter());
+            if (directory.mkdirs()) {
+                pluginLogger.debug(String.format("Directory '%s' does not exist. Creating it...", directory));
+            }
 
-            return handler;
+            final String pattern = directory.getAbsolutePath() + "/" + DATE_FORMAT.format(new Date(System.currentTimeMillis())) + "_Chat-%u.log";
+            final FileHandler handler = new FileHandler(pattern, true);
+
+            handler.setFormatter(new FileFormatter());
+
+            chatLogger.setFileHandler(handler);
         } catch (IOException ex) {
-            return null;
+            pluginLogger.warning(String.format("Unable to create file handler: %s", ex.getMessage()));
+        }
+    }
+
+    public static void load(@NotNull final ISettings settings) {
+        if (pluginLogger != null) {
+            pluginLogger.setDebug(settings.isLogDebug());
+        }
+
+        if (chatLogger != null) {
+            chatLogger.setColored(settings.isLogColored());
+            chatLogger.setUseParentHandlers(settings.isLogToConsole());
+            chatLogger.setUseFileHandler(settings.isLogToFile());
+        }
+    }
+
+    public static void exit() {
+        if (pluginLogger != null) {
+            pluginLogger = null;
+        }
+
+        if (chatLogger != null) {
+            if (chatLogger.getFileHandler() != null) {
+                chatLogger.getFileHandler().close();
+            }
+
+            chatLogger = null;
         }
     }
 
     /**
-     * Implements a {@link Formatter} that is used to format the chat log files.
-     *
-     * @author G4meMas0n
-     * @since 0.1.0-SNAPSHOT
-     *
-     * created: February 12th, 2020
-     * changed: March 6th, 2020
+     * Implements a {@link Formatter} that is used for the file handler of this logger.
      */
-    private static final class LogFileFormatter extends Formatter {
+    private static final class FileFormatter extends Formatter {
 
-        private static final SimpleDateFormat LOG_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        private LogFileFormatter() {
+        private FileFormatter() {
             super();
         }
 
         @Override
         public @NotNull String format(@NotNull final LogRecord record) {
-            return "[" + this.formatDate(record.getMillis()) + "] " + ANSIColor.stripColor(record.getMessage()) + "\n";
+            return "[" + this.formatDate(record.getMillis()) + "]" + this.formatMessage(record.getMessage()) + "\n";
         }
 
         private @NotNull String formatDate(final long milliSecs) {
-            return LOG_DATE_FORMAT.format(new Date(milliSecs));
+            return DATE_FORMAT.format(new Date(milliSecs));
+        }
+
+        private @NotNull String formatMessage(@NotNull final String message) {
+            return ANSICode.stripColor(message);
         }
     }
 }

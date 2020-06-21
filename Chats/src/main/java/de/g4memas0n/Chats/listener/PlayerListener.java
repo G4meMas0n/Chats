@@ -1,9 +1,9 @@
-package de.g4memas0n.Chats.listener;
+package de.g4memas0n.chats.listener;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.util.ChatRunnable;
-import de.g4memas0n.Chats.chatter.IChatter;
-import de.g4memas0n.Chats.messaging.Messages;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
+import de.g4memas0n.chats.messaging.Messages;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -11,17 +11,21 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The Player Listener, listening to async player chat event, extends {@link BasicListener}.
- * This listener schedules the chat performing to the next sync delayed task.
- * So all chat actions will performed synchronously.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 9th, 2020
- * changed: March 10th, 2020
+ * changed: June 17th, 2020
  */
 public final class PlayerListener extends BasicListener {
 
+    /**
+     * This method will perform all chat actions according the result of {@link Event#isAsynchronous()}.
+     * When the given event is called asynchronous, the chat action will be performed asynchronous. When it is called
+     * synchronous, the chat action will be synchronous scheduled on the next server tick.
+     * @param event the called player chat event.
+     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerChat(@NotNull final AsyncPlayerChatEvent event) {
         final IChatter chatter = this.getInstance().getChatterManager().getChatter(event.getPlayer());
@@ -30,23 +34,22 @@ public final class PlayerListener extends BasicListener {
 
         final IChannel focus = chatter.getFocus();
 
-        if (focus.isMuted(chatter)) {
-            event.getPlayer().sendMessage(Messages.tl("muted", focus.getColoredName()));
-        }
-
         if (chatter.canSpeak(focus)) {
-            final Runnable runnable = new ChatRunnable(chatter.getFocus(), chatter, event.getMessage());
+            if (focus.isMuted(chatter.getPlayer().getUniqueId())) {
+                chatter.sendMessage(Messages.tl("mutedMember", focus.getColoredName()));
+                return;
+            }
 
-            this.getInstance().getServer().getScheduler().scheduleSyncDelayedTask(this.getInstance(), runnable);
+            if (event.isAsynchronous()) {
+                // Perform Chat Action from here, because this is already executed from an asynchronous thread.
+                focus.performChat(chatter, event.getMessage());
+            } else {
+                this.getInstance().runSyncTask(() -> focus.performChat(chatter, event.getMessage()));
+            }
 
             return;
         }
 
-        event.getPlayer().sendMessage(Messages.tl("chatDenied", focus.getColoredName()));
-    }
-
-    @Override
-    protected @NotNull String[] getRegistered() {
-        return new String[]{AsyncPlayerChatEvent.class.getSimpleName()};
+        chatter.sendMessage(Messages.tl("chatDenied", focus.getColoredName()));
     }
 }

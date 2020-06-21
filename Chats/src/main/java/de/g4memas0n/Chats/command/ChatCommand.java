@@ -1,67 +1,69 @@
-package de.g4memas0n.Chats.command;
+package de.g4memas0n.chats.command;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.util.ChatRunnable;
-import de.g4memas0n.Chats.chatter.IChatter;
-import de.g4memas0n.Chats.util.InputUtil;
-import de.g4memas0n.Chats.messaging.Messages;
-import de.g4memas0n.Chats.util.Permission;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
+import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.Permission;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * The Chat Command, extends {@link BasicPluginCommand}.
+ * The Chat Command, extends {@link BasicCommand}.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 11th, 2020
- * changed: March 10th, 2020
+ * changed: June 19th, 2020
  */
-public final class ChatCommand extends BasicPluginCommand {
+public final class ChatCommand extends BasicCommand {
 
-    private static final String NAME = "chat";
-    private static final int MIN_ARGS = 2;
-    private static final int MAX_ARGS = -1;
-
-    private static final int ARG_CHANNEL = 0;
-    private static final int ARG_MSG = 1;
+    private static final int CHANNEL = 0;
+    private static final int MESSAGE = 1;
 
     public ChatCommand() {
-        super(NAME, Permission.CHANNEL_SPEAK.getName(), MIN_ARGS, MAX_ARGS);
+        super("chat", 2, -1);
+
+        this.setDescription("Sends a message in a channel without changing the focused channel.");
+        this.setPermission(Permission.SPEAK.getNode());
+        this.setUsage("/chat <channel> <message>");
     }
 
     @Override
-    public boolean execute(@NotNull final CommandSender sender,
+    public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final String alias,
                            @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof IChatter)) {
                 return false;
             }
 
-            final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
-            final IChannel channel = this.getInstance().getChannelManager().getChannel(arguments[ARG_CHANNEL]);
+            final IChatter chatter = (IChatter) sender;
+            final IChannel channel = this.getInstance().getChannelManager().getChannel(arguments[CHANNEL]);
 
             if (channel == null || channel.isConversation()) {
-                sender.sendMessage(Messages.tlErr("channelNotExist", arguments[ARG_CHANNEL]));
+                sender.sendMessage(Messages.tlErr("channelNotExist", arguments[CHANNEL]));
                 return true;
             }
 
             if (chatter.hasChannel(channel)) {
-                if (channel.isMuted(chatter)) {
-                    sender.sendMessage(Messages.tl("muted", channel.getColoredName()));
-                }
+                if (sender.canSpeak(channel)) {
+                    if (channel.isMuted(chatter.getUniqueId())) {
+                        sender.sendMessage(Messages.tl("mutedMember", channel.getColoredName()));
+                        return true;
+                    }
 
-                if (chatter.canSpeak(channel)) {
-                    final Runnable runnable = new ChatRunnable(channel, chatter, copyMessage(arguments, ARG_MSG));
+                    final StringBuilder message = new StringBuilder();
 
-                    this.getInstance().getServer().getScheduler().scheduleSyncDelayedTask(this.getInstance(), runnable);
+                    for (int i = MESSAGE; i < arguments.length; i++) {
+                        message.append(arguments[i]).append(" ");
+                    }
 
+                    this.getInstance().runSyncTask(() -> channel.performChat(chatter, message.toString().trim()));
                     return true;
                 }
 
@@ -69,7 +71,7 @@ public final class ChatCommand extends BasicPluginCommand {
                 return true;
             }
 
-            sender.sendMessage(Messages.tlErr("leaveAlready", channel.getColoredName()));
+            sender.sendMessage(Messages.tl("leaveAlready", channel.getColoredName()));
             return true;
         }
 
@@ -77,34 +79,32 @@ public final class ChatCommand extends BasicPluginCommand {
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+    public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                              @NotNull final String alias,
                                              @NotNull final String[] arguments) {
-        if (this.argsInRange(arguments.length)) {
-            if (arguments.length == ARG_CHANNEL + 1) {
-                if (!(sender instanceof Player)) {
-                    return Collections.emptyList();
-                }
-
-                final List<String> completion = new ArrayList<>();
-                final IChatter chatter = this.getInstance().getChatterManager().getChatter((Player) sender);
-
-                for (final IChannel current : chatter.getChannels()) {
-                    if (current.isConversation()) {
-                        continue;
-                    }
-
-                    if (InputUtil.containsInput(current.getFullName(), arguments[ARG_CHANNEL])) {
-                        if (chatter.canSpeak(current)) {
-                            completion.add(current.getFullName());
-                        }
-                    }
-                }
-
-                Collections.sort(completion);
-
-                return completion;
+        if (arguments.length == CHANNEL + 1) {
+            if (!(sender instanceof IChatter)) {
+                return Collections.emptyList();
             }
+
+            final IChatter chatter = (IChatter) sender;
+            final List<String> completion = new ArrayList<>();
+
+            for (final IChannel channel : chatter.getChannels()) {
+                if (channel.isConversation() || channel.isMuted(chatter.getUniqueId())) {
+                    continue;
+                }
+
+                if (sender.canSpeak(channel)) {
+                    if (StringUtil.startsWithIgnoreCase(channel.getFullName(), arguments[CHANNEL])) {
+                        completion.add(channel.getFullName());
+                    }
+                }
+            }
+
+            Collections.sort(completion);
+
+            return completion;
         }
 
         return Collections.emptyList();

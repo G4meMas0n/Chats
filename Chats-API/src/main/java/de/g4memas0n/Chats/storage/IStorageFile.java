@@ -1,11 +1,10 @@
-package de.g4memas0n.Chats.storage;
+package de.g4memas0n.chats.storage;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -18,7 +17,7 @@ import java.util.UUID;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 29th, 2020
- * changed: March 8th, 2020
+ * changed: May 20th, 2020
  */
 public interface IStorageFile extends Configuration {
 
@@ -28,6 +27,12 @@ public interface IStorageFile extends Configuration {
      * @return the base file where this storage file is located.
      */
     @NotNull File getFile();
+
+    /**
+     * Returns the name of the base file of this {@link IStorageFile} without a file extension.
+     * @return the base file name of this storage file.
+     */
+    @NotNull String getName();
 
     /**
      * Clears this {@link IStorageFile}.
@@ -40,11 +45,11 @@ public interface IStorageFile extends Configuration {
      * All the values contained within this configuration will be removed, leaving only settings and defaults, and
      * the new values will be loaded from the given file.
      * If the base file can not be loaded for any reason, an exception will be thrown.
-     * @throws FileNotFoundException Thrown when the storage file can not be opened.
      * @throws IOException Thrown when the storage file can not be read.
      * @throws InvalidStorageFileException Thrown when the storage file is not a valid configuration.
+     * @throws MissingStorageFileException Thrown when the storage file does not exists.
      */
-    void load() throws FileNotFoundException, IOException, InvalidStorageFileException;
+    void load() throws IOException, InvalidStorageFileException, MissingStorageFileException;
 
     /**
      * Deletes this {@link IStorageFile}.
@@ -127,6 +132,7 @@ public interface IStorageFile extends Configuration {
      * @param path The Path of the ChatColor to check.
      * @return Whether or not the specified path is a ChatColor.
      */
+    @SuppressWarnings("unused")
     boolean isChatColor(@NotNull final String path);
 
     /**
@@ -135,6 +141,7 @@ public interface IStorageFile extends Configuration {
      * @param path The Path of the Locale to check.
      * @return Whether or not the specified path is a Locale.
      */
+    @SuppressWarnings("unused")
     boolean isLocale(@NotNull final String path);
 
     /**
@@ -143,5 +150,6 @@ public interface IStorageFile extends Configuration {
      * @param path The Path of the UniqueId to check.
      * @return Whether or not the specified path is a UniqueId.
      */
+    @SuppressWarnings("unused")
     boolean isUniqueId(@NotNull final String path);
 }

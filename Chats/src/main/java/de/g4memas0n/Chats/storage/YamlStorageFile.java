@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.storage;
+package de.g4memas0n.chats.storage;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -12,6 +12,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,15 +28,27 @@ import java.util.UUID;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 29th, 2020
- * changed: March 8th, 2020
+ * changed: June 7th, 2020
  */
 public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
 
     private final File file;
+    private String name;
+
+    public YamlStorageFile(@NotNull final File parent,
+                           @NotNull final String name) throws IllegalArgumentException {
+        this(new File(parent, name + ".yml"));
+
+        this.name = name;
+    }
 
     public YamlStorageFile(@NotNull final File file) throws IllegalArgumentException {
-        if (!file.isFile()) {
-            throw new IllegalArgumentException("File cannot be a directory");
+        if (file.exists() && !file.isFile()) {
+            throw new IllegalArgumentException(String.format("File can not be a directory: %s", file));
+        }
+
+        if (!file.getName().endsWith(".yml") && !file.getName().endsWith(".YML")) {
+            throw new IllegalArgumentException(String.format("File is missing YAML extension: %s", file));
         }
 
         this.file = file;
@@ -46,6 +59,16 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
         return this.file;
     }
 
+    @Override
+    public @NotNull String getName() {
+        if (this.name == null) {
+            this.name = this.file.getName().substring(0, this.file.getName().lastIndexOf("."));
+        }
+
+        return this.name;
+    }
+
+    @Override
     public synchronized void clear() {
         try {
             this.loadFromString(BLANK_CONFIG);
@@ -56,15 +79,21 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
 
     @Override
     public synchronized void delete() throws IOException {
+        if (!this.file.exists()) {
+            throw new IOException(String.format("File does not exist: %s", this.file));
+        }
+
         if (!this.file.delete()) {
-            throw new IOException("File can not be deleted: " + this.file.getName());
+            throw new IOException(String.format("File can not be deleted: %s", this.file));
         }
     }
 
     @Override
-    public synchronized void load() throws IOException, InvalidStorageFileException {
+    public synchronized void load() throws IOException, InvalidStorageFileException, MissingStorageFileException {
         try {
             super.load(this.file);
+        } catch (FileNotFoundException ex) {
+            throw new MissingStorageFileException(this.file, ex);
         } catch (InvalidConfigurationException ex) {
             throw new InvalidStorageFileException(this.file, ex);
         }
@@ -107,8 +136,14 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
 
     @Override
     public synchronized @Nullable ChatColor getChatColor(@NotNull final String path, @Nullable final ChatColor def) {
+        final String color = super.getString(path);
+
+        if (color == null) {
+            return def;
+        }
+
         try {
-            return ChatColor.valueOf(super.getString(path));
+            return ChatColor.valueOf(color);
         } catch (IllegalArgumentException ignored) {
             return def;
         }

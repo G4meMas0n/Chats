@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.messaging;
+package de.g4memas0n.chats.messaging;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -9,16 +9,14 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 13th, 2019
- * changed: September 11th, 2019
+ * changed: May 1st, 2020
  */
 public enum Placeholder {
-    BROADCAST_PREFIX("{bc-prefix}"),
     CHANNEL_COLOR("{color}"),
     CHANNEL_NAME("{name}"),
     CHANNEL_NICK("{nick}"),
     CON_ADDRESS("{con-address}"),
     CON_PARTNER("{con-partner}"),
-    CON_SENDER("{con-sender}"),
     MESSAGE("{message}"),
     SENDER("{sender}"),
     SENDER_PLAIN("{sender-plain}"),

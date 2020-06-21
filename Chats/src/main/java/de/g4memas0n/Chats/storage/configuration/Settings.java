@@ -1,11 +1,12 @@
-package de.g4memas0n.Chats.storage.configuration;
+package de.g4memas0n.chats.storage.configuration;
 
-import de.g4memas0n.Chats.IChats;
-import de.g4memas0n.Chats.storage.IStorageFile;
-import de.g4memas0n.Chats.storage.InvalidStorageFileException;
-import de.g4memas0n.Chats.storage.YamlStorageFile;
-import de.g4memas0n.Chats.util.logging.Log;
-import org.bukkit.ChatColor;
+import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.messaging.Placeholder;
+import de.g4memas0n.chats.storage.IStorageFile;
+import de.g4memas0n.chats.storage.InvalidStorageFileException;
+import de.g4memas0n.chats.storage.MissingStorageFileException;
+import de.g4memas0n.chats.storage.YamlStorageFile;
+import de.g4memas0n.chats.util.logging.Log;
 import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
@@ -18,38 +19,33 @@ import java.util.Locale;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 12th, 2020
- * changed: March 8th, 2020
+ * changed: June 15th, 2020
  */
 public final class Settings implements ISettings {
 
-    private static final String FILE_CONFIG = "config.yml";
+    private static final String FILE_CONFIG = "config";
 
     private final IStorageFile storage;
     private final IChats instance;
-
-    private ChatColor colorChannel;
-    private ChatColor colorConversation;
 
     private String formatAnnounce;
     private String formatBroadcast;
     private String formatChat;
     private String formatConversation;
-
     private String defaultChannel;
 
-    private boolean logChat;
-    private boolean logColored;
-    private boolean logDebug;
+    private boolean update;
 
     public Settings(@NotNull final IChats instance) {
-        this.storage = new YamlStorageFile(new File(instance.getDataFolder(), FILE_CONFIG));
+        this.storage = new YamlStorageFile(instance.getDataFolder(), FILE_CONFIG);
         this.instance = instance;
+        this.update = false;
 
         this.load();
     }
 
     @Override
-    public @NotNull IStorageFile getStorageFile() {
+    public @NotNull IStorageFile getStorage() {
         return this.storage;
     }
 
@@ -57,327 +53,388 @@ public final class Settings implements ISettings {
     public void delete() {
         try {
             this.storage.delete();
+
+            Log.getPlugin().debug("Deleted config file: " + this.storage.getFile().getName());
         } catch (IOException ex) {
-            Log.getPluginLogger().warning("Unable to delete config file: " + this.storage.getFile().getName());
+            Log.getPlugin().warning(String.format("Unable to delete config file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
         }
     }
 
     @Override
     public void load() {
-        if (!this.storage.getFile().exists()) {
-            Log.getPluginLogger().severe("Unable to find config file: " + this.storage.getFile().getName());
-            Log.getPluginLogger().info("Saving default configuration...");
-            this.instance.saveResource(FILE_CONFIG, true);
-        }
+        this.update = false;
 
         try {
             this.storage.load();
-        } catch (IOException | InvalidStorageFileException ex) {
-            Log.getPluginLogger().severe("Unable to load config file: " + this.storage.getFile().getName());
-            Log.getPluginLogger().info("Using default configuration...");
+
+            Log.getPlugin().debug("Loaded config file: " + this.storage.getFile().getName());
+        } catch (MissingStorageFileException ex) {
+            Log.getPlugin().warning(String.format("Unable to find config file '%s'. Saving default configuration...",
+                    this.storage.getFile().getName()));
+
+            this.instance.saveResource(FILE_CONFIG + ".yml", true);
+            this.load();
+        } catch (InvalidStorageFileException ex) {
+            Log.getPlugin().severe(String.format("Unable to load config file '%s', because it is broken. Renaming it "
+                    + "and saving default configuration...", this.storage.getFile().getName()));
+
+            final File broken = new File(this.instance.getDataFolder(), FILE_CONFIG + ".broken.yml");
+
+            if (broken.exists() && broken.delete()) {
+                Log.getPlugin().debug("Deleted old broken config file: " + broken.getName());
+            }
+
+            if (this.storage.getFile().renameTo(broken)) {
+                Log.getPlugin().debug("Renamed broken config file to: " + broken.getName());
+            }
+
+            this.instance.saveResource(FILE_CONFIG + ".yml", true);
+            this.load();
+        } catch (IOException ex) {
+            Log.getPlugin().warning(String.format("Unable to load config file '%s'. Loading default configuration...",
+                    this.storage.getFile().getName()));
 
             this.storage.clear();
         }
 
-        this.formatAnnounce = this._getAnnounceFormat();
-        this.formatBroadcast = this._getBroadcastFormat();
-        this.formatChat = this._getChatFormat();
-        this.formatConversation = this._getConversationFormat();
+        try {
+            this.setAnnounceFormat(this._getAnnounceFormat());
+        } catch (IllegalArgumentException ex) {
+            Log.getPlugin().warning(String.format("Detected invalid announce-format in config file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
 
-        this.defaultChannel = this._getDefaultChannel();
+            this.formatAnnounce = "{color}{message}";
+        }
 
-        this.colorChannel = this._getChannelColor();
-        this.colorConversation = this._getConversationColor();
+        try {
+            this.setBroadcastFormat(this._getBroadcastFormat());
+        } catch (IllegalArgumentException ex) {
+            Log.getPlugin().warning(String.format("Detected invalid broadcast-format in config file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
 
-        this.logChat = this._isLogChat();
-        this.logColored = this._isLogColored();
-        this.logDebug = this._isLogDebug();
+            this.formatBroadcast = "{color}[{nick}][§aBroadcast§r{color}] {message}";
+        }
+
+        try {
+            this.setChatFormat(this._getChatFormat());
+        } catch (IllegalArgumentException ex) {
+            Log.getPlugin().warning(String.format("Detected invalid chat-format in config file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
+
+            this.formatChat = "{color}[{nick}]§r{sender}{color}: {message}";
+        }
+
+        try {
+            this.setConversationFormat(this._getConversationFormat());
+        } catch (IllegalArgumentException ex) {
+            Log.getPlugin().warning(String.format("Detected invalid conversation-format in config file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
+
+            this.formatConversation = "{color}{con-address} §r{con-partner}{color}: {message}";
+        }
+
+        this.setDefaultChannel(this._getDefaultChannel());
+
+        this._getLocale();
+        this._getLogColored();
+        this._getLogDebug();
+        this._getLogToConsole();
+        this._getLogToFile();
+        this._getAutoSave();
+        this._getSaveDelay();
+
+        if (this.update) {
+            this.save();
+        }
     }
 
     @Override
     public void save() {
-        this._setAnnounceFormat(this.getAnnounceFormat());
-        this._setBroadcastFormat(this.getBroadcastFormat());
-        this._setChatFormat(this.getChatFormat());
-        this._setConversationFormat(this.getConversationFormat());
-
-        this._setDefaultChannel(this.getDefaultChannel());
-
-        this._setChannelColor(this.getChannelColor());
-        this._setConversationColor(this.getConversationColor());
-
-        this._setLocale(this.getLocale());
-
-        this._setLogChat(this.isLogChat());
-        this._setLogColored(this.isLogColored());
-        this._setLogDebug(this.isLogDebug());
-        this._setLogToConsole(this.isLogToConsole());
-        this._setLogToFile(this.isLogToFile());
-
         try {
             this.storage.save();
+
+            Log.getPlugin().debug("Saved config file: " + this.storage.getFile().getName());
         } catch (IOException ex) {
-            Log.getPluginLogger().warning("Unable to save config file: " + this.storage.getFile().getName());
+            Log.getPlugin().warning(String.format("Unable to save config file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
         }
     }
 
     // Format Settings:
-    @Override
-    public @NotNull String getAnnounceFormat() {
-        if (this.formatAnnounce == null) {
-            this.formatAnnounce = this._getAnnounceFormat();
-        }
-
-        return this.formatAnnounce;
-    }
-
-    private @NotNull String _getAnnounceFormat() {
+    protected @NotNull String _getAnnounceFormat() {
         final String format = this.storage.getString("format.announce");
 
         if (format == null || format.isEmpty()) {
-            return "{color}{message}";
+            final String def = "{color}{message}";
+
+            this.storage.set("format.announce", def);
+            this.update = true;
+
+            return def;
         }
 
         return format;
     }
 
-    private void _setAnnounceFormat(@NotNull final String format) {
-        this.storage.set("format.announce", format);
+    @Override
+    public @NotNull String getAnnounceFormat() {
+        return this.formatAnnounce;
+    }
+
+    public void setAnnounceFormat(@NotNull final String format) throws IllegalArgumentException {
+        if (format.equals(this.formatAnnounce)) {
+            return;
+        }
+
+        if (!format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+        }
+
+        this.formatAnnounce = format;
+    }
+
+    protected @NotNull String _getBroadcastFormat() {
+        final String format = this.storage.getString("format.broadcast");
+
+        if (format == null || format.isEmpty()) {
+            final String def = "{color}[{nick}][§aBroadcast§r{color}] {message}";
+
+            this.storage.set("format.broadcast", def);
+            this.update = true;
+
+            return def;
+        }
+
+        return format;
     }
 
     @Override
     public @NotNull String getBroadcastFormat() {
-        if (this.formatBroadcast == null) {
-            this.formatBroadcast = this._getBroadcastFormat();
-        }
-
         return this.formatBroadcast;
     }
 
-    private @NotNull String _getBroadcastFormat() {
-        final String format = this.storage.getString("format.broadcast");
+    public void setBroadcastFormat(@NotNull final String format) throws IllegalArgumentException {
+        if (format.equals(this.formatBroadcast)) {
+            return;
+        }
+
+        if (!format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+        }
+
+        this.formatBroadcast = format;
+    }
+
+    protected @NotNull String _getChatFormat() {
+        final String format = this.storage.getString("format.chat");
 
         if (format == null || format.isEmpty()) {
-            return "{color}[{bc-prefix}{color}] {message}";
+            final String def = "{color}[{nick}]§r{sender}{color}: {message}";
+
+            this.storage.set("format.chat", def);
+            this.update = true;
+
+            return def;
         }
 
         return format;
-    }
-
-    private void _setBroadcastFormat(@NotNull final String format) {
-        this.storage.set("format.broadcast", format);
     }
 
     @Override
     public @NotNull String getChatFormat() {
-        if (this.formatChat == null) {
-            this.formatChat = this._getChatFormat();
-        }
-
         return this.formatChat;
     }
 
-    private @NotNull String _getChatFormat() {
-        final String format = this.storage.getString("format.chat");
+    public void setChatFormat(@NotNull final String format) throws IllegalArgumentException {
+        if (format.equals(this.formatChat)) {
+            return;
+        }
+
+        if (!format.contains(Placeholder.SENDER.toString()) && !format.contains(Placeholder.SENDER_PLAIN.toString())) {
+            throw new IllegalArgumentException("Format is missing {sender} or {sender-plain} placeholder: " + format);
+        }
+
+        if (!format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+        }
+
+        this.formatChat = format;
+    }
+
+    protected @NotNull String _getConversationFormat() {
+        final String format = this.storage.getString("format.conversation");
 
         if (format == null || format.isEmpty()) {
-            return "{color}[{nick}]{sender}{color}: {message}";
+            final String def = "{color}{con-address} §r{con-partner}{color}: {message}";
+
+            this.storage.set("format.conversation", def);
+            this.update = true;
+
+            return def;
         }
 
         return format;
-    }
-
-    private void _setChatFormat(@NotNull final String format) {
-        this.storage.set("format.chat", format);
     }
 
     @Override
     public @NotNull String getConversationFormat() {
-        if (this.formatConversation == null) {
-            this.formatConversation = this._getConversationFormat();
-        }
-
         return this.formatConversation;
     }
 
-    private @NotNull String _getConversationFormat() {
-        final String format = this.storage.getString("format.conversation");
-
-        if (format == null || format.isEmpty()) {
-            return "{color}[{con-address} {con-partner}{color}] {message}";
+    public void setConversationFormat(@NotNull final String format) throws IllegalArgumentException {
+        if (format.equals(this.formatConversation)) {
+            return;
         }
 
-        return format;
-    }
+        if (!format.contains(Placeholder.CON_ADDRESS.toString())) {
+            throw new IllegalArgumentException("Format is missing {con-address} placeholder: " + format);
+        }
 
-    private void _setConversationFormat(@NotNull final String format) {
-        this.storage.set("format.conversation", format);
+        if (!format.contains(Placeholder.CON_PARTNER.toString())) {
+            throw new IllegalArgumentException("Format is missing {con-partner} placeholder: " + format);
+        }
+
+        if (!format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+        }
+
+        this.formatConversation = format;
     }
 
     // Default Channel Setting:
-    @Override
-    public @NotNull String getDefaultChannel() {
-        if (this.defaultChannel == null) {
-            this.defaultChannel = this._getDefaultChannel();
-        }
-
-        return this.defaultChannel;
-    }
-
-    private @NotNull String _getDefaultChannel() {
+    protected @NotNull String _getDefaultChannel() {
         final String fullName = this.storage.getString("default-channel");
 
         if (fullName == null || fullName.isEmpty()) {
-            return "Global";
+            final String def = "Global";
+
+            this.storage.set("default-channel", def);
+            this.update = true;
+
+            return def;
         }
 
         return fullName;
     }
 
     @Override
+    public @NotNull String getDefaultChannel() {
+        return this.defaultChannel;
+    }
+
     public void setDefaultChannel(@NotNull final String fullName) {
         if (fullName.equals(this.defaultChannel)) {
             return;
         }
 
         this.defaultChannel = fullName;
-        this._setDefaultChannel(fullName);
-    }
-
-    private void _setDefaultChannel(@NotNull final String fullName) {
-        this.storage.set("default-channel", fullName);
-    }
-
-    // Color Settings:
-    @Override
-    public @NotNull ChatColor getChannelColor() {
-        if (this.colorChannel == null) {
-            this.colorChannel = this._getChannelColor();
-        }
-
-        return this.colorChannel;
-    }
-
-    private @NotNull ChatColor _getChannelColor() {
-        final ChatColor color = this.storage.getChatColor("color.channel");
-
-        if (color == null || !color.isColor()) {
-            return ChatColor.WHITE;
-        }
-
-        return color;
-    }
-
-    private void _setChannelColor(@NotNull final ChatColor color) {
-        this.storage.set("color.channel", color);
-    }
-
-    @Override
-    public @NotNull ChatColor getConversationColor() {
-        if (this.colorConversation == null) {
-            this.colorConversation = _getConversationColor();
-        }
-
-        return this.colorConversation;
-    }
-
-    private @NotNull ChatColor _getConversationColor() {
-        final ChatColor color = this.storage.getChatColor("color.conversation");
-
-        if (color == null || !color.isColor()) {
-            return ChatColor.LIGHT_PURPLE;
-        }
-
-        return color;
-    }
-
-    private void _setConversationColor(@NotNull final ChatColor color) {
-        this.storage.set("color.conversation", color);
     }
 
     // Locale Setting:
-    @Override
-    public @NotNull Locale getLocale() {
-        return this._getLocale();
-    }
-
-    private @NotNull Locale _getLocale() {
+    protected @NotNull Locale _getLocale() {
         final Locale locale = this.storage.getLocale("locale");
 
         if (locale == null) {
+            final Locale def = Locale.ENGLISH;
+
+            this.storage.set("locale", def.toString());
+            this.update = true;
+
             return Locale.ENGLISH;
         }
 
         return locale;
     }
 
-    private void _setLocale(@NotNull final Locale locale) {
-        this.storage.set("locale", locale);
+    @Override
+    public @NotNull Locale getLocale() {
+        return this._getLocale();
     }
 
     // Log Settings:
-    @Override
-    public boolean isLogChat() {
-        return this.logChat || this._isLogChat();
-    }
 
-    private boolean _isLogChat() {
-        return this.storage.getBoolean("log.chat", true);
-    }
+    protected boolean _getLogColored() {
+        if (!this.storage.contains("log.chat.colored")) {
+            this.storage.set("log.chat.colored", true);
+            this.update = true;
+        }
 
-    private void _setLogChat(final boolean logChat) {
-        this.storage.set("log.chat", logChat);
+        return this.storage.getBoolean("log.chat.colored", true);
     }
 
     @Override
     public boolean isLogColored() {
-        return this.logColored || this._isLogColored();
+        return this._getLogColored();
     }
 
-    private boolean _isLogColored() {
-        return this.storage.getBoolean("log.colored", true);
-    }
+    private boolean _getLogDebug() {
+        if (!this.storage.contains("log.debug")) {
+            this.storage.set("log.debug", false);
+            this.update = true;
+        }
 
-    private void _setLogColored(final boolean logColored) {
-        this.storage.set("log.colored", logColored);
+        return this.storage.getBoolean("log.debug", false);
     }
 
     @Override
     public boolean isLogDebug() {
-        return this.logDebug || this._isLogDebug();
+        return this._getLogDebug();
     }
 
-    private boolean _isLogDebug() {
-        return this.storage.getBoolean("log.debug", false);
-    }
+    protected boolean _getLogToConsole() {
+        if (!this.storage.contains("log.chat.to-console")) {
+            this.storage.set("log.chat.to-console", true);
+            this.update = true;
+        }
 
-    private void _setLogDebug(final boolean logDebug) {
-        this.storage.set("log.debug", logDebug);
+        return this.storage.getBoolean("log.chat.to-console", true);
     }
 
     @Override
     public boolean isLogToConsole() {
-        return this._isLogToConsole();
+        return this._getLogToConsole();
     }
 
-    private boolean _isLogToConsole() {
-        return this.storage.getBoolean("log.to-console", true);
-    }
+    protected boolean _getLogToFile() {
+        if (!this.storage.contains("log.chat.to-file")) {
+            this.storage.set("log.chat.to-file", true);
+            this.update = true;
+        }
 
-    private void _setLogToConsole(final boolean logToConsole) {
-        this.storage.set("log.to-console", logToConsole);
+        return this.storage.getBoolean("log.chat.to-file", true);
     }
 
     @Override
     public boolean isLogToFile() {
-        return this._isLogToFile();
+        return this._getLogToFile();
     }
 
-    private boolean _isLogToFile() {
-        return this.storage.getBoolean("log.to-file", true);
+    protected boolean _getAutoSave() {
+        if (!this.storage.contains("auto-save.enabled")) {
+            this.storage.set("auto-save.enabled", true);
+            this.update = true;
+        }
+
+        return this.storage.getBoolean("auto-save.enabled", true);
     }
 
-    private void _setLogToFile(final boolean logToFile) {
-        this.storage.set("log.to-file", logToFile);
+    @Override
+    public boolean isAutoSave() {
+        return this._getAutoSave();
+    }
+
+    protected int _getSaveDelay() {
+        if (!this.storage.contains("auto-save.delay")) {
+            this.storage.set("auto-save.delay", 60);
+            this.update = true;
+        }
+
+        return this.storage.getInt("auto-save.delay", 60);
+    }
+
+    @Override
+    public int getSaveDelay() {
+        return this._getSaveDelay();
     }
 }

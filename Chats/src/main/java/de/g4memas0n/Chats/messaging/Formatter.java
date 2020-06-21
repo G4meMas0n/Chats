@@ -1,10 +1,9 @@
-package de.g4memas0n.Chats.messaging;
+package de.g4memas0n.chats.messaging;
 
-import de.g4memas0n.Chats.IChats;
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
 import net.milkbowl.vault.chat.Chat;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 5th, 2020
- * changed: February 15th, 2020
+ * changed: May 1st, 2020
  */
 public final class Formatter implements IFormatter {
 
@@ -46,20 +45,10 @@ public final class Formatter implements IFormatter {
     }
 
     @Override
-    public @NotNull ChatColor getChannelColor() {
-        return this.instance.getSettings().getChannelColor();
-    }
-
-    @Override
-    public @NotNull ChatColor getConversationColor() {
-        return this.instance.getSettings().getConversationColor();
-    }
-
-    @Override
     public @NotNull String formatAnnounce(@NotNull final IChannel channel,
                                           @NotNull final String format,
                                           @NotNull final String message) {
-        String formatted = format.replace(Placeholder.CHANNEL_COLOR.toString(), channel.getChatColor().toString())
+        String formatted = format.replace(Placeholder.CHANNEL_COLOR.toString(), channel.getColor().toString())
                 .replace(Placeholder.CHANNEL_NAME.toString(), channel.getFullName())
                 .replace(Placeholder.CHANNEL_NICK.toString(), channel.getShortName())
                 .replace(Placeholder.MESSAGE.toString(), message);
@@ -71,8 +60,7 @@ public final class Formatter implements IFormatter {
     public @NotNull String formatBroadcast(@NotNull final IChannel channel,
                                            @NotNull final String format,
                                            @NotNull final String message) {
-        String formatted = format.replace(Placeholder.BROADCAST_PREFIX.toString(), Messages.tl("broadcastPrefix"))
-                .replace(Placeholder.CHANNEL_COLOR.toString(), channel.getChatColor().toString())
+        String formatted = format.replace(Placeholder.CHANNEL_COLOR.toString(), channel.getColor().toString())
                 .replace(Placeholder.CHANNEL_NAME.toString(), channel.getFullName())
                 .replace(Placeholder.CHANNEL_NICK.toString(), channel.getShortName())
                 .replace(Placeholder.MESSAGE.toString(), message);
@@ -85,7 +73,7 @@ public final class Formatter implements IFormatter {
                                       @NotNull final String format,
                                       @NotNull final IChatter sender,
                                       @NotNull final String message) {
-        String formatted = format.replace(Placeholder.CHANNEL_COLOR.toString(), channel.getChatColor().toString())
+        String formatted = format.replace(Placeholder.CHANNEL_COLOR.toString(), channel.getColor().toString())
                 .replace(Placeholder.CHANNEL_NAME.toString(), channel.getFullName())
                 .replace(Placeholder.CHANNEL_NICK.toString(), channel.getShortName())
                 .replace(Placeholder.SENDER.toString(), sender.getPlayer().getDisplayName())
@@ -108,27 +96,12 @@ public final class Formatter implements IFormatter {
         return Placeholder.stripPlaceholders(formatted.replace(Placeholder.MESSAGE.toString(), message));
     }
 
-    @Override
-    public @NotNull String formatConversation(@NotNull final String format,
-                                              @NotNull final IChatter sender,
-                                              @NotNull final IChatter partner,
+    public @NotNull String formatConversation(@NotNull final IChannel channel,
+                                              @NotNull final String format,
                                               @NotNull final String message) {
-        String formatted = format.replace(Placeholder.CHANNEL_COLOR.toString(), this.getConversationColor().toString())
-                .replace(Placeholder.CON_SENDER.toString(), sender.getPlayer().getDisplayName())
-                .replace(Placeholder.CON_PARTNER.toString(), partner.getPlayer().getDisplayName())
-                .replace(Placeholder.MESSAGE.toString(), message);
-
-        return Placeholder.stripPlaceholders(formatted);
-    }
-
-    @Override
-    public @NotNull String formatAddress(@NotNull final String format,
-                                         @NotNull final String address,
-                                         @NotNull final IChatter partner,
-                                         @NotNull final String message) {
-        String formatted = format.replace(Placeholder.CHANNEL_COLOR.toString(), this.getConversationColor().toString())
-                .replace(Placeholder.CON_ADDRESS.toString(), address)
-                .replace(Placeholder.CON_PARTNER.toString(), partner.getPlayer().getDisplayName())
+        String formatted = format.replace(Placeholder.CHANNEL_COLOR.toString(), channel.getColor().toString())
+                .replace(Placeholder.CON_ADDRESS.toString(), "{0}")
+                .replace(Placeholder.CON_PARTNER.toString(), "{1}")
                 .replace(Placeholder.MESSAGE.toString(), message);
 
         return Placeholder.stripPlaceholders(formatted);

@@ -1,12 +1,11 @@
-package de.g4memas0n.Chats.command;
+package de.g4memas0n.chats.command;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chatter.IPermissible;
-import de.g4memas0n.Chats.messaging.Messages;
-import de.g4memas0n.Chats.util.InputUtil;
-import de.g4memas0n.Chats.util.Permission;
-import de.g4memas0n.Chats.util.type.ChannelType;
-import org.bukkit.command.CommandSender;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.type.ChannelType;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,70 +18,95 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 8th, 2020
- * changed: March 10th, 2020
+ * changed: June 20th, 2020
  */
 public final class ListCommand extends BasicCommand {
 
-    private static final String NAME = "list";
-    private static final int MIN_ARGS = 0;
-    private static final int MAX_ARGS = 1;
-
-    private static final int ARG_TYPE = 0;
-
-    private static final String ALL = "all";
+    private static final int TYPE = 0;
 
     public ListCommand() {
-        super(NAME, Permission.CHANNEL_LIST.getName(), MIN_ARGS, MAX_ARGS);
+        super("list", 0, 1);
+
+        this.setDescription("Lists all available channels.");
+        this.setPermission(Permission.LIST.getNode());
+        this.setUsage("/channel list [<type>]");
     }
 
     @Override
-    public boolean execute(@NotNull final CommandSender sender,
+    public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final String alias,
                            @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            final IPermissible permissible = this.getPermissible(sender);
-
             if (arguments.length == this.getMaxArgs()) {
-                final ChannelType type = ChannelType.getType(arguments[ARG_TYPE]);
+                final ChannelType type = ChannelType.getType(arguments[TYPE]);
 
                 if (type == null) {
-                    return false;
+                    sender.sendMessage(Messages.tlErr("invalidType"));
+                    return true;
                 }
 
-                if (permissible.canList(type)) {
+                if (sender.canList(type)) {
                     final List<String> channels = new ArrayList<>();
 
-                    for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
-                        if (current.getType() != type) {
-                            continue;
-                        }
+                    if (type == ChannelType.CONVERSATION) {
+                        for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                            if (!channel.isConversation()) {
+                                continue;
+                            }
 
-                        channels.add(current.getColoredName());
+                            channels.add(channel.getColor() + channel.getShortName());
+                        }
+                    } else {
+                        for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                            if (channel.getType() != type) {
+                                continue;
+                            }
+
+                            channels.add(channel.getColoredName());
+                        }
+                    }
+
+                    if (channels.isEmpty()) {
+                        sender.sendMessage(Messages.tl("listEmpty", Messages.tlType(type)));
+                        return true;
                     }
 
                     Collections.sort(channels);
 
-                    sender.sendMessage(Messages.tl("listHeader", type.getIdentifier()));
-                    sender.sendMessage(String.join(Messages.tl("listDelimiter"), channels));
+                    sender.sendMessage(Messages.tl("listHeader", Messages.tlType(type)));
+                    sender.sendMessage(Messages.tlJoin("listChannels", channels));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("listDenied", type.getIdentifier()));
+                // Check if type is CONVERSATION, to hide this type for users with no permission.
+                if (type == ChannelType.CONVERSATION) {
+                    sender.sendMessage(Messages.tlErr("invalidType"));
+                    return true;
+                }
+
+                sender.sendMessage(Messages.tl("listDenied", Messages.tlType(type)));
                 return true;
             }
 
             final List<String> channels = new ArrayList<>();
 
-            for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
-                if (permissible.canList(current.getType())) {
-                    channels.add(current.getColoredName());
+            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                if (channel.isConversation()) {
+                    continue;
+                }
+
+                if (sender.canList(channel) || channel.isDefault()) {
+                    channels.add(channel.getColoredName());
                 }
             }
 
-            Collections.sort(channels);
+            // Should be always false, but is checked to ensure that the collection is not empty.
+            if (channels.isEmpty()) {
+                channels.add(this.getInstance().getChannelManager().getDefault().getColoredName());
+            }
 
-            sender.sendMessage(Messages.tl("listHeader", ALL));
-            sender.sendMessage(String.join(Messages.tl("listDelimiter"), channels));
+            sender.sendMessage(Messages.tl("listHeader", Messages.tl("channels")));
+            sender.sendMessage(Messages.tlJoin("listChannels", channels));
             return true;
         }
 
@@ -90,26 +114,21 @@ public final class ListCommand extends BasicCommand {
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+    public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                              @NotNull final String alias,
                                              @NotNull final String[] arguments) {
-        if (this.argsInRange(arguments.length)) {
-            if (arguments.length == this.getMaxArgs()) {
-                final List<String> completion = new ArrayList<>();
-                final IPermissible permissible = this.getPermissible(sender);
+        if (arguments.length == TYPE + 1) {
+            final List<String> completion = new ArrayList<>();
 
-                for (final ChannelType current : ChannelType.values()) {
-                    if (InputUtil.containsInput(current.getIdentifier(), arguments[ARG_TYPE])) {
-                        if (permissible.canList(current)) {
-                            completion.add(current.getIdentifier());
-                        }
+            for (final ChannelType current : ChannelType.values()) {
+                if (sender.canList(current)) {
+                    if (StringUtil.startsWithIgnoreCase(current.getIdentifier(), arguments[TYPE])) {
+                        completion.add(current.getIdentifier());
                     }
                 }
-
-                Collections.sort(completion);
-
-                return completion;
             }
+
+            return completion;
         }
 
         return Collections.emptyList();

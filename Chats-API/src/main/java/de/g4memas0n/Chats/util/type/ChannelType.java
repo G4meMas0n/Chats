@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.util.type;
+package de.g4memas0n.chats.util.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,11 +10,23 @@ import org.jetbrains.annotations.Nullable;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 3rd, 2020
- * changed: February 3rd, 2020
+ * changed: May 29th, 2020
  */
 public enum ChannelType implements Type {
+
+    /**
+     * Represents a conversation channel.
+     */
     CONVERSATION("conversation"),
+
+    /**
+     * Represents a persistent channel.
+     */
     PERSIST("persist"),
+
+    /**
+     * Represents a standard not persistent channel.
+     */
     STANDARD("standard");
 
     private final String identifier;
@@ -24,13 +36,26 @@ public enum ChannelType implements Type {
     }
 
     @Override
-    public @NotNull String getIdentifier() {
+    public final @NotNull String getIdentifier() {
         return this.identifier;
     }
 
     @Override
-    public @NotNull String toString() {
-        return "CreateType{identifier='" + this.getIdentifier() + "'}";
+    public final @NotNull String getKey() {
+        return this.identifier;
+    }
+
+    @Override
+    public final @NotNull String toString() {
+        return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.identifier + "}";
+    }
+
+    /**
+     * Returns the default channel type.
+     * @return the default channel type.
+     */
+    public static @NotNull ChannelType getDefault() {
+        return ChannelType.STANDARD;
     }
 
     /**
@@ -41,19 +66,11 @@ public enum ChannelType implements Type {
      */
     public static @Nullable ChannelType getType(@NotNull final String identifier) {
         for (final ChannelType current : ChannelType.values()) {
-            if (current.getIdentifier().equals(identifier)) {
+            if (current.getIdentifier().equalsIgnoreCase(identifier)) {
                 return current;
             }
         }
 
         return null;
-    }
-
-    /**
-     * Returns the default channel type.
-     * @return the default channel type.
-     */
-    public static @NotNull ChannelType getDefault() {
-        return ChannelType.STANDARD;
     }
 }

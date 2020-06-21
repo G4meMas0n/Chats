@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.storage;
+package de.g4memas0n.chats.storage;
 
 import org.jetbrains.annotations.NotNull;
 import java.io.File;
@@ -15,6 +15,7 @@ import java.io.File;
 public final class InvalidStorageFileException extends Exception {
     private final File file;
 
+    @SuppressWarnings("unused")
     public InvalidStorageFileException(@NotNull final File file,
                                        @NotNull final String msg) {
         super(msg);
@@ -27,6 +28,7 @@ public final class InvalidStorageFileException extends Exception {
         this.file = file;
     }
 
+    @SuppressWarnings("unused")
     public InvalidStorageFileException(@NotNull final File file,
                                        @NotNull final String msg,
                                        @NotNull final Throwable cause) {

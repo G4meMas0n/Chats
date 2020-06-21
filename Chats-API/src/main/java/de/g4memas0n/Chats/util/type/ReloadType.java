@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.util.type;
+package de.g4memas0n.chats.util.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,12 +10,28 @@ import org.jetbrains.annotations.Nullable;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 3rd, 2020
- * changed: February 10th, 2020
+ * changed: May 31th, 2020
  */
 public enum ReloadType implements Type {
+
+    /**
+     * Represents the option for reloading everything.
+     */
     ALL("all"),
+
+    /**
+     * Represents the option for reloading the channels.
+     */
     CHANNELS("channels"),
+
+    /**
+     * Represents the option for reloading the chatters.
+     */
     CHATTERS("chatters"),
+
+    /**
+     * Represents the option for reloading the configuration.
+     */
     CONFIG("config");
 
     private final String identifier;
@@ -30,8 +46,21 @@ public enum ReloadType implements Type {
     }
 
     @Override
+    public final @NotNull String getKey() {
+        return this.identifier;
+    }
+
+    @Override
     public final @NotNull String toString() {
-        return "ReloadType{identifier='" + this.getIdentifier() + "'}";
+        return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.identifier + "}";
+    }
+
+    /**
+     * Returns the default reload type.
+     * @return the default reload type.
+     */
+    public static @NotNull ReloadType getDefault() {
+        return ReloadType.CONFIG;
     }
 
     /**
@@ -48,13 +77,5 @@ public enum ReloadType implements Type {
         }
 
         return null;
-    }
-
-    /**
-     * Returns the default reload type.
-     * @return the default reload type.
-     */
-    public static @NotNull ReloadType getDefault() {
-        return ReloadType.CONFIG;
     }
 }

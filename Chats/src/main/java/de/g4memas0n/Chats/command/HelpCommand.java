@@ -1,10 +1,9 @@
-package de.g4memas0n.Chats.command;
+package de.g4memas0n.chats.command;
 
-import de.g4memas0n.Chats.messaging.Messages;
-import de.g4memas0n.Chats.util.InputUtil;
-import de.g4memas0n.Chats.util.PageHandler;
-import de.g4memas0n.Chats.util.Permission;
-import org.bukkit.command.CommandSender;
+import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.Permission;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,74 +16,72 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 8th, 2020
- * changed: March 3rd, 2020
+ * changed: June 20th, 2020
  */
 public final class HelpCommand extends BasicCommand {
 
-    private static final String NAME = "help";
-    private static final int MIN_ARGS = 0;
-    private static final int MAX_ARGS = 1;
-
-    private static final int ARG_PAGE_COMMAND = 0;
+    private static final int COMMAND = 0;
 
     public HelpCommand() {
-        super(NAME, Permission.HELP.getName(), MIN_ARGS, MAX_ARGS);
+        super("help", 0, 1);
+
+        this.setDescription("Shows a list of available commands or the help of a command.");
+        this.setPermission(Permission.HELP.getNode());
+        this.setUsage("/chats help [<command>]");
     }
 
     @Override
-    public boolean execute(@NotNull final CommandSender sender,
+    public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final String alias,
                            @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            if (arguments.length == this.getMaxArgs() && !InputUtil.isInt(arguments[ARG_PAGE_COMMAND])) {
-                final BasicCommand command = this.getRegistered(arguments[ARG_PAGE_COMMAND]);
+            if (arguments.length == this.getMinArgs()) {
+                sender.sendMessage(Messages.tl("helpHeader", Messages.tl("commands")));
 
-                if (command == null) {
-                    return false;
+                for (final BasicCommand command : this.getRegistered()) {
+                    if (command instanceof BasicPluginCommand) {
+                        if (sender.hasPermission(command.getPermission())) {
+                            sender.sendMessage(Messages.tl("helpCommand", command.getName(), command.getDescription()));
+                        }
+                    }
                 }
 
-                if (!sender.hasPermission(command.getPermission())) {
-                    sender.sendMessage(Messages.tl("helpNoPermission"));
-                    return true;
-                }
+                sender.sendMessage(Messages.tl("helpFooter", this.getUsage().replaceAll("\\[(.*?)]", "$1")));
+                return true;
+            }
 
+            final BasicCommand command = this.getRegistered(arguments[COMMAND]);
+
+            if (command == null) {
+                sender.sendMessage(Messages.tlErr("commandNotFound", arguments[COMMAND]));
+                return true;
+            }
+
+            if (sender.hasPermission(command.getPermission())) {
                 sender.sendMessage(Messages.tl("helpHeader", command.getName()));
                 sender.sendMessage(Messages.tl("helpDescription", command.getDescription()));
                 sender.sendMessage(Messages.tl("helpUsage", command.getUsage()));
 
-                if (command.hasAliases()) {
-                    sender.sendMessage(Messages.tl("helpAliases",
-                            String.join(Messages.tl("listDelimiter"), command.getAliases())));
+                if (!command.getAliases().isEmpty()) {
+                    sender.sendMessage(Messages.tlJoin("helpAliases", command.getAliases()));
+                }
+
+                if (command instanceof BasicDelegateCommand) {
+                    final List<String> commands = new ArrayList<>();
+
+                    for (final BasicCommand delegate : ((BasicDelegateCommand) command).getCommands()) {
+                        if (sender.hasPermission(delegate.getPermission())) {
+                            commands.add(delegate.getName());
+                        }
+                    }
+
+                    sender.sendMessage(Messages.tlJoin("helpCommands", commands));
                 }
 
                 return true;
             }
 
-            final PageHandler<BasicCommand> pages = new PageHandler<>();
-            int pageNumber = 1;
-
-            for (final BasicCommand current : this.getRegistered()) {
-                if (sender.hasPermission(current.getPermission())) {
-                    pages.addEntry(current);
-                }
-            }
-
-            if (arguments.length == this.getMaxArgs()) {
-                pageNumber = InputUtil.parseInt(arguments[ARG_PAGE_COMMAND]);
-
-                if (pageNumber <= 0 || pageNumber > pages.getSize()) {
-                    sender.sendMessage(Messages.tlErr("pageNotExist"));
-                    return true;
-                }
-            }
-
-            sender.sendMessage(Messages.tl("helpHeaderWithPages", Messages.tl("commands"),
-                    pageNumber, pages.getSize()));
-
-            for (final BasicCommand current : pages.getPage(pageNumber - 1).getEntries()) {
-                sender.sendMessage(Messages.tl("helpCommand", current.getUsage(), current.getDescription()));
-            }
-
+            sender.sendMessage(Messages.tl("helpNoPermission"));
             return true;
         }
 
@@ -92,25 +89,29 @@ public final class HelpCommand extends BasicCommand {
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
-                                             @NotNull final String alias,
+    public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
+                                             @NotNull final String label,
                                              @NotNull final String[] arguments) {
-        if (this.argsInRange(arguments.length)) {
-            if (arguments.length == this.getMaxArgs()) {
-                final List<String> completion = new ArrayList<>();
+        if (arguments.length == COMMAND + 1) {
+            final List<String> completion = new ArrayList<>();
 
-                for (final BasicCommand current : this.getRegistered()) {
-                    if (InputUtil.containsInput(current.getName(), arguments[ARG_PAGE_COMMAND])) {
-                        if (sender.hasPermission(current.getPermission())) {
-                            completion.add(current.getName());
+            for (final BasicCommand command : this.getRegistered()) {
+                if (sender.hasPermission(command.getPermission())) {
+                    if (StringUtil.startsWithIgnoreCase(command.getName(), arguments[COMMAND])) {
+                        completion.add(command.getName());
+                    }
+
+                    for (final String alias : command.getAliases()) {
+                        if (StringUtil.startsWithIgnoreCase(alias, arguments[COMMAND])) {
+                            completion.add(alias);
                         }
                     }
                 }
-
-                Collections.sort(completion);
-
-                return completion;
             }
+
+            Collections.sort(completion);
+
+            return completion;
         }
 
         return Collections.emptyList();

@@ -1,6 +1,6 @@
-package de.g4memas0n.Chats.event.channel;
+package de.g4memas0n.chats.event.channel;
 
-import de.g4memas0n.Chats.channel.IChannel;
+import de.g4memas0n.chats.channel.IChannel;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 

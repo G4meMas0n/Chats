@@ -1,0 +1,36 @@
+##################################################
+# Chats - Example Chatter YAML-Storage-File:     #
+#                                                #
+# Version: 0.2.3-SNAPSHOT                        #
+##################################################
+
+# Sets the uniqueId of the chatter: (Type: String)
+# Note: Must be equal to the file name without extension. (Correct file name: 5bf0e102-29b2-4345-acf4-644a06e62f09.yml)
+uuid: "5bf0e102-29b2-4345-acf4-644a06e62f09"
+
+# Sets various last options of the chatter:
+last:
+  # Sets the last known user name the chatter has had: (Type: String)
+  name: "TheGameMason"
+
+  # Sets the last time, from the epoch January 1, 1970 UTC, the player has played in milliseconds: (Type: Long)
+  played: 1577833200000
+
+# Sets the channel the chatter has joined: (Type: String Array)
+# Note: Each entry must be the full-name of an existing channel.
+channels:
+  - "Global"
+
+# Sets the focused channel of the chatter: (Type: String)
+# Note: Must be the full-name of an existing channel.
+focus: "Global"
+
+# Sets whether the chatter is muted: (Type: Boolean)
+muted: false
+
+# Sets whether the chatter is social spying: (Type: Boolean)
+social-spy: false
+
+# Sets the chatters that the chatter is ignoring: (Type: String Array)
+# Note: Each entry must be the uniqueId of an existing chatter.
+ignores: []

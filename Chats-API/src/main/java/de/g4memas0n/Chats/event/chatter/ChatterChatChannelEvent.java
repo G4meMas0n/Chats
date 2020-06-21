@@ -1,8 +1,8 @@
-package de.g4memas0n.Chats.event.chatter;
+package de.g4memas0n.chats.event.chatter;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chatter.IChatter;
-import de.g4memas0n.Chats.messaging.Placeholder;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
+import de.g4memas0n.chats.messaging.Placeholder;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -14,16 +14,16 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.0.1-SNAPSHOT
  *
  * created: July 11th, 2019
- * changed: January 2nd, 2020
+ * changed: May 1st, 2020
  */
 public final class ChatterChatChannelEvent extends ChatterEvent implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
 
     private final IChannel channel;
-    private boolean cancel;
     private String format;
     private String message;
+    private boolean cancel;
 
     public ChatterChatChannelEvent(@NotNull final IChatter sender,
                                    @NotNull final IChannel channel,
@@ -33,9 +33,9 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
         super(sender, async);
 
         this.channel = channel;
-        this.cancel = false;
         this.format = format;
         this.message = message;
+        this.cancel = false;
     }
 
     @Override
@@ -44,7 +44,7 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
     }
 
     @Override
-    public void setCancelled(boolean cancel) {
+    public void setCancelled(final boolean cancel) {
         this.cancel = cancel;
     }
 
@@ -57,8 +57,12 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
     }
 
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
-        if (!format.contains(Placeholder.SENDER.toString()) || !format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Invalid Format! Format must include the sender and message placeholder");
+        if (!format.contains(Placeholder.SENDER.toString()) && !format.contains(Placeholder.SENDER_PLAIN.toString())) {
+            throw new IllegalArgumentException("Format is missing {sender} or {sender-plain} placeholder: " + format);
+        }
+
+        if (!format.contains(Placeholder.MESSAGE.toString())) {
+            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
         }
 
         this.format = format;

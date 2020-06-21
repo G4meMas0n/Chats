@@ -1,30 +1,32 @@
-package de.g4memas0n.Chats.chatter;
+package de.g4memas0n.chats.chatter;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.util.type.ChannelType;
-import de.g4memas0n.Chats.util.type.ModifyType;
-import de.g4memas0n.Chats.util.type.ReloadType;
-import org.bukkit.entity.Player;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.util.type.ChannelType;
+import de.g4memas0n.chats.util.type.InfoType;
+import de.g4memas0n.chats.util.type.ModifyType;
+import de.g4memas0n.chats.util.type.ReloadType;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Permissible Interface that provides methods to check whether a permissible is permitted to something or not.
- * This Interface is only effectively used for the IChatter Interface, so a permissible is most of the time a chatter.
+ * This Interface is used for the {@link ICommandSource} Interface, to determine whether the command source is
+ * permitted to perform a command action.
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 8th, 2020
- * changed: March 9th, 2020
+ * changed: June 6th, 2020
  */
 public interface IPermissible {
 
     /**
-     * Returns whether this permissible is permitted to broadcast to the given channel.
+     * Returns whether this permissible is permitted to ban the given chatter from the given channel.
+     * @param chatter the chatter to check the permission.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canBroadcast(@NotNull final IChannel channel);
+    boolean canBan(@NotNull final IChatter chatter, @NotNull final IChannel channel);
 
     /**
      * Returns whether this permissible is permitted to create a channel of the given type.
@@ -48,11 +50,11 @@ public interface IPermissible {
     boolean canFocus(@NotNull final IChannel channel);
 
     /**
-     * Returns whether this permissible is permitted to ignore the given player.
-     * @param player the player to check the permission.
+     * Returns whether this permissible is permitted to ignore the given chatter.
+     * @param chatter the chatter to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canIgnore(@NotNull final Player player);
+    boolean canIgnore(@NotNull final IChatter chatter);
 
     /**
      * Returns whether this permissible is permitted to join the given channel.
@@ -60,6 +62,14 @@ public interface IPermissible {
      * @return true when this permissible is permitted, false otherwise.
      */
     boolean canJoin(@NotNull final IChannel channel);
+
+    /**
+     * Returns whether this permissible is permitted to kick the given chatter from the given channel.
+     * @param chatter the chatter to check the permission.
+     * @param channel the channel to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canKick(@NotNull final IChatter chatter, @NotNull final IChannel channel);
 
     /**
      * Returns whether this permissible is permitted to leave the given channel.
@@ -76,12 +86,19 @@ public interface IPermissible {
     boolean canList(@NotNull final ChannelType type);
 
     /**
-     * Returns whether this permissible is permitted to message the given player.
-     * When this chatter can't see the given player it returns false.
-     * @param player the player to check the permission.
+     * Returns whether this permissible is permitted to list the given channel.
+     * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canMessage(@NotNull final Player player);
+    boolean canList(@NotNull final IChannel channel);
+
+    /**
+     * Returns whether this permissible is permitted to message the given chatter.
+     * When this permissible can't see the given chatter it returns false.
+     * @param chatter the chatter to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canMessage(@NotNull final IChatter chatter);
 
     /**
      * Returns whether this permissible is permitted to moderate the given channel.
@@ -98,12 +115,20 @@ public interface IPermissible {
     boolean canModify(@NotNull final IChannel channel);
 
     /**
-     * Returns whether this permissible is permitted to modify the given channel.
+     * Returns whether this permissible is permitted to modify the given type of the given channel.
      * @param channel the channel to check the permission.
      * @param type the modify type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
     boolean canModify(@NotNull final IChannel channel, @NotNull final ModifyType type);
+
+    /**
+     * Returns whether this permissible is permitted to mute the given chatter in the given channel.
+     * @param chatter the chatter to check the permission.
+     * @param channel the channel to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canMute(@NotNull final IChatter chatter, @NotNull final IChannel channel);
 
     /**
      * Returns whether this permissible is permitted to reload the given reload type.
@@ -113,11 +138,26 @@ public interface IPermissible {
     boolean canReload(@NotNull final ReloadType type);
 
     /**
+     * Returns whether this permissible can see the given chatter.
+     * @param chatter the chatter to check.
+     * @return true when this permissible can see the given chatter, false otherwise.
+     */
+    boolean canSee(@NotNull final IChatter chatter);
+
+    /**
      * Returns whether this permissible is permitted to speak in the given channel.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
     boolean canSpeak(@NotNull final IChannel channel);
+
+    /**
+     * Returns whether this permissible is permitted to view the given info type of the given channel.
+     * @param channel the channel to check the permission.
+     * @param type the info type to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canView(@NotNull final IChannel channel, @NotNull final InfoType type);
 
     /**
      * Returns whether this permissible is permitted to view the information's of the given channel.
@@ -132,25 +172,4 @@ public interface IPermissible {
      * @return true when this permissible it permitted, false otherwise.
      */
     boolean canViewWho(@NotNull final IChannel channel);
-
-    /**
-     * Returns whether this permissible is forced to focus the given channel on connect.
-     * @param channel the channel to check the forced focus.
-     * @return true when this permissible is forced to focus the given channel, false otherwise.
-     */
-    boolean forcedFocus(@NotNull final IChannel channel);
-
-    /**
-     * Returns whether this permissible is forced to join the given channel on connect.
-     * @param channel the channel to check the forced join.
-     * @return true when this permissible is forced to join the given channel, false otherwise.
-     */
-    boolean forcedJoin(@NotNull final IChannel channel);
-
-    /**
-     * Returns whether this permissible is forced to leave the given channel on disconnect.
-     * @param channel the channel to check the forced leave.
-     * @return true when this permissible is forced to leave the given channel, false otherwise.
-     */
-    boolean forcedLeave(@NotNull final IChannel channel);
 }

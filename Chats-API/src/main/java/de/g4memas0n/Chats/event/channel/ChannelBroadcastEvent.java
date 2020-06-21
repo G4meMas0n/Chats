@@ -1,7 +1,7 @@
-package de.g4memas0n.Chats.event.channel;
+package de.g4memas0n.chats.event.channel;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.messaging.Placeholder;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.messaging.Placeholder;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 2nd, 2020
- * changed: January 2nd, 2020
+ * changed: May 1st, 2020
  */
 public final class ChannelBroadcastEvent extends ChannelEvent implements Cancellable {
 
@@ -24,8 +24,8 @@ public final class ChannelBroadcastEvent extends ChannelEvent implements Cancell
     private String message;
 
     public ChannelBroadcastEvent(@NotNull final IChannel channel,
-                                @NotNull final String format,
-                                @NotNull final String message) {
+                                 @NotNull final String format,
+                                 @NotNull final String message) {
         super(channel);
 
         this.cancel = false;
@@ -39,7 +39,7 @@ public final class ChannelBroadcastEvent extends ChannelEvent implements Cancell
     }
 
     @Override
-    public void setCancelled(boolean cancel) {
+    public void setCancelled(final boolean cancel) {
         this.cancel = cancel;
     }
 
@@ -49,7 +49,7 @@ public final class ChannelBroadcastEvent extends ChannelEvent implements Cancell
 
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Invalid Format! Format must include the message placeholder");
+            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
         }
 
         this.format = format;

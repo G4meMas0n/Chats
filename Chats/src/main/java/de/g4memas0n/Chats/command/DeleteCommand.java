@@ -1,11 +1,10 @@
-package de.g4memas0n.Chats.command;
+package de.g4memas0n.chats.command;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chatter.IPermissible;
-import de.g4memas0n.Chats.util.InputUtil;
-import de.g4memas0n.Chats.messaging.Messages;
-import de.g4memas0n.Chats.util.Permission;
-import org.bukkit.command.CommandSender;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.Permission;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,45 +17,44 @@ import java.util.List;
  * @since 0.1.0-SNAPSHOT
  *
  * created: February 8th, 2020
- * changed: March 10th, 2020
+ * changed: June 20th, 2020
  */
 public final class DeleteCommand extends BasicCommand {
 
-    private static final String NAME = "delete";
-    private static final int MIN_ARGS = 1;
-    private static final int MAX_ARGS = 1;
-
-    private static final int ARG_CHANNEL = 0;
+    private static final int CHANNEL = 0;
 
     public DeleteCommand() {
-        super(NAME, Permission.CHANNEL_DELETE.getName(), MIN_ARGS, MAX_ARGS);
+        super("delete", 1, 1);
+
+        this.setDescription("Deletes a channel.");
+        this.setPermission(Permission.DELETE.getNode());
+        this.setUsage("/channel delete <channel>");
     }
 
     @Override
-    public boolean execute(@NotNull final CommandSender sender,
+    public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final String alias,
                            @NotNull final String[] arguments) {
         if (this.argsInRange(arguments.length)) {
-            final IPermissible permissible = this.getPermissible(sender);
-            final IChannel channel = this.getInstance().getChannelManager().getChannel(arguments[ARG_CHANNEL]);
+            final IChannel channel = this.getInstance().getChannelManager().getChannel(arguments[CHANNEL]);
 
             if (channel == null || channel.isConversation()) {
-                sender.sendMessage(Messages.tlErr("channelNotExist", arguments[ARG_CHANNEL]));
+                sender.sendMessage(Messages.tlErr("channelNotExist", arguments[CHANNEL]));
                 return true;
             }
 
-            if (permissible.canDelete(channel)) {
-                try {
-                    if (this.getInstance().getChannelManager().removeChannel(channel)) {
-                        sender.sendMessage(Messages.tl("deleteChannel", channel.getColoredName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("deleteAlready", channel.getColoredName()));
-                } catch (IllegalArgumentException ex) {
+            if (sender.canDelete(channel)) {
+                if (channel.isDefault()) {
                     sender.sendMessage(Messages.tlErr("deleteDefault"));
+                    return true;
                 }
 
+                if (this.getInstance().getChannelManager().removeChannel(channel)) {
+                    sender.sendMessage(Messages.tl("deleteChannel", channel.getColoredName()));
+                    return true;
+                }
+
+                sender.sendMessage(Messages.tlErr("deleteAlready", channel.getColoredName()));
                 return true;
             }
 
@@ -68,21 +66,20 @@ public final class DeleteCommand extends BasicCommand {
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
+    public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                              @NotNull final String alias,
                                              @NotNull final String[] arguments) {
-        if (this.argsInRange(arguments.length)) {
+        if (arguments.length == CHANNEL + 1) {
             final List<String> completion = new ArrayList<>();
-            final IPermissible permissible = this.getPermissible(sender);
 
-            for (final IChannel current : this.getInstance().getChannelManager().getChannels()) {
-                if (current.isConversation()) {
+            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                if (channel.isConversation() || channel.isDefault()) {
                     continue;
                 }
 
-                if (InputUtil.containsInput(current.getFullName(), arguments[ARG_CHANNEL])) {
-                    if (permissible.canDelete(current)) {
-                        completion.add(current.getFullName());
+                if (sender.canDelete(channel)) {
+                    if (StringUtil.startsWithIgnoreCase(channel.getFullName(), arguments[CHANNEL])) {
+                        completion.add(channel.getFullName());
                     }
                 }
             }

@@ -1,0 +1,16 @@
+auto-save:
+  enabled: true
+  delay: 60
+default-channel: "Global"
+format:
+  announce: "{color}{message}"
+  broadcast: "{color}[{nick}][§aBroadcast§r{color}] {message}"
+  chat: "{color}[{nick}]§r{sender}{color}: {message}"
+  conversation: "{color}{con-address} §r{con-partner}{color}: {message}"
+locale: "en"
+log:
+  chat:
+    colored: true
+    to-console: true
+    to-file: true
+  debug: false

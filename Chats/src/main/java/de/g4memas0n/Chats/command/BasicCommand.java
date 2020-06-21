@@ -1,111 +1,146 @@
-package de.g4memas0n.Chats.command;
+package de.g4memas0n.chats.command;
 
-import de.g4memas0n.Chats.Chats;
-import de.g4memas0n.Chats.IChats;
-import de.g4memas0n.Chats.chatter.IPermissible;
-import de.g4memas0n.Chats.chatter.SenderPermissible;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import de.g4memas0n.chats.Chats;
+import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.chatter.ICommandSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Abstract Command Representation. Represents all non bukkit/spigot commands.
+ *
+ * @author G4meMas0n
+ * @since 0.1.0-SNAPSHOT
+ *
+ * created: February 24th, 2020
+ * changed: June 20th, 2020
+ */
 public abstract class BasicCommand {
 
+    /**
+     * Collections of all {@link BasicCommand}, {@link BasicPluginCommand} and {@link BasicDelegateCommand} that
+     * are registered by using the {@link BasicCommand#register(Chats)} method.
+     *
+     * This allows all registered commands to access other registered commands, such as execute or tab complete an
+     * other registered command. So access to this Map will only occur through the{@link BasicCommand#getRegistered()}
+     * and {@link BasicCommand#getRegistered(String)} methods that are only available for command classes.
+     *
+     * This is handled in this way, because currently this is only used in {@link HelpCommand} to access the
+     * information of other commands for displaying their command help. Also for executing or tab-completing commands
+     * the bukkit/spigot command system is used (See {@link BasicPluginCommand}). So using an extra command handler
+     * would be useless, because it would only be a collection of commands.
+     *
+     * Note: Maybe there will be an another command system in the future.
+     */
     private static final Map<String, BasicCommand> registered = new LinkedHashMap<>();
 
     private final String name;
-    private final String permission;
     private final int minArgs;
     private final int maxArgs;
 
-    private List<String> aliases;
-    private String description;
-    private String usage;
-
     private IChats instance;
 
+    private List<String> aliases;
+    private String description;
+    private String permission;
+    private String usage;
+
     protected BasicCommand(@NotNull final String name,
-                           @NotNull final String permission,
                            final int minArgs,
                            final int maxArgs) {
         this.name = name;
-        this.permission = permission;
         this.minArgs = minArgs;
         this.maxArgs = maxArgs;
 
-        this.aliases = new ArrayList<>();
-    }
-
-    protected BasicCommand(@NotNull final String name,
-                           @NotNull final String permission,
-                           final int minArgs,
-                           final int maxArgs,
-                           @NotNull final List<String> aliases) {
-        this.name = name;
-        this.permission = permission;
-        this.minArgs = minArgs;
-        this.maxArgs = maxArgs;
-
-        this.aliases = new ArrayList<>(aliases);
+        this.description = "";
+        this.permission = "";
+        this.usage = "";
     }
 
     public boolean register(@NotNull final Chats instance) {
-        if (this.isRegistered()) {
+        if (registered.containsKey(this.name)) {
             return false;
         }
 
         this.instance = instance;
 
         registered.put(this.name, this);
-
-        if (instance.getSettings().isLogDebug()) {
-            instance.getLogger().info("Registered command " + this);
-        }
-
         return true;
     }
 
     public boolean unregister() {
-        if (!this.isRegistered()) {
+        if (!registered.containsKey(this.name)) {
             return false;
-        }
-
-        registered.remove(this.name);
-
-        if (this.instance.getSettings().isLogDebug()) {
-            instance.getLogger().info("Unregistered command " + this);
         }
 
         this.instance = null;
 
+        registered.remove(this.name, this);
         return true;
     }
 
-    public boolean isRegistered() {
-        return registered.containsKey(this.name) && this.instance != null;
+    public final @NotNull IChats getInstance() {
+        if (this.instance == null || !registered.containsKey(this.name)) {
+            throw new IllegalStateException("Unregistered command '" + this.getName()
+                    + "' tried to get the plugin instance");
+        }
+
+        return this.instance;
     }
 
     public final @NotNull String getName() {
         return this.name;
     }
 
-    public @NotNull String getPermission() {
-        return this.permission;
+    public final int getMinArgs() {
+        return this.minArgs;
     }
 
-    public boolean hasAliases() {
-        return !this.aliases.isEmpty();
+    public final int getMaxArgs() {
+        return this.maxArgs;
     }
+
+    public final boolean argsInRange(final int arguments) {
+        return this.maxArgs > 0
+                ? arguments >= this.minArgs && arguments <= this.maxArgs
+                : arguments >= this.minArgs;
+    }
+
+    /**
+     * Executes the command for the given sender, returning its success.
+     * If false is returned, then the help of the command will be sent to the sender.
+     * @param sender the source who executed the command.
+     * @param alias the alias of the command which was used.
+     * @param arguments the passed command arguments.
+     * @return true if the command execution was valid, false otherwise.
+     */
+    public abstract boolean execute(@NotNull final ICommandSource sender,
+                                    @NotNull final String alias,
+                                    @NotNull final String[] arguments);
+
+    /**
+     * Requests a list of possible completions for a command argument.
+     * @param sender the source who tab-completed the command.
+     * @param alias the alias of the command which was used.
+     * @param arguments the passed command arguments, including final partial argument to be completed.
+     * @return a list of possible completions for the final arguments.
+     */
+    public abstract @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
+                                                      @NotNull final String alias,
+                                                      @NotNull final String[] arguments);
 
     public @NotNull List<String> getAliases() {
-        return new ArrayList<>(this.aliases);
+        if (this.aliases == null) {
+            return Collections.emptyList();
+        }
+
+        return this.aliases;
     }
 
     public void setAliases(@NotNull final List<String> aliases) {
@@ -113,7 +148,7 @@ public abstract class BasicCommand {
             return;
         }
 
-        this.aliases = new ArrayList<>(aliases);
+        this.aliases = Collections.unmodifiableList(aliases);
     }
 
     public @NotNull String getDescription() {
@@ -128,6 +163,18 @@ public abstract class BasicCommand {
         this.description = description;
     }
 
+    public @NotNull String getPermission() {
+        return this.permission;
+    }
+
+    public void setPermission(@NotNull final String permission) {
+        if (permission.isEmpty() || permission.equals(this.permission)) {
+            return;
+        }
+
+        this.permission = permission;
+    }
+
     public @NotNull String getUsage() {
         return this.usage;
     }
@@ -140,92 +187,93 @@ public abstract class BasicCommand {
         this.usage = usage;
     }
 
-    public final int getMinArgs() {
-        return this.minArgs;
-    }
+    @Override
+    public final @NotNull String toString() {
+        final StringBuilder builder = new StringBuilder(this.getClass().getSimpleName());
 
-    public final int getMaxArgs() {
-        return this.maxArgs;
+        builder.append("{name=");
+        builder.append(this.getName());
+        builder.append(";min-args=");
+        builder.append(this.getMinArgs());
+        builder.append(";max-args=");
+        builder.append(this.getMaxArgs());
+
+        if (!this.getAliases().isEmpty()) {
+            builder.append(";aliases=");
+            builder.append(String.join(",", this.getAliases()));
+        }
+
+        if (!this.getDescription().isEmpty()) {
+            builder.append(";description=");
+            builder.append(this.getDescription());
+        }
+
+        if (!this.getPermission().isEmpty()) {
+            builder.append(";permission=");
+            builder.append(this.getPermission());
+        }
+
+        if (!this.getUsage().isEmpty()) {
+            builder.append(";usage=");
+            builder.append(this.getUsage());
+        }
+
+        return builder.append("}").toString();
     }
 
     @Override
-    public final @NotNull String toString() {
-        return this.getClass().getSimpleName()
-                + "{name='" + this.getName() + "'"
-                + ";permission='" + this.getPermission() + "'"
-                + ";minArgs=" + this.getMinArgs()
-                + ";maxArgs=" + this.getMaxArgs()
-                + ";description='" + this.getDescription() + "'"
-                + ";usage='" + this.getUsage() + "'"
-                + ";aliases='" + String.join("','", this.getAliases()) + "'"
-                + ";registered=" + this.isRegistered() + "}";
-    }
-
-    public final boolean argsInRange(final int arguments) {
-        return this.maxArgs > 0 ? arguments >= this.minArgs && arguments <= this.maxArgs : arguments >= this.minArgs;
-    }
-
-    public abstract boolean execute(@NotNull final CommandSender sender,
-                                    @NotNull final String alias,
-                                    @NotNull final String[] arguments);
-
-    public abstract @NotNull List<String> tabComplete(@NotNull final CommandSender sender,
-                                                      @NotNull final String alias,
-                                                      @NotNull final String[] arguments);
-
-    protected final @NotNull IChats getInstance() {
-        if (!this.isRegistered()) {
-            throw new IllegalStateException("Unregistered Command " + this + " tried to get the plugin instance");
+    public final boolean equals(@Nullable final Object object) {
+        if (object == null) {
+            return false;
         }
 
-        return this.instance;
-    }
-
-    protected final @NotNull IPermissible getPermissible(@NotNull final CommandSender sender) {
-        if (sender instanceof Player) {
-            return this.getInstance().getChatterManager().getChatter((Player) sender);
+        if (object == this) {
+            return true;
         }
 
-        return new SenderPermissible(sender);
+        if (object instanceof BasicCommand) {
+            final BasicCommand other = (BasicCommand) object;
+
+            return this.getName().equals(other.getName())
+                    && this.getMinArgs() == other.getMinArgs()
+                    && this.getMaxArgs() == other.getMaxArgs();
+        }
+
+        return false;
     }
 
+    @Override
+    public final int hashCode() {
+        final int prime = 69;
+        int result = 2;
+
+        result = prime * result + this.getName().hashCode();
+        result = prime * result + Integer.hashCode(this.getMinArgs());
+        result = prime * result + Integer.hashCode(this.getMaxArgs());
+
+        return result;
+    }
+
+    // Methods for accessing registered Commands:
     protected final @NotNull Set<BasicCommand> getRegistered() {
         return new LinkedHashSet<>(registered.values());
     }
 
     protected final @Nullable BasicCommand getRegistered(@NotNull final String name) {
-        return registered.get(name);
-    }
+        final BasicCommand command = registered.get(name.toLowerCase());
 
-    protected static @NotNull String[] copyArguments(@NotNull final String[] arguments, final int from) {
-        return Arrays.copyOfRange(arguments, from, arguments.length);
-    }
-
-    protected static @NotNull String copyMessage(@NotNull final String[] arguments, final int from) {
-        final StringBuilder builder = new StringBuilder();
-
-        for (int i = from; i < arguments.length; i++) {
-            builder.append(arguments[i]).append(" ");
+        if (command != null) {
+            return command;
         }
 
-        return builder.toString().trim();
-    }
-
-    public static class Note {
-        private final String key;
-        private final String msg;
-
-        public Note(@NotNull final String key, @NotNull final String msg) {
-            this.key = key;
-            this.msg = msg;
+        for (final BasicCommand current : registered.values()) {
+            for (final String alias : current.getAliases()) {
+                if (alias.equalsIgnoreCase(name)) {
+                    return current;
+                }
+            }
         }
 
-        public @NotNull String getKey() {
-            return this.key;
-        }
-
-        public @NotNull String getMessage() {
-            return this.msg;
-        }
+        return null;
     }
 }

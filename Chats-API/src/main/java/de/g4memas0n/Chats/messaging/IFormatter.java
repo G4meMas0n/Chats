@@ -1,8 +1,7 @@
-package de.g4memas0n.Chats.messaging;
+package de.g4memas0n.chats.messaging;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chatter.IChatter;
-import org.bukkit.ChatColor;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 2nd, 2020
- * changed: March 4th, 2020
+ * changed: May 1st, 2020
  */
 public interface IFormatter {
 
@@ -42,21 +41,9 @@ public interface IFormatter {
     @NotNull String getConversationFormat();
 
     /**
-     * Returns the default channel color that was specified in the plugin configuration file.
-     * @return the default channel color.
-     */
-    @NotNull ChatColor getChannelColor();
-
-    /**
-     * Returns the default conversation color that was specified in the plugin configuration file.
-     * @return the default conversation color.
-     */
-    @NotNull ChatColor getConversationColor();
-
-    /**
      * Formats the given announce format. Replaces all Placeholder that are available for this format and strips all
      * other Placeholder from the given format.
-     * @param channel the channel that need to format this announce message.
+     * @param channel the channel to format this announce message.
      * @param format the format that is used for this announce message.
      * @param message the message for this announce.
      * @return the formatted announce message without any Placeholder.
@@ -68,7 +55,7 @@ public interface IFormatter {
     /**
      * Formats the given broadcast format. Replaces all Placeholder that are available for this format and strips all
      * other Placeholder from the given format.
-     * @param channel the channel that need to format this broadcast message.
+     * @param channel the channel to format this broadcast message.
      * @param format the format that is used for this broadcast message.
      * @param message the message for this broadcast.
      * @return the formatted broadcast message without any Placeholder.
@@ -80,11 +67,11 @@ public interface IFormatter {
     /**
      * Formats the given chat format. Replaces all Placeholder that are available for this format and strips all
      * other Placeholder from the given format.
-     * @param channel the channel that need to format this chat message.
+     * @param channel the channel to format this chat message.
      * @param format the format that is used for this chat message.
-     * @param sender the sender of the given message.
+     * @param sender the sender of the message.
      * @param message the message from the sender.
-     * @return the formatted chat message without any Placeholder.
+     * @return the formatted chat message without any Placeholders.
      */
     @NotNull String formatChat(@NotNull final IChannel channel,
                                @NotNull final String format,
@@ -93,29 +80,14 @@ public interface IFormatter {
 
     /**
      * Formats the given conversation format. Replaces all Placeholder that are available for this format and strips all
-     * other Placeholder from the given format. This method will strip the {@link Placeholder#CON_ADDRESS} placeholder.
-     * @param format the format that is used for this conversation message.
-     * @param sender the sender of the given message.
-     * @param partner the partner that should receive the given message from the sender.
+     * other Placeholder from the given format. This method will replace the {@link Placeholder#CON_ADDRESS} placeholder
+     * to "{0}" and the {@link Placeholder#CON_PARTNER} placeholder to "{1}".
+     * @param channel the conversation channel to format this conversation message.
+     * @param format the format that is used for the conversation message.
      * @param message the message from the sender.
-     * @return the formatted conversation message without any Placeholder.
+     * @return the formatted conversation message without any Placeholders.
      */
-    @NotNull String formatConversation(@NotNull final String format,
-                                       @NotNull final IChatter sender,
-                                       @NotNull final IChatter partner,
+    @NotNull String formatConversation(@NotNull final IChannel channel,
+                                       @NotNull final String format,
                                        @NotNull final String message);
-
-    /**
-     * Formats the given conversation format. Replaces all Placeholder that are available for this format and strips all
-     * other Placeholder from the given format. This method will strip the {@link Placeholder#CON_SENDER} placeholder.
-     * @param format the format that is used for this conversation message.
-     * @param address the address for this conversation message.
-     * @param partner the partner of the conversation.
-     * @param message the message of the conversation.
-     * @return the formatted conversation message without any Placeholder.
-     */
-    @NotNull String formatAddress(@NotNull final String format,
-                                  @NotNull final String address,
-                                  @NotNull final IChatter partner,
-                                  @NotNull final String message);
 }

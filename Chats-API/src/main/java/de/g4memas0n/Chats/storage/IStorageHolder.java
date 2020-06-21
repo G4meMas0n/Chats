@@ -1,4 +1,4 @@
-package de.g4memas0n.Chats.storage;
+package de.g4memas0n.chats.storage;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.1.0-SNAPSHOT
  *
  * created: January 29th, 2020
- * changed: March 5th, 2020
+ * changed: May 19th, 2020
  */
 public interface IStorageHolder {
 
@@ -17,7 +17,7 @@ public interface IStorageHolder {
      * Returns the storage file of this storage holder.
      * @return the storage file.
      */
-    @NotNull IStorageFile getStorageFile();
+    @NotNull IStorageFile getStorage();
 
     /**
      * Deletes the storage file for this storage holder.

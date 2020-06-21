@@ -1,7 +1,7 @@
-package de.g4memas0n.Chats.event.channel;
+package de.g4memas0n.chats.event.channel;
 
-import de.g4memas0n.Chats.channel.IChannel;
-import de.g4memas0n.Chats.chatter.IChatter;
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -10,10 +10,10 @@ import org.jetbrains.annotations.NotNull;
  * Channel Event that is called when a chatter gets muted in a channel.
  *
  * @author G4meMas0n
- * @since 0.2.0-SNAPSHOT
+ * @since 0.2.2-SNAPSHOT
  *
- * created: March 10th, 2020
- * changed: March 10th, 2020
+ * created: May 31th, 2020
+ * changed: May 31th, 2020
  */
 public class ChannelChatterMuteEvent extends ChannelEvent implements Cancellable {
 
