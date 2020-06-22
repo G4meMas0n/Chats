@@ -94,7 +94,7 @@ public final class HelpCommand extends BasicCommand {
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("helpNoPermission"));
+            sender.sendMessage(Messages.tlErr("commandNotFound", input.get(COMMAND)));
             return true;
         }
 

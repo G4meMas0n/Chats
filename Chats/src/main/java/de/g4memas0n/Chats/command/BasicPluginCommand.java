@@ -14,6 +14,7 @@ import de.g4memas0n.chats.util.input.InvalidChannelException;
 import de.g4memas0n.chats.util.input.InvalidColorException;
 import de.g4memas0n.chats.util.input.InvalidFormatException;
 import de.g4memas0n.chats.util.input.InvalidNameException;
+import de.g4memas0n.chats.util.input.InvalidNumberException;
 import de.g4memas0n.chats.util.input.InvalidPasswordException;
 import de.g4memas0n.chats.util.input.InvalidPlayerException;
 import de.g4memas0n.chats.util.input.InvalidTypeException;
@@ -234,6 +235,13 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
                 }
 
                 source.sendMessage(Messages.tlErr(ex.getKey(), ex.getName()));
+            } catch (InvalidNumberException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("invalidNumber"));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey()));
             } catch (InvalidPasswordException ex) {
                 if (ex.getKey() == null) {
                     source.sendMessage(Messages.tlErr("invalidPassword", ex.getPassword()));
