@@ -6,10 +6,10 @@ import org.jetbrains.annotations.NotNull;
  * Permission Enum for all permission notes of this plugin.
  *
  * @author G4meMas0n
- * @since 0.1.0-SNAPSHOT
+ * @since Release 1.0.0
  *
  * created: January 8th, 2020
- * changed: June 6th, 2020
+ * changed: June 22th, 2020
  */
 public enum Permission {
 
@@ -200,16 +200,28 @@ public enum Permission {
     PARDON("pardon", false),
 
     /**
-     * Permission for reloading the plugin. Allows to access the "reload" command and reload sections of the plugin.
+     * Permission for reloading the plugin. Allows to access the "reload" command and to reload parts of the plugin.
      * Available reload permissions:
      * - chats.reload (Allows to access the "reload" command)
      * - chats.reload.type.all (Allows to reload all sections of the plugin)
-     * - chats.reload.type.channels (Allows to reload the channels of the plugin)
-     * - chats.reload.type.chatters (Allows to reload the chatters of the plugin)
+     * - chats.reload.type.channel (Allows to reload channels of the plugin)
+     * - chats.reload.type.chatter (Allows to reload chatters of the plugin)
      * - chats.reload.type.config (Allows to reload the config of the plugin)
-     * - chats.reload.type.* (Allows to reload all types)
+     * - chats.reload.type.* (Allows to reload all storage types)
      */
     RELOAD("reload", true),
+
+    /**
+     * Permission for saving the plugin. Allows to access the "save" command and to save parts of the plugin.
+     * Available save permissions:
+     * - chats.save (Allows to access the "save" command)
+     * - chats.save.type.all (Allows to save all sections of the plugin)
+     * - chats.save.type.channel (Allows to save channels of the plugin)
+     * - chats.save.type.chatter (Allows to save chatters of the plugin)
+     * - chats.save.type.config (Allows to save the config of the plugin)
+     * - chats.save.type.* (Allows to save all storage types)
+     */
+    SAVE("save", true),
 
     /**
      * Permission for social spying. Allows to access the "social-spy" command and to enabled/disabled social spying.

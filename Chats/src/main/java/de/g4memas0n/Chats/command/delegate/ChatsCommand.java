@@ -1,0 +1,34 @@
+package de.g4memas0n.chats.command.delegate;
+
+import de.g4memas0n.chats.command.storage.CleanupCommand;
+import de.g4memas0n.chats.command.info.HelpCommand;
+import de.g4memas0n.chats.command.storage.ReloadCommand;
+import de.g4memas0n.chats.command.manage.SocialSpyCommand;
+import de.g4memas0n.chats.command.info.VersionCommand;
+import de.g4memas0n.chats.util.Permission;
+
+/**
+ * The chats command that bundles commands handling the plugin together.
+ *
+ * @author G4meMas0n
+ * @since Release 1.0.0
+ *
+ * created: March 5th, 2020
+ * changed: June 22th, 2020
+ */
+public final class ChatsCommand extends DelegateCommand {
+
+    public ChatsCommand() {
+        super("chats", 5);
+
+        this.addCommand(new CleanupCommand());
+        this.addCommand(new HelpCommand());
+        this.addCommand(new ReloadCommand());
+        this.addCommand(new SocialSpyCommand());
+        this.addCommand(new VersionCommand());
+
+        this.setDescription("The main plugin command.");
+        this.setPermission(Permission.USE.getNode());
+        this.setUsage("/chats <command> [<arguments>]");
+    }
+}

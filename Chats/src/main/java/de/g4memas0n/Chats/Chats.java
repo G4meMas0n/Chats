@@ -6,11 +6,11 @@ import de.g4memas0n.chats.channel.IChannelManager;
 import de.g4memas0n.chats.chatter.ChatterManager;
 import de.g4memas0n.chats.chatter.IChatterManager;
 import de.g4memas0n.chats.command.BasicCommand;
-import de.g4memas0n.chats.command.ChannelCommand;
-import de.g4memas0n.chats.command.ChatsCommand;
-import de.g4memas0n.chats.command.IgnoreCommand;
-import de.g4memas0n.chats.command.MsgCommand;
-import de.g4memas0n.chats.command.ReplyCommand;
+import de.g4memas0n.chats.command.delegate.ChannelCommand;
+import de.g4memas0n.chats.command.delegate.ChatsCommand;
+import de.g4memas0n.chats.command.chatter.IgnoreCommand;
+import de.g4memas0n.chats.command.chatter.MsgCommand;
+import de.g4memas0n.chats.command.chatter.ReplyCommand;
 import de.g4memas0n.chats.listener.BasicListener;
 import de.g4memas0n.chats.listener.ConnectionListener;
 import de.g4memas0n.chats.listener.PlayerListener;
@@ -42,10 +42,10 @@ import java.util.logging.Level;
  * The Plugins main class, implements {@link IChats}.
  *
  * @author G4meMas0n
- * @since 0.0.1-SNAPSHOT
+ * @since Release 1.0.0
  *
  * created: July 26th, 2019
- * changed: June 17th, 2020
+ * changed: June 22th, 2020
  */
 public final class Chats extends JavaPlugin implements IChats {
 

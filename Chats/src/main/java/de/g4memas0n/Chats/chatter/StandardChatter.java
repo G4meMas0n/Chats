@@ -12,7 +12,7 @@ import de.g4memas0n.chats.util.logging.Log;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
 import de.g4memas0n.chats.util.type.ModifyType;
-import de.g4memas0n.chats.util.type.ReloadType;
+import de.g4memas0n.chats.util.type.StorageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +29,10 @@ import java.util.stream.Collectors;
  * Representation of a standard chatter, implements {@link IChatter}.
  *
  * @author G4meMas0n
- * @since 0.0.1-SNAPSHOT
+ * @since Release 1.0.0
  *
  * created: August 6th, 2019
- * changed: June 19th, 2020
+ * changed: June 22th, 2020
  */
 public class StandardChatter implements IChatter {
 
@@ -916,8 +916,13 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
-    public boolean canReload(@NotNull final ReloadType type) {
+    public boolean canReload(@NotNull final StorageType type) {
         return this.player.hasPermission(Permission.RELOAD.formChildren("type", type.getIdentifier()));
+    }
+
+    @Override
+    public boolean canSave(@NotNull final StorageType type) {
+        return this.player.hasPermission(Permission.SAVE.formChildren("type", type.getIdentifier()));
     }
 
     @Override

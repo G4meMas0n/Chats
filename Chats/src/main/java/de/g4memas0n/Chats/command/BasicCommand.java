@@ -3,6 +3,9 @@ package de.g4memas0n.chats.command;
 import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.IChats;
 import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.command.info.HelpCommand;
+import de.g4memas0n.chats.util.input.ICommandInput;
+import de.g4memas0n.chats.util.input.InputException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
@@ -13,19 +16,19 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Abstract Command Representation. Represents all non bukkit/spigot commands.
+ * Abstract Command Representation that represents all non bukkit/spigot commands.
  *
  * @author G4meMas0n
- * @since 0.1.0-SNAPSHOT
+ * @since Release 1.0.0
  *
  * created: February 24th, 2020
- * changed: June 20th, 2020
+ * changed: June 21th, 2020
  */
 public abstract class BasicCommand {
 
     /**
-     * Collections of all {@link BasicCommand}, {@link BasicPluginCommand} and {@link BasicDelegateCommand} that
-     * are registered by using the {@link BasicCommand#register(Chats)} method.
+     * Collection of all {@link BasicCommand} that are registered by using the {@link BasicCommand#register(Chats)}
+     * method.
      *
      * This allows all registered commands to access other registered commands, such as execute or tab complete an
      * other registered command. So access to this Map will only occur through the{@link BasicCommand#getRegistered()}
@@ -34,9 +37,7 @@ public abstract class BasicCommand {
      * This is handled in this way, because currently this is only used in {@link HelpCommand} to access the
      * information of other commands for displaying their command help. Also for executing or tab-completing commands
      * the bukkit/spigot command system is used (See {@link BasicPluginCommand}). So using an extra command handler
-     * would be useless, because it would only be a collection of commands.
-     *
-     * Note: Maybe there will be an another command system in the future.
+     * would be useless, because it would only be a collection of commands (like this).
      */
     private static final Map<String, BasicCommand> registered = new LinkedHashMap<>();
 
@@ -87,8 +88,8 @@ public abstract class BasicCommand {
 
     public final @NotNull IChats getInstance() {
         if (this.instance == null || !registered.containsKey(this.name)) {
-            throw new IllegalStateException("Unregistered command '" + this.getName()
-                    + "' tried to get the plugin instance");
+            throw new IllegalStateException(String.format("Unregistered command '%s' tried to get the plugin instance",
+                    this.getName()));
         }
 
         return this.instance;
@@ -116,24 +117,21 @@ public abstract class BasicCommand {
      * Executes the command for the given sender, returning its success.
      * If false is returned, then the help of the command will be sent to the sender.
      * @param sender the source who executed the command.
-     * @param alias the alias of the command which was used.
-     * @param arguments the passed command arguments.
+     * @param input the input of the sender, including used alias and passed arguments.
      * @return true if the command execution was valid, false otherwise.
      */
     public abstract boolean execute(@NotNull final ICommandSource sender,
-                                    @NotNull final String alias,
-                                    @NotNull final String[] arguments);
+                                    @NotNull final ICommandInput input) throws InputException;
 
     /**
      * Requests a list of possible completions for a command argument.
      * @param sender the source who tab-completed the command.
-     * @param alias the alias of the command which was used.
-     * @param arguments the passed command arguments, including final partial argument to be completed.
+     * @param input the input of the sender, including used alias and the passed arguments including the final partial
+     *              argument to be completed.
      * @return a list of possible completions for the final arguments.
      */
     public abstract @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
-                                                      @NotNull final String alias,
-                                                      @NotNull final String[] arguments);
+                                                      @NotNull final ICommandInput input);
 
     public @NotNull List<String> getAliases() {
         if (this.aliases == null) {
@@ -156,7 +154,7 @@ public abstract class BasicCommand {
     }
 
     public void setDescription(@NotNull final String description) {
-        if (description.isEmpty() || description.equals(this.description)) {
+        if (description.equals(this.description)) {
             return;
         }
 
@@ -168,7 +166,7 @@ public abstract class BasicCommand {
     }
 
     public void setPermission(@NotNull final String permission) {
-        if (permission.isEmpty() || permission.equals(this.permission)) {
+        if (permission.equals(this.permission)) {
             return;
         }
 
@@ -180,7 +178,7 @@ public abstract class BasicCommand {
     }
 
     public void setUsage(@NotNull final String usage) {
-        if (usage.isEmpty() || usage.equals(this.usage)) {
+        if (usage.equals(this.usage)) {
             return;
         }
 

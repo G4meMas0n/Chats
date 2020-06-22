@@ -2,8 +2,21 @@ package de.g4memas0n.chats.command;
 
 import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.chatter.CommandSource;
+import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.command.chatter.ChatterCommand;
+import de.g4memas0n.chats.command.delegate.DelegateCommand;
 import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.input.CommandInput;
+import de.g4memas0n.chats.util.input.InputException;
+import de.g4memas0n.chats.util.input.InvalidBooleanException;
+import de.g4memas0n.chats.util.input.InvalidChannelException;
+import de.g4memas0n.chats.util.input.InvalidColorException;
+import de.g4memas0n.chats.util.input.InvalidFormatException;
+import de.g4memas0n.chats.util.input.InvalidNameException;
+import de.g4memas0n.chats.util.input.InvalidPasswordException;
+import de.g4memas0n.chats.util.input.InvalidPlayerException;
+import de.g4memas0n.chats.util.input.InvalidTypeException;
 import de.g4memas0n.chats.util.logging.Log;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -14,15 +27,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
- * Abstract Plugin Command Representation. Represent commands that are registered to bukkit/spigot.
+ * Abstract Plugin Command Representation that represent commands that are registered to bukkit/spigot.
  *
  * @author G4meMas0n
- * @since 0.1.0-SNAPSHOT
+ * @since Release 1.0.0
  *
  * created: February 25th, 2020
- * changed: June 19th, 2020
+ * changed: June 22th, 2020
  */
 public abstract class BasicPluginCommand extends BasicCommand implements TabExecutor {
 
@@ -155,29 +169,94 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
         }
 
         if (sender.hasPermission(this.getPermission())) {
-            final ICommandSource source = sender instanceof Player
-                    ? this.getInstance().getChatterManager().getChatter((Player) sender) : new CommandSource(sender);
+            final ICommandSource source = sender instanceof Player ? this.getInstance().getChatterManager().getChatter((Player) sender) : new CommandSource(sender);
 
-            if (!this.execute(source, alias, arguments)) {
-                sender.sendMessage(Messages.tl("helpHeader", this.getName()));
-                sender.sendMessage(Messages.tl("helpDescription", this.getDescription()));
-                sender.sendMessage(Messages.tl("helpUsage", this.getUsage()));
+            try {
+                if (!this.execute(source, new CommandInput(alias, arguments))) {
+                    sender.sendMessage(Messages.tl("helpHeader", this.getName()));
+                    sender.sendMessage(Messages.tl("helpDescription", this.getDescription()));
+                    sender.sendMessage(Messages.tl("helpUsage", this.getUsage()));
 
-                if (!this.getAliases().isEmpty()) {
-                    sender.sendMessage(Messages.tlJoin("helpAliases", this.getAliases()));
-                }
-
-                if (this instanceof BasicDelegateCommand) {
-                    final List<String> commands = new ArrayList<>();
-
-                    for (final BasicCommand command : ((BasicDelegateCommand) this).getCommands()) {
-                        if (sender.hasPermission(command.getPermission())) {
-                            commands.add(command.getName());
-                        }
+                    if (!this.getAliases().isEmpty()) {
+                        sender.sendMessage(Messages.tlJoin("helpAliases", this.getAliases()));
                     }
 
-                    sender.sendMessage(Messages.tlJoin("helpCommands", commands));
+                    if (this instanceof DelegateCommand) {
+                        final List<String> commands = new ArrayList<>();
+
+                        for (final BasicCommand command : ((DelegateCommand) this).getCommands()) {
+                            if (command instanceof ChatterCommand && !(sender instanceof IChatter)) {
+                                continue;
+                            }
+
+                            if (sender.hasPermission(command.getPermission())) {
+                                commands.add(command.getName());
+                            }
+                        }
+
+                        sender.sendMessage(Messages.tlJoin("helpCommands", commands));
+                    }
                 }
+
+                return true;
+            } catch (InvalidBooleanException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("invalidBoolean"));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey()));
+            } catch (InvalidChannelException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("channelNotExist", ex.getName()));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getName()));
+            } catch (InvalidColorException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("invalidColor"));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey()));
+            } catch (InvalidFormatException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("invalidFormat", Messages.tl(ex.getFormat())));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey(), Messages.tl(ex.getFormat())));
+            } catch (InvalidNameException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("invalidName", ex.getName()));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getName()));
+            } catch (InvalidPasswordException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("invalidPassword", ex.getPassword()));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getPassword()));
+            } catch (InvalidPlayerException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("playerNotFound", ex.getName()));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getName()));
+            } catch (InvalidTypeException ex) {
+                if (ex.getKey() == null) {
+                    source.sendMessage(Messages.tlErr("invalidType", ex.getIdentifier()));
+                    return true;
+                }
+
+                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getIdentifier()));
+            } catch (InputException ex) {
+                Log.getPlugin().log(Level.SEVERE, "Command execution has thrown an unexpected exception: ", ex);
             }
 
             return true;
@@ -201,7 +280,7 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
             final ICommandSource source = sender instanceof Player
                     ? this.getInstance().getChatterManager().getChatter((Player) sender) : new CommandSource(sender);
 
-            return this.tabComplete(source, alias, arguments);
+            return this.tabComplete(source, new CommandInput(alias, arguments));
         }
 
         return Collections.emptyList();

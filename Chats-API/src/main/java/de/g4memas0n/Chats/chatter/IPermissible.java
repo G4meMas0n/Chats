@@ -4,7 +4,7 @@ import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
 import de.g4memas0n.chats.util.type.ModifyType;
-import de.g4memas0n.chats.util.type.ReloadType;
+import de.g4memas0n.chats.util.type.StorageType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,10 +13,10 @@ import org.jetbrains.annotations.NotNull;
  * permitted to perform a command action.
  *
  * @author G4meMas0n
- * @since 0.1.0-SNAPSHOT
+ * @since Release 1.0.0
  *
  * created: January 8th, 2020
- * changed: June 6th, 2020
+ * changed: June 22th, 2020
  */
 public interface IPermissible {
 
@@ -131,11 +131,18 @@ public interface IPermissible {
     boolean canMute(@NotNull final IChatter chatter, @NotNull final IChannel channel);
 
     /**
-     * Returns whether this permissible is permitted to reload the given reload type.
+     * Returns whether this permissible is permitted to reload the given storage type.
      * @param type the reload type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canReload(@NotNull final ReloadType type);
+    boolean canReload(@NotNull final StorageType type);
+
+    /**
+     * Returns whether this permissible is permitted to save the given storage type.
+     * @param type the type to check the permission.
+     * @return true when this permissible is permitted, false otherwise.
+     */
+    boolean canSave(@NotNull final StorageType type);
 
     /**
      * Returns whether this permissible can see the given chatter.

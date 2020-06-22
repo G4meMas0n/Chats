@@ -5,7 +5,7 @@ import de.g4memas0n.chats.util.Permission;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
 import de.g4memas0n.chats.util.type.ModifyType;
-import de.g4memas0n.chats.util.type.ReloadType;
+import de.g4memas0n.chats.util.type.StorageType;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -16,10 +16,10 @@ import org.jetbrains.annotations.NotNull;
  * {@link ICommandSource}.
  *
  * @author G4meMas0n
- * @since 0.2.0-SNAPSHOT
+ * @since Release 1.0.0
  *
  * created: April 4th, 2020
- * changed: June 17th, 2020
+ * changed: June 22th, 2020
  */
 public final class CommandSource implements ICommandSource {
 
@@ -183,7 +183,12 @@ public final class CommandSource implements ICommandSource {
     }
 
     @Override
-    public boolean canReload(@NotNull final ReloadType type) {
+    public boolean canReload(@NotNull final StorageType type) {
+        return this.console;
+    }
+
+    @Override
+    public boolean canSave(@NotNull final StorageType type) {
         return this.console;
     }
 
