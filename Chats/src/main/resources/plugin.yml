@@ -1,6 +1,6 @@
 main: de.g4memas0n.chats.Chats
 name: Chats
-version: 0.2.4-SNAPSHOT
+version: 1.0.0
 description: A Plugin that provides a channel based chat.
 author: G4meMas0n
 api-version: '1.15'
@@ -246,6 +246,19 @@ permissions:
       chats.reload.type.channels: true
       chats.reload.type.chatters: true
       chats.reload.type.config: true
+  chats.save:
+    description: Allows to access the chats save command.
+    default: false
+    children:
+      chats.use: true
+  chats.save.type.*:
+    description: Allows to reload all reload types.
+    default: false
+    children:
+      chats.save.type.all: true
+      chats.save.type.channels: true
+      chats.save.type.chatters: true
+      chats.save.type.config: true
   chats.social-spy:
     description: Allows to access the chats social-spy command-
     default: false
