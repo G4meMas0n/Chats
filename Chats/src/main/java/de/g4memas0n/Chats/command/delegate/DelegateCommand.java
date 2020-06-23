@@ -27,7 +27,7 @@ import java.util.Set;
  * @since Release 1.0.0
  *
  * created: May 29th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public abstract class DelegateCommand extends BasicPluginCommand {
 
@@ -123,7 +123,7 @@ public abstract class DelegateCommand extends BasicPluginCommand {
                     sender.sendMessage(Messages.tl("helpUsage", delegate.getUsage()));
 
                     if (!delegate.getAliases().isEmpty()) {
-                        sender.sendMessage(Messages.tl("helpAliases", delegate.getAliases()));
+                        sender.sendMessage(Messages.tlJoin("helpAliases", delegate.getAliases()));
                     }
                 }
 

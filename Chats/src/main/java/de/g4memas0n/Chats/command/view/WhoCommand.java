@@ -23,7 +23,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: March 17th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public final class WhoCommand extends BasicCommand {
 
@@ -77,15 +77,15 @@ public final class WhoCommand extends BasicCommand {
                     members.add(displayed.toString());
                 }
 
-                if (!members.isEmpty()) {
-                    Collections.sort(members);
-
-                    sender.sendMessage(Messages.tl("whoHeader", channel.getColoredName()));
-                    sender.sendMessage(Messages.tlJoin("whoList", members));
+                if (members.isEmpty()) {
+                    sender.sendMessage(Messages.tl("whoNobody", channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("whoNobody", channel.getColoredName()));
+                Collections.sort(members);
+
+                sender.sendMessage(Messages.tl("whoHeader", channel.getColoredName()));
+                sender.sendMessage(Messages.tlJoin("whoList", members));
                 return true;
             }
 

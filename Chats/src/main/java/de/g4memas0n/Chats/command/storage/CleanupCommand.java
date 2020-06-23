@@ -10,6 +10,7 @@ import de.g4memas0n.chats.util.input.InputException;
 import de.g4memas0n.chats.util.logging.Log;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -23,7 +24,7 @@ import java.util.logging.Level;
  * @since Release 1.0.0
  *
  * created: June 17th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public final class CleanupCommand extends StorageCommand {
 
@@ -43,7 +44,7 @@ public final class CleanupCommand extends StorageCommand {
             // Calculates the minimum difference between current time and last played time to delete a chatter.
             // Note: 1 Day = 24 Hours * 60 Minutes * 60 Seconds * 1.000 Milliseconds = 86.400.000 Milliseconds
             final long difference = input.getUnsignedLong(DAYS) * 86400000L;
-            final long currentTime = System.currentTimeMillis();
+            final long cleanupTime = System.currentTimeMillis();
 
             final Set<IOfflineChatter> cleanup = this.getInstance().getChatterManager().getOfflineChatters();
             final Future<?> load = this.getInstance().runStorageTask(() -> cleanup.forEach(IStorageHolder::load));
@@ -52,19 +53,26 @@ public final class CleanupCommand extends StorageCommand {
                 load.get();
             } catch (ExecutionException ex) {
                 Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+
+                sender.sendMessage(Messages.tl("cleanupFailed"));
+                return true;
             } catch (InterruptedException ex) {
                 Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
             }
 
-            for (final IOfflineChatter chatter : cleanup) {
+            Log.getPlugin().debug(String.format("Loaded %d offline chatters after approximately %d milliseconds.",
+                    cleanup.size(), System.currentTimeMillis() - cleanupTime));
+
+            for (final Iterator<IOfflineChatter> iterator = cleanup.iterator(); iterator.hasNext();) {
+                final IOfflineChatter chatter = iterator.next();
                 final long lastPlayed = chatter.getLastPlayed();
 
                 if (lastPlayed < 0) {
                     continue;
                 }
 
-                if ((currentTime - lastPlayed) < difference) {
-                    cleanup.remove(chatter);
+                if ((cleanupTime - lastPlayed) < difference) {
+                    iterator.remove();
                 }
             }
 
@@ -74,9 +82,15 @@ public final class CleanupCommand extends StorageCommand {
                 delete.get();
             } catch (ExecutionException ex) {
                 Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+
+                sender.sendMessage(Messages.tl("cleanupFailed"));
+                return true;
             } catch (InterruptedException ex) {
                 Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
             }
+
+            Log.getPlugin().debug(String.format("Finished cleanup after approximately %d milliseconds.",
+                    System.currentTimeMillis() - cleanupTime));
 
             sender.sendMessage(Messages.tl("cleanupFinish", cleanup.size()));
             return true;

@@ -22,7 +22,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: February 8th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public final class HelpCommand extends BasicCommand {
 
@@ -87,6 +87,8 @@ public final class HelpCommand extends BasicCommand {
                             commands.add(delegate.getName());
                         }
                     }
+
+                    Collections.sort(commands);
 
                     sender.sendMessage(Messages.tlJoin("helpCommands", commands));
                 }

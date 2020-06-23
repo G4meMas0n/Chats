@@ -106,6 +106,8 @@ public final class ListCommand extends BasicCommand {
                 channels.add(this.getInstance().getChannelManager().getDefault().getColoredName());
             }
 
+            Collections.sort(channels);
+
             sender.sendMessage(Messages.tl("listHeader", Messages.tl("channels")));
             sender.sendMessage(Messages.tlJoin("listChannels", channels));
             return true;

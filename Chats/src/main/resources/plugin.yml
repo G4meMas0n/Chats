@@ -15,7 +15,7 @@ commands:
     aliases: [ch]
     description: Manages the channels.
     permission: chats.channel
-    usage: /channel <command> <arguments>
+    usage: /channel <command> [<arguments>]
   chat:
     description: Sends a message in a channel without changing the focused channel.
     permission: chats.speak

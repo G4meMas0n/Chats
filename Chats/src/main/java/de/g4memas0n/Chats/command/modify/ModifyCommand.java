@@ -277,7 +277,7 @@ public final class ModifyCommand extends ModifyingCommand {
         private static final int TYPE = 0;
 
         protected ResetCommand(@NotNull final ModifyingCommand parent) {
-            super(parent, "remove", 1, 1);
+            super(parent, "reset", 1, 1);
 
             this.setDescription("Resets a setting from a channel.");
             this.setUsage("/channel modify <channel> reset <type>");

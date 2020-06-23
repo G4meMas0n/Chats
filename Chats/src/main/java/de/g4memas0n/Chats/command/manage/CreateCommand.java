@@ -27,7 +27,7 @@ import java.util.UUID;
  * @since Release 1.0.0
  *
  * created: February 8th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public final class CreateCommand extends BasicCommand {
 
@@ -82,7 +82,9 @@ public final class CreateCommand extends BasicCommand {
                         channel.setOwner(chatter.getUniqueId());
                         channel.addMember(chatter);
 
-                        this.getInstance().runSyncTask(() -> chatter.sendMessage(Messages.tl("joinChannel", channel.getColoredName())));
+                        sender.sendMessage(Messages.tl("createChannel", channel.getFullName(), Messages.tlType(type)));
+                        sender.sendMessage(Messages.tl("joinChannel", channel.getColoredName()));
+                        return true;
                     }
 
                     if (channel.isPersist() && channel instanceof IStorageHolder) {
@@ -92,11 +94,10 @@ public final class CreateCommand extends BasicCommand {
                     }
 
                     sender.sendMessage(Messages.tl("createChannel", channel.getFullName(), Messages.tlType(type)));
+                    return true;
                 } catch (IllegalArgumentException ex) {
                     throw new InvalidNameException(input.get(NAME));
                 }
-
-                return true;
             }
 
             sender.sendMessage(Messages.tl("createDenied", Messages.tlType(type)));

@@ -37,7 +37,7 @@ import java.util.logging.Level;
  * @since Release 1.0.0
  *
  * created: February 25th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public abstract class BasicPluginCommand extends BasicCommand implements TabExecutor {
 
@@ -194,6 +194,8 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
                                 commands.add(command.getName());
                             }
                         }
+
+                        Collections.sort(commands);
 
                         sender.sendMessage(Messages.tlJoin("helpCommands", commands));
                     }

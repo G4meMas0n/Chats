@@ -5,6 +5,7 @@ import de.g4memas0n.chats.command.info.HelpCommand;
 import de.g4memas0n.chats.command.storage.ReloadCommand;
 import de.g4memas0n.chats.command.manage.SocialSpyCommand;
 import de.g4memas0n.chats.command.info.VersionCommand;
+import de.g4memas0n.chats.command.storage.SaveCommand;
 import de.g4memas0n.chats.util.Permission;
 
 /**
@@ -14,16 +15,17 @@ import de.g4memas0n.chats.util.Permission;
  * @since Release 1.0.0
  *
  * created: March 5th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public final class ChatsCommand extends DelegateCommand {
 
     public ChatsCommand() {
-        super("chats", 5);
+        super("chats", 6);
 
         this.addCommand(new CleanupCommand());
         this.addCommand(new HelpCommand());
         this.addCommand(new ReloadCommand());
+        this.addCommand(new SaveCommand());
         this.addCommand(new SocialSpyCommand());
         this.addCommand(new VersionCommand());
 
