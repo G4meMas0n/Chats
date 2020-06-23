@@ -186,7 +186,7 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
                         final List<String> commands = new ArrayList<>();
 
                         for (final BasicCommand command : ((DelegateCommand) this).getCommands()) {
-                            if (command instanceof ChatterCommand && !(sender instanceof IChatter)) {
+                            if (command instanceof ChatterCommand && !(source instanceof IChatter)) {
                                 continue;
                             }
 

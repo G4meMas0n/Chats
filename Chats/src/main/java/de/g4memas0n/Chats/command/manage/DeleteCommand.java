@@ -21,7 +21,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: February 8th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public final class DeleteCommand extends BasicCommand {
 
@@ -52,15 +52,15 @@ public final class DeleteCommand extends BasicCommand {
                 }
 
                 if (this.getInstance().getChannelManager().removeChannel(channel)) {
-                    sender.sendMessage(Messages.tl("deleteChannel", channel.getColoredName()));
+                    sender.sendMessage(Messages.tl("deleteChannel", channel.getFullName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tlErr("deleteAlready", channel.getColoredName()));
+                sender.sendMessage(Messages.tlErr("deleteAlready", channel.getFullName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("deleteDenied", channel.getColoredName()));
+            sender.sendMessage(Messages.tl("deleteDenied", channel.getFullName()));
             return true;
         }
 

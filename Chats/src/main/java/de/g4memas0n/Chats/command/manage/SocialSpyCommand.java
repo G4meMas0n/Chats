@@ -21,7 +21,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: June 17th, 2020
- * changed: June 22th, 2020
+ * changed: June 23th, 2020
  */
 public final class SocialSpyCommand extends BasicCommand {
 
@@ -42,6 +42,13 @@ public final class SocialSpyCommand extends BasicCommand {
         if (this.argsInRange(input.getLength())) {
             if (input.getLength() != this.getMinArgs() && input.getLength() != this.getMaxArgs()) {
                 return false;
+            }
+
+            if (input.getLength() == this.getMinArgs() && !(sender instanceof IChatter)) {
+                sender.sendMessage(Messages.tl("helpHeader", this.getName()));
+                sender.sendMessage(Messages.tl("helpDescription", this.getDescription()));
+                sender.sendMessage(Messages.tl("helpUsage", this.getUsage().replaceAll("\\[(.*?)]", "$1")));
+                return true;
             }
 
             final IChatter target = input.getLength() == this.getMaxArgs()
