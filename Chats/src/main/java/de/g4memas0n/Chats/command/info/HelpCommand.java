@@ -46,7 +46,7 @@ public final class HelpCommand extends BasicCommand {
                 for (final BasicCommand command : this.getRegistered()) {
                     if (command instanceof BasicPluginCommand) {
                         if (command instanceof ChatterCommand && !(sender instanceof IChatter)) {
-                            return false;
+                            continue;
                         }
 
                         if (sender.hasPermission(command.getPermission())) {
