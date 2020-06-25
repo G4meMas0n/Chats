@@ -1,7 +1,7 @@
 ##################################################
 # Chats - Example Chatter YAML-Storage-File:     #
 #                                                #
-# Version: 0.2.3-SNAPSHOT                        #
+# Version: 1.0.0                                 #
 ##################################################
 
 # Sets the uniqueId of the chatter: (Type: String)
