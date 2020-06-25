@@ -13,9 +13,11 @@
 
     <name>Chats API</name>
     <artifactId>chats-api</artifactId>
-    <version>snapshot</version>
+    <version>1.0.0</version>
 
     <build>
+        <directory>target</directory>
+        <finalName>Chats-API_v${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

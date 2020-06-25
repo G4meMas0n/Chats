@@ -19,7 +19,7 @@
         <dependency>
             <groupId>de.g4memas0n</groupId>
             <artifactId>chats-api</artifactId>
-            <version>snapshot</version>
+            <version>1.0.0</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
