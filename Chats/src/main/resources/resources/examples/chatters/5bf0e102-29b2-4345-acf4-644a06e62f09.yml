@@ -16,21 +16,22 @@ last:
   # Sets the last time, from the epoch January 1, 1970 UTC, the player has played in milliseconds: (Type: Long)
   played: 1577833200000
 
-# Sets the channel the chatter has joined: (Type: String Array)
-# Note: Each entry must be the full-name of an existing channel.
+# Sets the channel the chatter has joined: (Type: String Array, Default: [])
+# Note: Each entry must equal to the full-name of an existing persistent channel.
 channels:
-  - "Global"
+- "Global"
 
-# Sets the focused channel of the chatter: (Type: String)
-# Note: Must be the full-name of an existing channel.
+# Sets the focused channel of the chatter: (Type: String, Default: "")
+# Note: Must be equal to the full-name of an existing persistent channel.
 focus: "Global"
 
-# Sets whether the chatter is muted: (Type: Boolean)
+# Sets whether the chatter is muted: (Type: Boolean, Default: false)
 muted: false
 
-# Sets whether the chatter is social spying: (Type: Boolean)
+# Sets whether the chatter is social spying: (Type: Boolean, Default: false)
 social-spy: false
 
-# Sets the chatters that the chatter is ignoring: (Type: String Array)
-# Note: Each entry must be the uniqueId of an existing chatter.
-ignores: []
+# Sets the chatters that the chatter is ignoring: (Type: String Array, Default: [])
+# Note: Each entry must equal to the unique-id of an existing chatter.
+ignores:
+- "069a79f4-44e9-4726-a5be-fca90e38aaf5"

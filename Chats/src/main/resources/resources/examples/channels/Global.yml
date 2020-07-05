@@ -8,51 +8,57 @@
 # Note: Must be equal to the file name without extension. (Correct file name: Global.yml)
 full-name: "Global"
 
-# Sets the short-name of the channel: (Type: String)
-# Note: An empty string removes the short-name from the channel.
+# Sets the short-name of the channel: (Type: String, Default: "")
+# Note: An empty string removes the short-name.
 short-name: "G"
 
-# Sets the chat-color that the channel will have: (Type: String)
+# Sets the chat-color that the channel will have: (Type: String, Default: "WHITE")
 # Note: Must be the name of an existing chat color.
 color: "GRAY"
 
-# Sets the password of the channel that will be required to join the channel: (Type: String)
-# Note: An empty string removes the password from the channel.
+# Sets the password of the channel that will be required to join the channel: (Type: String, Default: "")
+# Note: An empty string removes the password.
 password: ""
 
-# Sets the maximal distance that the channels chat will have: (Type: Integer)
-# Note: A value <= 0 removes the distance from the channel.
+# Sets the maximal distance that the channels chat will have: (Type: Integer, Default: -1)
+# Note: A value <= 0 removes the distance.
 distance: -1
 
-# Sets whether the channels chat is cross over multiple worlds: (Type: Boolean)
+# Sets whether the channels chat is cross over multiple worlds: (Type: Boolean, Default: true)
 # Note: Will be ignored when the channel has a distance. (When distance > 0)
 cross-world: true
 
 # Sets the various formats options of the channel:
 format:
-  # Sets whether the channel uses its custom formats:
+  # Sets whether the channel uses its custom formats: (Type: Boolean, Default: false)
+  # Note: When disabled or when no custom format exist, the default formats specified in the config.yml will be used.
   use-custom: false
 
-  # Sets the announce format of the channel:
-  # Note: Will be ignored when the use-custom option is disabled.
-  announce: "{color}{message}"
+  # Sets the announce format of the channel: (Type: String, Default: "")
+  # Note: An empty string removes the custom announce format.
+  # Note: Will be ignored when the use-custom option is disabled. (When use-custom = false)
+  announce: ""
 
-  # Sets the broadcast format of the channel:
-  # Note: Will be ignored when the use-custom option is disabled.
-  broadcast: "{color}[{bc-prefix}{color}] {message}"
+  # Sets the broadcast format of the channel: (Type: String, Default: "")
+  # Note: An empty string removes the custom broadcast format.
+  # Note: Will be ignored when the use-custom option is disabled. (When use-custom = false)
+  broadcast: "{color}[Broadcast] {message}"
 
-  # Sets the chat format of the channel:
-  # Note: Will be ignored when the use-custom option is disabled.
-  chat: "{color}[{nick}]{sender}{color}: {message}"
+  # Sets the chat format of the channel: (Type: String, Default: "")
+  # Note: An empty string removes the custom chat format.
+  # Note: Will be ignored when the use-custom option is disabled. (When use-custom = false)
+  chat: "{sender}{color}: {message}"
 
-# Sets the chatters that are banned from the channel: (Type: String Array)
-# Note: Each entry must be the uniqueId of an existing chatter.
+# Sets the chatters that are banned from the channel: (Type: String Array, Default: [])
+# Note: Each entry must be equal to the unique-id of an existing chatter.
 bans: []
 
-# Sets the chatters that are moderators of the channel: (Type: String Array)
-# Note: Each entry must be the uniqueId of an existing chatter.
-moderators: []
+# Sets the chatters that are moderators of the channel: (Type: String Array, Default: [])
+# Note: Each entry must be equal to the unique-id of an existing chatter.
+moderators:
+- "5bf0e102-29b2-4345-acf4-644a06e62f09"
 
-# Sets the chatters that are muted in this channel: (Type: String Array)
-# Note: Each entry must be the uniqueId of an existing chatter.
-mutes: []
+# Sets the chatters that are muted in this channel: (Type: String Array, Default: [])
+# Note: Each entry must be equal to the unique-id of an existing chatter.
+mutes:
+- "069a79f4-44e9-4726-a5be-fca90e38aaf5"
