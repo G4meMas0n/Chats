@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
  * @since Release 1.0.0
  *
  * created: March 17th, 2020
- * changed: June 7th, 2020
+ * changed: July 5th, 2020
  */
 public enum InfoType implements Type {
 
@@ -27,7 +27,7 @@ public enum InfoType implements Type {
     /**
      * Represents the cross-world info of a channel.
      */
-    CROSS_WORLD("cross-world", "crossWorld"),
+    CROSS_WORLD("cross-world"),
 
     /**
      * Represents the distance info of a channel.
@@ -62,7 +62,7 @@ public enum InfoType implements Type {
     /**
      * Represents the short-name info of a channel.
      */
-    SHORT_NAME("short-name", "shortName"),
+    SHORT_NAME("short-name"),
 
     /**
      * Represents the channel type info of a channel.
@@ -70,16 +70,9 @@ public enum InfoType implements Type {
     TYPE("type");
 
     private final String identifier;
-    private final String key;
 
     InfoType(@NotNull final String identifier) {
         this.identifier = identifier;
-        this.key = identifier;
-    }
-
-    InfoType(@NotNull final String identifier, @NotNull final String key) {
-        this.identifier = identifier;
-        this.key = key;
     }
 
     @Override
@@ -89,12 +82,23 @@ public enum InfoType implements Type {
 
     @Override
     public final @NotNull String getKey() {
-        return this.key;
+        final int index = this.identifier.indexOf("-");
+
+        if (index < 0) {
+            return this.identifier;
+        }
+
+        if (identifier.length() == index + 1) {
+            return this.identifier.substring(0, index);
+        }
+
+        return this.identifier.substring(0, index) + this.identifier.substring(index + 1, index + 2).toUpperCase()
+                + this.identifier.substring(index + 2);
     }
 
     @Override
     public final @NotNull String toString() {
-        return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.key + "}";
+        return this.getClass().getSimpleName() + "{identifier=" + this.getIdentifier() + ";key=" + this.getKey() + "}";
     }
 
     /**

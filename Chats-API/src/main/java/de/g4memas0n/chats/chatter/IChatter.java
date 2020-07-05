@@ -1,6 +1,7 @@
 package de.g4memas0n.chats.chatter;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +15,7 @@ import java.util.UUID;
  * @since Release 1.0.0
  *
  * created: July 12th, 2019
- * changed: June 18th, 2020
+ * changed: July 5th, 2020
  */
 public interface IChatter extends ICommandSource, IFilterable, IForcible, IOfflineChatter, Comparable<IChatter> {
 
@@ -80,9 +81,17 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
     boolean setLastPartner(@NotNull final IChatter partner);
 
     // Channels Collection Methods:
+
+    /**
+     * Returns all channel that this chatter is owning.
+     * Can be all types instead of {@link ChannelType#CONVERSATION} of channels.
+     * @return the channels this chatter is owning.
+     */
+    @NotNull Set<IChannel> getOwningChannels();
+
     /**
      * Returns all channel that this chatter is in. Can be all types of channels.
-     * @return a copy of a set of channels this chatter is in.
+     * @return the channels this chatter is in.
      */
     @NotNull Set<IChannel> getChannels();
 

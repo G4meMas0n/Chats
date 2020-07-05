@@ -23,7 +23,7 @@ import java.util.UUID;
  * @since Release 1.0.0
  *
  * created: January 3rd, 2020
- * changed: June 25th, 2020
+ * changed: July 4th, 2020
  */
 public final class ConversationChannel extends StandardChannel {
 
@@ -317,7 +317,7 @@ public final class ConversationChannel extends StandardChannel {
             return;
         }
 
-        if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.formChildren("bypass"))) {
+        if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.getChildren("bypass"))) {
             sender.sendMessage(Messages.tl("ignoredSender", partner.getDisplayName()));
             return;
         }
@@ -339,7 +339,7 @@ public final class ConversationChannel extends StandardChannel {
         partner.sendMessage(MessageFormat.format(format, Messages.tl("from"), sender.getDisplayName()));
         partner.setLastPartner(sender);
 
-        if (!sender.hasPermission(Permission.SOCIAL_SPY.formChildren("exempt"))) {
+        if (!sender.hasPermission(Permission.SOCIAL_SPY.getChildren("exempt"))) {
             final String spy = Messages.tl("spyFormat", sender.getDisplayName(), partner.getDisplayName(), event.getMessage());
 
             for (final IChatter chatter : this.getInstance().getChatterManager().getChatters()) {

@@ -1,6 +1,6 @@
 package de.g4memas0n.chats.chatter;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * CommandSource Interface that represents the source of a command, such a chatter, the console or a command block.
@@ -9,20 +9,26 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  *
  * created: April 4th, 2020
- * changed: April 19th, 2020
+ * changed: July 5th, 2020
  */
-public interface ICommandSource extends IPermissible {
+public interface ICommandSource extends IMessageRecipient, IPermissible {
 
     /**
-     * Sends the given message to this command source.
-     * @param message the message to send.
+     * Returns the chatter representing this command source, when it it a chatter.
+     * Can be null when this command source is not represented by a chatter.
+     * @return the chatter representing this command source, or null.
      */
-    void sendMessage(@NotNull final String message);
+    @Nullable IChatter getChatter();
 
     /**
-     * Checks whether this command source has the given permission node
-     * @param node the permission node to check.
-     * @return true when this command source has the permission, false otherwise.
+     * Returns whether this command source is a chatter or not.
+     * @return true when this command source is a chatter, false otherwise.
      */
-    boolean hasPermission(@NotNull final String node);
+    boolean isChatter();
+
+    /**
+     * Returns whether this command source is the console or not.
+     * @return true when this command source is the console, false otherwise.
+     */
+    boolean isConsole();
 }

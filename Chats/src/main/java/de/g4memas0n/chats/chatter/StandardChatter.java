@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Future;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * @since Release 1.0.0
  *
  * created: August 6th, 2019
- * changed: June 22th, 2020
+ * changed: July 5th, 2020
  */
 public class StandardChatter implements IChatter {
 
@@ -418,6 +419,23 @@ public class StandardChatter implements IChatter {
     }
 
     // Channels Collection Methods:
+    @Override
+    public final @NotNull Set<IChannel> getOwningChannels() {
+        final Set<IChannel> owning = new HashSet<>();
+
+        for (final IChannel channel : this.instance.getChannelManager().getChannels()) {
+            if (channel.isConversation()) {
+                continue;
+            }
+
+            if (channel.isOwner(this.player.getUniqueId())) {
+                owning.add(channel);
+            }
+        }
+
+        return owning;
+    }
+
     protected final @NotNull Set<IChannel> _getChannels() {
         if (!this.storage.contains("channels")) {
             this._setChannels(Collections.emptySet());
@@ -659,7 +677,23 @@ public class StandardChatter implements IChatter {
 
     // ICommandSource Implementation:
     @Override
-    public void sendMessage(@NotNull final String message) {
+    public final @NotNull IChatter getChatter() {
+        return this;
+    }
+
+    @Override
+    public final boolean isChatter() {
+        return true;
+    }
+
+    @Override
+    public final boolean isConsole() {
+        return false;
+    }
+
+    // IMessageRecipient Implementation:
+    @Override
+    public final void sendMessage(@NotNull final String message) {
         if (message.isEmpty() || !this.player.isOnline()) {
             return;
         }
@@ -668,11 +702,26 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
-    public boolean hasPermission(@NotNull final String node) {
-        return this.player.hasPermission(node);
+    public final void sendMessage(@NotNull final List<String> messages) {
+        if (!this.player.isOnline()) {
+            return;
+        }
+
+        for (final String message : messages) {
+            if (message.isEmpty()) {
+                continue;
+            }
+
+            this.player.sendMessage(message);
+        }
     }
 
     // IPermissible Implementation:
+    @Override
+    public final boolean hasPermission(@NotNull final String node) {
+        return this.player.hasPermission(node);
+    }
+
     @Override
     public boolean canBan(@NotNull final IChatter chatter, @NotNull final IChannel channel) {
         if (channel.isConversation()) {
@@ -685,7 +734,7 @@ public class StandardChatter implements IChatter {
         }
 
         // Check if chatter has permission to being exempt from channel bans.
-        if (chatter.hasPermission(Permission.BAN.formChildren("exempt"))) {
+        if (chatter.hasPermission(Permission.BAN.getChildren("exempt"))) {
             return false;
         }
 
@@ -698,7 +747,7 @@ public class StandardChatter implements IChatter {
             return false;
         }
 
-        return this.player.hasPermission(Permission.CREATE.formChildren("type", type.getIdentifier()));
+        return this.player.hasPermission(Permission.CREATE.getChildren("type", type.getIdentifier()));
     }
 
     @Override
@@ -708,12 +757,12 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isOwner(this.player.getUniqueId())) {
-            if (this.player.hasPermission(Permission.DELETE.formChildren("own"))) {
+            if (this.player.hasPermission(Permission.DELETE.getChildren("own"))) {
                 return true;
             }
         }
 
-        return this.player.hasPermission(Permission.DELETE.formChildren("type", channel.getType().getIdentifier()));
+        return this.player.hasPermission(Permission.DELETE.getChildren("type", channel.getType().getIdentifier()));
     }
 
     @Override
@@ -723,11 +772,11 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.FOCUS.formChildren("persist", channel.getFullName()))) {
+            if (this.player.hasPermission(Permission.FOCUS.getChildren("persist", channel.getFullName()))) {
                 return true;
             }
 
-            return this.player.hasPermission(Permission.FOCUS.formChildren("persist", "all"));
+            return this.player.hasPermission(Permission.FOCUS.getChildren("persist", "all"));
         }
 
         return true;
@@ -735,7 +784,7 @@ public class StandardChatter implements IChatter {
 
     @Override
     public boolean canIgnore(@NotNull final IChatter chatter) {
-        return !chatter.hasPermission(Permission.IGNORE.formChildren("exempt"));
+        return !chatter.hasPermission(Permission.IGNORE.getChildren("exempt"));
     }
 
     @Override
@@ -745,11 +794,11 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.JOIN.formChildren("persist", channel.getFullName()))) {
+            if (this.player.hasPermission(Permission.JOIN.getChildren("persist", channel.getFullName()))) {
                 return true;
             }
 
-            return this.player.hasPermission(Permission.JOIN.formChildren("persist", "all"));
+            return this.player.hasPermission(Permission.JOIN.getChildren("persist", "all"));
         }
 
         return true;
@@ -767,7 +816,7 @@ public class StandardChatter implements IChatter {
         }
 
         // Check if chatter has permission to being exempt from channel kicks.
-        if (chatter.hasPermission(Permission.KICK.formChildren("exempt"))) {
+        if (chatter.hasPermission(Permission.KICK.getChildren("exempt"))) {
             return false;
         }
 
@@ -781,11 +830,11 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.LEAVE.formChildren("persist", channel.getFullName()))) {
+            if (this.player.hasPermission(Permission.LEAVE.getChildren("persist", channel.getFullName()))) {
                 return true;
             }
 
-            return this.player.hasPermission(Permission.LEAVE.formChildren("persist", "all"));
+            return this.player.hasPermission(Permission.LEAVE.getChildren("persist", "all"));
         }
 
         return true;
@@ -793,7 +842,7 @@ public class StandardChatter implements IChatter {
 
     @Override
     public boolean canList(@NotNull final ChannelType type) {
-        return this.player.hasPermission(Permission.LIST.formChildren("type", type.getIdentifier()));
+        return this.player.hasPermission(Permission.LIST.getChildren("type", type.getIdentifier()));
     }
 
     @Override
@@ -811,8 +860,8 @@ public class StandardChatter implements IChatter {
 
     @Override
     public boolean canMessage(@NotNull final IChatter chatter) {
-        if (chatter.hasPermission(Permission.MSG.formChildren("exempt"))) {
-            return this.player.hasPermission(Permission.MSG.formChildren("exempt", "bypass"));
+        if (chatter.hasPermission(Permission.MSG.getChildren("exempt"))) {
+            return this.player.hasPermission(Permission.MSG.getChildren("exempt", "bypass"));
         }
 
         return true;
@@ -825,7 +874,7 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isOwner(this.player.getUniqueId())) {
-            if (this.player.hasPermission(Permission.MODERATE.formChildren("own"))) {
+            if (this.player.hasPermission(Permission.MODERATE.getChildren("own"))) {
                 return true;
             }
         }
@@ -835,14 +884,14 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.MODERATE.formChildren("persist", channel.getFullName()))) {
+            if (this.player.hasPermission(Permission.MODERATE.getChildren("persist", channel.getFullName()))) {
                 return true;
             }
 
-            return this.player.hasPermission(Permission.MODERATE.formChildren("persist", "all"));
+            return this.player.hasPermission(Permission.MODERATE.getChildren("persist", "all"));
         }
 
-        return this.player.hasPermission(Permission.MODERATE.formChildren("standard", "all"));
+        return this.player.hasPermission(Permission.MODERATE.getChildren("standard", "all"));
     }
 
     @Override
@@ -852,20 +901,20 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isOwner(this.player.getUniqueId())) {
-            if (this.player.hasPermission(Permission.MODIFY.formChildren("own"))) {
+            if (this.player.hasPermission(Permission.MODIFY.getChildren("own"))) {
                 return true;
             }
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.MODIFY.formChildren("persist", channel.getFullName()))) {
+            if (this.player.hasPermission(Permission.MODIFY.getChildren("persist", channel.getFullName()))) {
                 return true;
             }
 
-            return this.player.hasPermission(Permission.MODIFY.formChildren("persist", "all"));
+            return this.player.hasPermission(Permission.MODIFY.getChildren("persist", "all"));
         }
 
-        return this.player.hasPermission(Permission.MODIFY.formChildren("standard", "all"));
+        return this.player.hasPermission(Permission.MODIFY.getChildren("standard", "all"));
     }
 
     @Override
@@ -875,22 +924,22 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isOwner(this.player.getUniqueId())) {
-            if (this.player.hasPermission(Permission.MODIFY.formChildren("own"))) {
+            if (this.player.hasPermission(Permission.MODIFY.getChildren("own"))) {
                 return type != ModifyType.OWNER;
             }
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.MODIFY.formChildren("persist", channel.getFullName()))
-                    || this.player.hasPermission(Permission.MODIFY.formChildren("persist", "all"))) {
-                return this.player.hasPermission(Permission.MODIFY.formChildren("type", type.getIdentifier()));
+            if (this.player.hasPermission(Permission.MODIFY.getChildren("persist", channel.getFullName()))
+                    || this.player.hasPermission(Permission.MODIFY.getChildren("persist", "all"))) {
+                return this.player.hasPermission(Permission.MODIFY.getChildren("type", type.getIdentifier()));
             }
 
             return false;
         }
 
-        if (this.player.hasPermission(Permission.MODIFY.formChildren("standard", "all"))) {
-            return this.player.hasPermission(Permission.MODIFY.formChildren("type", type.getIdentifier()));
+        if (this.player.hasPermission(Permission.MODIFY.getChildren("standard", "all"))) {
+            return this.player.hasPermission(Permission.MODIFY.getChildren("type", type.getIdentifier()));
         }
 
         return false;
@@ -908,7 +957,7 @@ public class StandardChatter implements IChatter {
         }
 
         // Check if chatter has permission to being exempt from channel mutes.
-        if (chatter.hasPermission(Permission.MUTE.formChildren("exempt"))) {
+        if (chatter.hasPermission(Permission.MUTE.getChildren("exempt"))) {
             return false;
         }
 
@@ -917,12 +966,12 @@ public class StandardChatter implements IChatter {
 
     @Override
     public boolean canReload(@NotNull final StorageType type) {
-        return this.player.hasPermission(Permission.RELOAD.formChildren("type", type.getIdentifier()));
+        return this.player.hasPermission(Permission.RELOAD.getChildren("type", type.getIdentifier()));
     }
 
     @Override
     public boolean canSave(@NotNull final StorageType type) {
-        return this.player.hasPermission(Permission.SAVE.formChildren("type", type.getIdentifier()));
+        return this.player.hasPermission(Permission.SAVE.getChildren("type", type.getIdentifier()));
     }
 
     @Override
@@ -937,11 +986,11 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.SPEAK.formChildren("persist", channel.getFullName()))) {
+            if (this.player.hasPermission(Permission.SPEAK.getChildren("persist", channel.getFullName()))) {
                 return true;
             }
 
-            return this.player.hasPermission(Permission.SPEAK.formChildren("persist", "all"));
+            return this.player.hasPermission(Permission.SPEAK.getChildren("persist", "all"));
         }
 
         return true;
@@ -957,7 +1006,7 @@ public class StandardChatter implements IChatter {
             return true;
         }
 
-        return this.player.hasPermission(Permission.VIEW.formChildren("type", type.getIdentifier()));
+        return this.player.hasPermission(Permission.VIEW.getChildren("type", type.getIdentifier()));
     }
 
     @Override
@@ -967,20 +1016,20 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isOwner(this.player.getUniqueId())) {
-            if (this.player.hasPermission(Permission.VIEW_INFO.formChildren("own"))) {
+            if (this.player.hasPermission(Permission.VIEW_INFO.getChildren("own"))) {
                 return true;
             }
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.VIEW_INFO.formChildren("persist", channel.getFullName()))) {
+            if (this.player.hasPermission(Permission.VIEW_INFO.getChildren("persist", channel.getFullName()))) {
                 return true;
             }
 
-            return this.player.hasPermission(Permission.VIEW_INFO.formChildren("persist", "all"));
+            return this.player.hasPermission(Permission.VIEW_INFO.getChildren("persist", "all"));
         }
 
-        return this.player.hasPermission(Permission.VIEW_INFO.formChildren("standard", "all"));
+        return this.player.hasPermission(Permission.VIEW_INFO.getChildren("standard", "all"));
     }
 
     @Override
@@ -990,20 +1039,20 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isOwner(this.player.getUniqueId())) {
-            if (this.player.hasPermission(Permission.VIEW_WHO.formChildren("own"))) {
+            if (this.player.hasPermission(Permission.VIEW_WHO.getChildren("own"))) {
                 return true;
             }
         }
 
         if (channel.isPersist()) {
-            if (this.player.hasPermission(Permission.VIEW_WHO.formChildren("persist", channel.getFullName()))) {
+            if (this.player.hasPermission(Permission.VIEW_WHO.getChildren("persist", channel.getFullName()))) {
                 return true;
             }
 
-            return this.player.hasPermission(Permission.VIEW_WHO.formChildren("persist", "all"));
+            return this.player.hasPermission(Permission.VIEW_WHO.getChildren("persist", "all"));
         }
 
-        return this.player.hasPermission(Permission.VIEW_WHO.formChildren("standard", "all"));
+        return this.player.hasPermission(Permission.VIEW_WHO.getChildren("standard", "all"));
     }
 
     // IForcible Implementation:
@@ -1014,7 +1063,7 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isPersist()) {
-            return this.player.hasPermission(Permission.FORCE.formChildren("focus", channel.getFullName()));
+            return this.player.hasPermission(Permission.FORCE.getChildren("focus", channel.getFullName()));
         }
 
         return false;
@@ -1027,7 +1076,7 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isPersist()) {
-            return this.player.hasPermission(Permission.FORCE.formChildren("join", channel.getFullName()));
+            return this.player.hasPermission(Permission.FORCE.getChildren("join", channel.getFullName()));
         }
 
         return false;
@@ -1040,7 +1089,7 @@ public class StandardChatter implements IChatter {
         }
 
         if (channel.isPersist()) {
-            return this.player.hasPermission(Permission.FORCE.formChildren("leave", channel.getFullName()));
+            return this.player.hasPermission(Permission.FORCE.getChildren("leave", channel.getFullName()));
         }
 
         return false;

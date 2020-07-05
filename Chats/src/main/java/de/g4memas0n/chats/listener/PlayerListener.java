@@ -3,6 +3,7 @@ package de.g4memas0n.chats.listener;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.Permission;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  *
  * created: January 9th, 2020
- * changed: June 17th, 2020
+ * changed: July 4th, 2020
  */
 public final class PlayerListener extends BasicListener {
 
@@ -35,7 +36,7 @@ public final class PlayerListener extends BasicListener {
         final IChannel focus = chatter.getFocus();
 
         if (chatter.canSpeak(focus)) {
-            if (focus.isMuted(chatter.getPlayer().getUniqueId())) {
+            if (focus.isMuted(chatter.getUniqueId()) && !chatter.hasPermission(Permission.MUTE.getChildren("bypass"))) {
                 chatter.sendMessage(Messages.tl("mutedMember", focus.getColoredName()));
                 return;
             }

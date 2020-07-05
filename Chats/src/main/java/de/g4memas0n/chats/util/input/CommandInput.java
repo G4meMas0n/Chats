@@ -11,22 +11,18 @@ import java.util.Arrays;
  * @since Release 1.0.0
  *
  * created: June 23th, 2020
- * changed: June 23th, 2020
+ * changed: July 5th, 2020
  */
 public class CommandInput implements ICommandInput {
 
-    private final String alias;
     private final String[] arguments;
 
-    public CommandInput(@NotNull final String alias,
-                        @NotNull final String[] arguments) {
-        this.alias = alias;
-        this.arguments = arguments;
+    public CommandInput() {
+        this.arguments = new String[0];
     }
 
-    @Override
-    public @NotNull String getAlias() {
-        return this.alias;
+    public CommandInput(@NotNull final String[] arguments) {
+        this.arguments = arguments;
     }
 
     @Override
@@ -36,10 +32,11 @@ public class CommandInput implements ICommandInput {
 
     @Override
     public @NotNull ICommandInput getInput(final int start) {
-        final String[] arguments = this.arguments.length == start ? new String[0]
-                : Arrays.copyOfRange(this.arguments, start, this.arguments.length);
+        if (this.arguments.length <= start) {
+            return new CommandInput();
+        }
 
-        return new CommandInput(this.arguments[start - 1], arguments);
+        return new CommandInput(Arrays.copyOfRange(this.arguments, start, this.arguments.length));
     }
 
     @Override
@@ -48,11 +45,16 @@ public class CommandInput implements ICommandInput {
     }
 
     @Override
-    public @NotNull ChatColor getChatColor(final int index) throws InvalidColorException {
+    public @NotNull String get(final int index) {
+        return this.arguments[index];
+    }
+
+    @Override
+    public @NotNull ChatColor getChatColor(final int index) throws InvalidArgumentException {
         try {
             return ChatColor.valueOf(this.arguments[index].toUpperCase());
         } catch (IllegalArgumentException ex) {
-            throw new InvalidColorException(ex);
+            throw new InvalidArgumentException("invalidColor", this.arguments[index]);
         }
     }
 
@@ -79,95 +81,90 @@ public class CommandInput implements ICommandInput {
     }
 
     @Override
-    public @NotNull String get(final int index) {
-        return this.arguments[index];
-    }
-
-    @Override
-    public boolean getBoolean(final int index) throws InvalidBooleanException {
+    public boolean getBoolean(final int index) throws InvalidArgumentException {
         if (this.arguments[index].equalsIgnoreCase(Boolean.FALSE.toString())) {
             return false;
         } else if (this.arguments[index].equalsIgnoreCase(Boolean.TRUE.toString())) {
             return true;
         } else {
-            throw new InvalidBooleanException();
+            throw new InvalidArgumentException("invalidBoolean", this.arguments[index]);
         }
     }
 
     @Override
-    public boolean getEnable(final int index) throws InvalidBooleanException {
+    public boolean getEnable(final int index) throws InvalidArgumentException {
         if (this.arguments[index].equalsIgnoreCase(ENABLE_OFF)) {
             return false;
         } else if (this.arguments[index].equalsIgnoreCase(ENABLE_ON)) {
             return true;
         } else {
-            throw new InvalidBooleanException("invalidState");
+            throw new InvalidArgumentException("invalidState", this.arguments[index]);
         }
     }
 
     @Override
-    public double getDouble(final int index) throws InvalidNumberException {
+    public double getDouble(final int index) throws InvalidArgumentException {
         try {
             final double result = Double.parseDouble(this.arguments[index]);
 
             if (Double.isNaN(result) || Double.isInfinite(result)) {
-                throw new InvalidNumberException();
+                throw new InvalidArgumentException("invalidNumber", result);
             }
 
             return result;
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberException(ex);
+            throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
         }
     }
 
     @Override
-    public float getFloat(final int index) throws InvalidNumberException {
+    public float getFloat(final int index) throws InvalidArgumentException {
         try {
             final float result = Float.parseFloat(this.arguments[index]);
 
             if (Float.isNaN(result) || Float.isInfinite(result)) {
-                throw new InvalidNumberException();
+                throw new InvalidArgumentException("invalidNumber", result);
             }
 
             return result;
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberException(ex);
+            throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
         }
     }
 
     @Override
-    public int getInteger(final int index) throws InvalidNumberException {
+    public int getInteger(final int index) throws InvalidArgumentException {
         try {
             return Integer.parseInt(this.arguments[index]);
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberException(ex);
+            throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
         }
     }
 
     @Override
-    public int getUnsignedInteger(final int index) throws InvalidNumberException {
+    public int getUnsignedInteger(final int index) throws InvalidArgumentException {
         try {
             return Integer.parseUnsignedInt(this.arguments[index]);
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberException(ex);
+            throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
         }
     }
 
     @Override
-    public long getLong(final int index) throws InvalidNumberException {
+    public long getLong(final int index) throws InvalidArgumentException {
         try {
             return Long.parseLong(this.arguments[index]);
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberException(ex);
+            throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
         }
     }
 
     @Override
-    public long getUnsignedLong(final int index) throws InvalidNumberException {
+    public long getUnsignedLong(final int index) throws InvalidArgumentException {
         try {
             return Long.parseUnsignedLong(this.arguments[index]);
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberException(ex);
+            throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
         }
     }
 }

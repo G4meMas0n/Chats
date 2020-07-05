@@ -4,9 +4,9 @@ import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidChannelException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: January 11th, 2020
- * changed: June 21th, 2020
+ * changed: July 3rd, 2020
  */
 public final class FocusCommand extends ChatterCommand {
 
@@ -42,7 +42,7 @@ public final class FocusCommand extends ChatterCommand {
             final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
 
             if (channel == null || channel.isConversation()) {
-                throw new InvalidChannelException(input.get(CHANNEL));
+                throw new ChannelNotExistException(input.get(CHANNEL));
             }
 
             if (sender.canFocus(channel)) {
@@ -52,7 +52,7 @@ public final class FocusCommand extends ChatterCommand {
                         return true;
                     }
 
-                    if (channel.isBanned(sender.getUniqueId())) {
+                    if (channel.isBanned(sender.getUniqueId()) && !sender.hasPermission(Permission.BAN.getChildren("bypass"))) {
                         sender.sendMessage(Messages.tl("bannedMember", channel.getColoredName()));
                         return true;
                     }
@@ -107,8 +107,14 @@ public final class FocusCommand extends ChatterCommand {
                 }
 
                 if (sender.canFocus(channel)) {
-                    if (!sender.hasChannel(channel) && (channel.isBanned(sender.getUniqueId()) || !sender.canJoin(channel))) {
-                        continue;
+                    if (!sender.hasChannel(channel)) {
+                        if (!sender.canJoin(channel)) {
+                            continue;
+                        }
+
+                        if (channel.isBanned(sender.getUniqueId()) && !sender.hasPermission(Permission.BAN.getChildren("bypass"))) {
+                            continue;
+                        }
                     }
 
                     if (StringUtil.startsWithIgnoreCase(channel.getFullName(), input.get(CHANNEL))) {

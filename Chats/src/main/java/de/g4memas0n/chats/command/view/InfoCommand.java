@@ -6,9 +6,9 @@ import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidChannelException;
 import de.g4memas0n.chats.util.type.InfoType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: March 5th, 2020
- * changed: June 22th, 2020
+ * changed: July 4th, 2020
  */
 public final class InfoCommand extends BasicCommand {
 
@@ -44,7 +44,7 @@ public final class InfoCommand extends BasicCommand {
             final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
 
             if (channel == null || channel.isConversation()) {
-                throw new InvalidChannelException(input.get(CHANNEL));
+                throw new ChannelNotExistException(input.get(CHANNEL));
             }
 
             if (sender.canViewInfo(channel)) {
@@ -78,7 +78,7 @@ public final class InfoCommand extends BasicCommand {
                 if (channel.getOwner() != null && sender.canView(channel, InfoType.OWNER)) {
                     final IOfflineChatter owner = this.getInstance().getChatterManager().getOfflineChatter(channel.getOwner());
 
-                    sender.sendMessage(Messages.tl("infoOwner", owner != null ? owner.getName() : channel.getOwner().toString()));
+                    sender.sendMessage(Messages.tl("infoOwner", owner != null ? owner.getName() : channel.getOwner()));
                 }
 
                 if (sender.canView(channel, InfoType.FORMATS)) {

@@ -16,9 +16,16 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  *
  * created: January 8th, 2020
- * changed: June 22th, 2020
+ * changed: July 5th, 2020
  */
 public interface IPermissible {
+
+    /**
+     * Checks whether this command source has the given permission node
+     * @param node the permission node to check.
+     * @return true when this command source has the permission, false otherwise.
+     */
+    boolean hasPermission(@NotNull final String node);
 
     /**
      * Returns whether this permissible is permitted to ban the given chatter from the given channel.

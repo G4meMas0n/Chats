@@ -9,16 +9,16 @@ import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.util.Permission;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidChannelException;
-import de.g4memas0n.chats.util.input.InvalidNameException;
-import de.g4memas0n.chats.util.input.InvalidTypeException;
+import de.g4memas0n.chats.util.input.InvalidArgumentException;
 import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The create command that allows to create a new channel.
@@ -27,9 +27,14 @@ import java.util.UUID;
  * @since Release 1.0.0
  *
  * created: February 8th, 2020
- * changed: June 23th, 2020
+ * changed: July 5th, 2020
  */
 public final class CreateCommand extends BasicCommand {
+
+    /**
+     * Might be replaced with a configurable limit in the future.
+     */
+    private static final int LIMIT = 1;
 
     private static final int NAME = 0;
     private static final int TYPE = 1;
@@ -47,24 +52,25 @@ public final class CreateCommand extends BasicCommand {
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
             if (this.getInstance().getChannelManager().hasChannel(input.get(NAME))) {
-                throw new InvalidChannelException("channelAlreadyExist", input.get(NAME));
+                sender.sendMessage(Messages.tlErr("channelAlreadyExist", input.get(NAME)));
+                return true;
             }
 
-            final ChannelType type = input.getLength() == this.getMaxArgs() ? ChannelType.getType(input.get(TYPE)) : ChannelType.getDefault();
+            final ChannelType type = input.getLength() == this.getMaxArgs()
+                    ? ChannelType.getType(input.get(TYPE))
+                    : ChannelType.getDefault();
 
             if (type == null || type == ChannelType.CONVERSATION) {
-                throw new InvalidTypeException(input.get(TYPE));
+                throw new InvalidArgumentException("invalidType", input.get(TYPE));
             }
 
             if (sender.canCreate(type)) {
-                if (sender instanceof IChatter && sender.hasPermission(Permission.CREATE.formChildren("limit"))) {
-                    final UUID uniqueId = ((IChatter) sender).getUniqueId();
+                if (sender instanceof IChatter && !sender.hasPermission(Permission.CREATE.getChildren("unlimited"))) {
+                    final Set<IChannel> owning = ((IChatter) sender).getOwningChannels();
 
-                    for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-                        if (channel.isOwner(uniqueId)) {
-                            sender.sendMessage(Messages.tl("createLimit", 1));
-                            return true;
-                        }
+                    if (owning.size() >= LIMIT) {
+                        sender.sendMessage(Messages.tl("createLimit", 1));
+                        return true;
                     }
                 }
 
@@ -96,7 +102,7 @@ public final class CreateCommand extends BasicCommand {
                     sender.sendMessage(Messages.tl("createChannel", channel.getFullName(), Messages.tlType(type)));
                     return true;
                 } catch (IllegalArgumentException ex) {
-                    throw new InvalidNameException(input.get(NAME));
+                    throw new InvalidArgumentException("invalidName", input.get(NAME));
                 }
             }
 
@@ -105,6 +111,19 @@ public final class CreateCommand extends BasicCommand {
         }
 
         return false;
+    }
+
+    @Override
+    public @NotNull List<String> help(@NotNull final ICommandSource sender,
+                                      @NotNull final ICommandInput input) {
+        final List<String> help = super.help(sender, input);
+
+        help.add(Messages.tlJoin("helpTypes", Arrays.stream(ChannelType.values())
+                .filter(sender::canCreate)
+                .map(ChannelType::getIdentifier)
+                .collect(Collectors.toList())));
+
+        return help;
     }
 
     @Override

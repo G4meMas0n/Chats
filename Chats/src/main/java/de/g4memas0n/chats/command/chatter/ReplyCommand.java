@@ -16,7 +16,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: January 11th, 2020
- * changed: June 21th, 2020
+ * changed: July 3rd, 2020
  */
 public final class ReplyCommand extends ChatterCommand {
 
@@ -52,7 +52,7 @@ public final class ReplyCommand extends ChatterCommand {
                 return true;
             }
 
-            if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.formChildren("bypass"))) {
+            if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.getChildren("bypass"))) {
                 sender.sendMessage(Messages.tl("ignoredSender", partner.getDisplayName()));
                 return true;
             }

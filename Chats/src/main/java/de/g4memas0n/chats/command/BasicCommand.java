@@ -4,10 +4,12 @@ import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.IChats;
 import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.info.HelpCommand;
+import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -22,7 +24,7 @@ import java.util.Set;
  * @since Release 1.0.0
  *
  * created: February 24th, 2020
- * changed: June 21th, 2020
+ * changed: July 5th, 2020
  */
 public abstract class BasicCommand {
 
@@ -122,6 +124,21 @@ public abstract class BasicCommand {
      */
     public abstract boolean execute(@NotNull final ICommandSource sender,
                                     @NotNull final ICommandInput input) throws InputException;
+
+    public @NotNull List<String> help(@NotNull final ICommandSource sender,
+                                      @NotNull final ICommandInput input) {
+        final List<String> help = new ArrayList<>();
+
+        help.add(Messages.tl("helpHeader", this.name));
+        help.add(Messages.tl("helpDescription", this.description));
+        help.add(Messages.tl("helpUsage", this.usage));
+
+        if (this.aliases != null && !this.aliases.isEmpty()) {
+            help.add(Messages.tlJoin("helpAliases", this.aliases));
+        }
+
+        return help;
+    }
 
     /**
      * Requests a list of possible completions for a command argument.

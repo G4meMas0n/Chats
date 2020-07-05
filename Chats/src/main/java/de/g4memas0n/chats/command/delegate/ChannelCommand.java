@@ -9,6 +9,7 @@ import de.g4memas0n.chats.command.chatter.ChatterCommand;
 import de.g4memas0n.chats.command.chatter.FocusCommand;
 import de.g4memas0n.chats.command.chatter.JoinCommand;
 import de.g4memas0n.chats.command.chatter.LeaveCommand;
+import de.g4memas0n.chats.command.chatter.UnignoreCommand;
 import de.g4memas0n.chats.command.info.ListCommand;
 import de.g4memas0n.chats.command.manage.CreateCommand;
 import de.g4memas0n.chats.command.manage.DeleteCommand;
@@ -19,13 +20,11 @@ import de.g4memas0n.chats.command.moderate.ModerateCommand;
 import de.g4memas0n.chats.command.moderate.MuteCommand;
 import de.g4memas0n.chats.command.moderate.PardonCommand;
 import de.g4memas0n.chats.command.moderate.UnmuteCommand;
-import de.g4memas0n.chats.command.modify.ModeratorCommand;
 import de.g4memas0n.chats.command.modify.ModifyCommand;
 import de.g4memas0n.chats.command.view.InfoCommand;
 import de.g4memas0n.chats.command.view.WhoCommand;
 import de.g4memas0n.chats.util.Permission;
 import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.type.ModifyType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: February 10th, 2020
- * changed: June 22th, 2020
+ * changed: July 5th, 2020
  */
 public final class ChannelCommand extends DelegateCommand {
 
@@ -57,11 +56,11 @@ public final class ChannelCommand extends DelegateCommand {
         this.addCommand(new KickCommand());
         this.addCommand(new LeaveCommand());
         this.addCommand(new ListCommand());
-        this.addCommand(new ModeratorCommand());
         this.addCommand(new ModifyCommand());
         this.addCommand(new MuteCommand());
         this.addCommand(new PardonCommand());
         this.addCommand(new UnmuteCommand());
+        this.addCommand(new UnignoreCommand());
         this.addCommand(new WhoCommand());
 
         this.setAliases(Collections.singletonList("ch"));
@@ -160,21 +159,6 @@ public final class ChannelCommand extends DelegateCommand {
                 }
 
                 if (sender.canViewInfo(channel)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        // Show moderator command only if sender can modify the moderators of at least one existing channel:
-        if (delegate instanceof ModeratorCommand) {
-            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-                if (channel.isConversation()) {
-                    continue;
-                }
-
-                if (sender.canModify(channel, ModifyType.MODERATORS)) {
                     return true;
                 }
             }

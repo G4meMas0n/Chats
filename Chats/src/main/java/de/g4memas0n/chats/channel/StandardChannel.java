@@ -32,7 +32,7 @@ import java.util.UUID;
  * @since Release 1.0.0
  *
  * created: July 13th, 2019
- * changed: June 15th, 2020
+ * changed: July 4th, 2020
  */
 public class StandardChannel implements IChannel {
 
@@ -782,11 +782,6 @@ public class StandardChannel implements IChannel {
     @Override
     public void performChat(@NotNull final IChatter sender, @NotNull final String message) {
         if (!this.isMember(sender) || !sender.getPlayer().isOnline()) {
-            return;
-        }
-
-        if (this.isMuted(sender.getUniqueId())) {
-            sender.sendMessage(Messages.tl("mutedMember", this.getColoredName()));
             return;
         }
 

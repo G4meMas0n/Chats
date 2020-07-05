@@ -3,13 +3,14 @@ package de.g4memas0n.chats.command.storage;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.ICommandSource;
+import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidChannelException;
-import de.g4memas0n.chats.util.input.InvalidPlayerException;
+import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import de.g4memas0n.chats.util.logging.Log;
 import de.g4memas0n.chats.util.type.StorageType;
 import org.bukkit.util.StringUtil;
@@ -28,9 +29,9 @@ import java.util.logging.Level;
  * @since Release 1.0.0
  *
  * created: January 13th, 2020
- * changed: June 22th, 2020
+ * changed: July 3rd, 2020
  */
-public final class ReloadCommand extends StorageCommand {
+public final class ReloadCommand extends BasicCommand {
 
     private static final int TYPE = 0;
     private static final int STORAGE = 1;
@@ -59,7 +60,7 @@ public final class ReloadCommand extends StorageCommand {
                         final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(STORAGE));
 
                         if (channel == null || channel.isConversation()) {
-                            throw new InvalidChannelException(input.get(STORAGE));
+                            throw new ChannelNotExistException(input.get(STORAGE));
                         }
 
                         if (channel.isPersist() && channel instanceof IStorageHolder) {
@@ -86,7 +87,7 @@ public final class ReloadCommand extends StorageCommand {
                         final IChatter chatter = this.getInstance().getChatterManager().getChatter(input.get(STORAGE));
 
                         if (chatter == null) {
-                            throw new InvalidPlayerException(input.get(STORAGE));
+                            throw new PlayerNotFoundException(input.get(STORAGE));
                         }
 
                         final Future<?> task = this.getInstance().runStorageTask(chatter::load);

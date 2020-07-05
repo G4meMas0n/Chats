@@ -10,95 +10,69 @@ import org.jetbrains.annotations.Nullable;
  * @since Release 1.0.0
  *
  * created: February 3rd, 2020
- * changed: June 20th, 2020
+ * changed: July 4th, 2020
  */
 public enum ModifyType implements Type {
 
     /**
      * Represents the announce format modify option of a channel.
      */
-    ANNOUNCE_FORMAT("announce-format", "announceFormat", true, false, true),
+    ANNOUNCE_FORMAT("announce-format"),
 
     /**
      * Represents the broadcast-format modify option of a channel.
      */
-    BROADCAST_FORMAT("broadcast-format", "broadcastFormat", true, false, true),
+    BROADCAST_FORMAT("broadcast-format"),
 
     /**
      * Represents the chat-format modify option of a channel.
      */
-    CHAT_FORMAT("chat-format", "chatFormat", true, false, true),
+    CHAT_FORMAT("chat-format"),
 
     /**
      * Represents the color modify option of a channel.
      */
-    COLOR("color", false, true, true),
+    COLOR("color"),
 
     /**
      * Represents the cross-world modify option of a channel.
      */
-    CROSS_WORLD("cross-world", "crossWorld", false, true, true),
+    CROSS_WORLD("cross-world"),
 
     /**
      * Represents the custom-format modify option of a channel.
      */
-    CUSTOM_FORMAT("custom-format", "customFormat", false, true, true),
+    CUSTOM_FORMAT("custom-format"),
 
     /**
      * Represents the distance modify option of a channel.
      */
-    DISTANCE("distance", true, false, true),
+    DISTANCE("distance"),
 
     /**
      * Represents the moderators modify options of a channel.
      */
-    MODERATORS("moderators", false, false, false),
+    MODERATOR("moderator"),
 
     /**
      * Represents the owner modify option of a channel.
      */
-    OWNER("owner", true, false, true),
+    OWNER("owner"),
 
     /**
      * Represents the password modify option of a channel.
      */
-    PASSWORD("password", true, false, true),
+    PASSWORD("password"),
 
     /**
      * Represents the short-name modify option of a channel.
      */
-    SHORT_NAME("short-name", "shortName", true, false, true);
+    SHORT_NAME("short-name");
 
     private final String identifier;
-    private final String key;
 
-    private final boolean removable;
-    private final boolean resettable;
-    private final boolean settable;
-
-    ModifyType(@NotNull final String identifier,
-               final boolean removable,
-               final boolean resettable,
-               final boolean settable) {
+    ModifyType(@NotNull final String identifier) {
         this.identifier = identifier;
-        this.key = identifier;
-
-        this.removable = removable;
-        this.resettable = resettable;
-        this.settable = settable;
-    }
-
-    ModifyType(@NotNull final String identifier,
-               @NotNull final String key,
-               final boolean removable,
-               final boolean resettable,
-               final boolean settable) {
-        this.identifier = identifier;
-        this.key = key;
-
-        this.removable = removable;
-        this.resettable = resettable;
-        this.settable = settable;
     }
 
     @Override
@@ -108,24 +82,23 @@ public enum ModifyType implements Type {
 
     @Override
     public final @NotNull String getKey() {
-        return this.key;
-    }
+        final int index = this.identifier.indexOf("-");
 
-    public final boolean isRemovable() {
-        return this.removable;
-    }
+        if (index < 0) {
+            return this.identifier;
+        }
 
-    public final boolean isResettable() {
-        return this.resettable;
-    }
+        if (identifier.length() == index + 1) {
+            return this.identifier.substring(0, index);
+        }
 
-    public final boolean isSettable() {
-        return this.settable;
+        return this.identifier.substring(0, index) + this.identifier.substring(index + 1, index + 2).toUpperCase()
+                + this.identifier.substring(index + 2);
     }
 
     @Override
     public final @NotNull String toString() {
-        return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.key + "}";
+        return this.getClass().getSimpleName() + "{identifier=" + this.getIdentifier() + ";key=" + this.getKey() + "}";
     }
 
     /**

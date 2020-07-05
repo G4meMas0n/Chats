@@ -10,6 +10,8 @@ import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import java.util.List;
 
 /**
  * Implementation of a command source for the Bukkit/Spigot {@link ConsoleCommandSender} and {@link BlockCommandSender}.
@@ -18,18 +20,32 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  *
  * created: April 4th, 2020
- * changed: June 22th, 2020
+ * changed: July 5th, 2020
  */
 public final class CommandSource implements ICommandSource {
 
     private final CommandSender sender;
-    private final boolean console;
 
     public CommandSource(@NotNull final CommandSender sender) {
         this.sender = sender;
-        this.console = sender instanceof ConsoleCommandSender;
     }
 
+    @Override
+    public @Nullable IChatter getChatter() {
+        return null;
+    }
+
+    @Override
+    public boolean isChatter() {
+        return false;
+    }
+
+    @Override
+    public boolean isConsole() {
+        return this.sender instanceof ConsoleCommandSender;
+    }
+
+    // IMessageRecipient Implementation:
     @Override
     public void sendMessage(@NotNull final String message) {
         if (message.isEmpty()) {
@@ -39,6 +55,18 @@ public final class CommandSource implements ICommandSource {
         this.sender.sendMessage(message);
     }
 
+    @Override
+    public void sendMessage(@NotNull final List<String> messages) {
+        for (final String message : messages) {
+            if (message.isEmpty()) {
+                continue;
+            }
+
+            this.sender.sendMessage(message);
+        }
+    }
+
+    // IPermissible Implementation:
     @Override
     public boolean hasPermission(@NotNull final String node) {
         return this.sender.hasPermission(node);
@@ -56,11 +84,11 @@ public final class CommandSource implements ICommandSource {
         }
 
         // Check if chatter has permission to be excepted from channel bans.
-        if (chatter.hasPermission(Permission.BAN.formChildren("exempt"))) {
+        if (chatter.hasPermission(Permission.BAN.getChildren("exempt"))) {
             return false;
         }
 
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
@@ -69,7 +97,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
@@ -78,7 +106,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
@@ -108,11 +136,11 @@ public final class CommandSource implements ICommandSource {
         }
 
         // Check if chatter has permission to be excepted from channel bans.
-        if (chatter.hasPermission(Permission.KICK.formChildren("exempt"))) {
+        if (chatter.hasPermission(Permission.KICK.getChildren("exempt"))) {
             return false;
         }
 
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
@@ -141,7 +169,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
@@ -150,7 +178,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
@@ -159,7 +187,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
@@ -174,26 +202,26 @@ public final class CommandSource implements ICommandSource {
         }
 
         // Check if chatter has permission to be excepted from channel bans.
-        if (chatter.hasPermission(Permission.MUTE.formChildren("exempt"))) {
+        if (chatter.hasPermission(Permission.MUTE.getChildren("exempt"))) {
             return false;
         }
 
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
     public boolean canReload(@NotNull final StorageType type) {
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
     public boolean canSave(@NotNull final StorageType type) {
-        return this.console;
+        return this.isConsole();
     }
 
     @Override
     public boolean canSee(@NotNull final IChatter chatter) {
-        return this.console;
+        return this.isConsole();
     }
 
     @Override

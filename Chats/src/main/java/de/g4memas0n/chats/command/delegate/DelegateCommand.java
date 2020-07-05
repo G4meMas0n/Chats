@@ -1,7 +1,6 @@
 package de.g4memas0n.chats.command.delegate;
 
 import de.g4memas0n.chats.Chats;
-import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.BasicPluginCommand;
@@ -27,7 +26,7 @@ import java.util.Set;
  * @since Release 1.0.0
  *
  * created: May 29th, 2020
- * changed: June 23th, 2020
+ * changed: July 5th, 2020
  */
 public abstract class DelegateCommand extends BasicPluginCommand {
 
@@ -117,17 +116,7 @@ public abstract class DelegateCommand extends BasicPluginCommand {
             }
 
             if (sender.hasPermission(delegate.getPermission())) {
-                if (!delegate.execute(sender, input.getInput(ARGUMENTS))) {
-                    sender.sendMessage(Messages.tl("helpHeader", delegate.getName()));
-                    sender.sendMessage(Messages.tl("helpDescription", delegate.getDescription()));
-                    sender.sendMessage(Messages.tl("helpUsage", delegate.getUsage()));
-
-                    if (!delegate.getAliases().isEmpty()) {
-                        sender.sendMessage(Messages.tlJoin("helpAliases", delegate.getAliases()));
-                    }
-                }
-
-                return true;
+                return delegate.execute(sender, input.getInput(ARGUMENTS));
             }
 
             sender.sendMessage(Messages.tl("noPermission"));
@@ -138,13 +127,42 @@ public abstract class DelegateCommand extends BasicPluginCommand {
     }
 
     @Override
+    public @NotNull List<String> help(@NotNull final ICommandSource sender,
+                                      @NotNull final ICommandInput input) {
+        if (input.getLength() >= ARGUMENTS + 1) {
+            final BasicCommand delegate = this.getCommand(input.get(DELEGATE));
+
+            if (delegate != null && sender.hasPermission(delegate.getPermission())) {
+                return delegate.help(sender, input.getInput(ARGUMENTS));
+            }
+        }
+
+        final List<String> help = super.help(sender, input);
+        final List<String> delegates = new ArrayList<>();
+
+        for (final BasicCommand delegate : this.commands.values()) {
+            if (delegate instanceof ChatterCommand && !sender.isChatter()) {
+                continue;
+            }
+
+            if (sender.hasPermission(delegate.getPermission())) {
+                delegates.add(delegate.getName());
+            }
+        }
+
+        help.add(Messages.tlJoin("helpCommands", delegates));
+
+        return help;
+    }
+
+    @Override
     public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                              @NotNull final ICommandInput input) {
         if (input.getLength() == DELEGATE + 1) {
             final List<String> completion = new ArrayList<>();
 
             for (final BasicCommand delegate : this.commands.values()) {
-                if (delegate instanceof ChatterCommand && !(sender instanceof IChatter)) {
+                if (delegate instanceof ChatterCommand && !sender.isChatter()) {
                     continue;
                 }
 

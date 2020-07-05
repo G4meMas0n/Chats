@@ -5,9 +5,10 @@ import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidPlayerException;
+import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -21,9 +22,9 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: March 12th, 2020
- * changed: June 21th, 2020
+ * changed: July 4th, 2020
  */
-public final class MuteCommand extends ModerateMemberCommand {
+public final class MuteCommand extends ModerateCommand {
 
     public MuteCommand() {
         super("mute", 2 , 2);
@@ -35,13 +36,12 @@ public final class MuteCommand extends ModerateMemberCommand {
 
     @Override
     public boolean execute(@NotNull final ICommandSource sender,
-                           @NotNull final ICommandInput input,
-                           @NotNull final IChannel channel) throws InputException {
+                           @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
             final IChatter target = this.getInstance().getChatterManager().getChatter(input.get(TARGET));
 
-            if (target == null) {
-                throw new InvalidPlayerException(input.get(TARGET));
+            if (target == null || !sender.canSee(target)) {
+                throw new PlayerNotFoundException(input.get(TARGET));
             }
 
             if (target.equals(sender)) {
@@ -49,27 +49,38 @@ public final class MuteCommand extends ModerateMemberCommand {
                 return true;
             }
 
-            if (!channel.isMember(target)) {
-                sender.sendMessage(Messages.tl("noMember", target.getDisplayName(), channel.getColoredName()));
-                return true;
+            final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
+
+            if (channel == null || channel.isConversation()) {
+                throw new ChannelNotExistException(input.get(CHANNEL));
             }
 
-            if (channel.isMuted(target.getUniqueId())) {
-                sender.sendMessage(Messages.tl("muteAlready", target.getDisplayName(), channel.getColoredName()));
-                return true;
-            }
-
-            if (sender.canMute(target, channel)) {
-                if (channel.muteMember(target)) {
-                    sender.sendMessage(Messages.tl("muteMember", target.getDisplayName(), channel.getColoredName()));
+            if (sender.canModerate(channel)) {
+                if (!channel.isMember(target)) {
+                    sender.sendMessage(Messages.tl("noMember", target.getDisplayName(), channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("muteFailed", target.getDisplayName(), channel.getColoredName()));
+                if (channel.isMuted(target.getUniqueId())) {
+                    sender.sendMessage(Messages.tl("muteAlready", target.getDisplayName(), channel.getColoredName()));
+                    return true;
+                }
+
+                if (sender.canMute(target, channel)) {
+                    if (channel.muteMember(target)) {
+                        sender.sendMessage(Messages.tl("muteMember", target.getDisplayName(), channel.getColoredName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(Messages.tl("muteFailed", target.getDisplayName(), channel.getColoredName()));
+                    return true;
+                }
+
+                sender.sendMessage(Messages.tl("muteDenied", target.getDisplayName(), channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("muteDenied", target.getDisplayName(), channel.getColoredName()));
+            sender.sendMessage(Messages.tl("moderateDenied", channel.getColoredName()));
             return true;
         }
 
@@ -110,7 +121,7 @@ public final class MuteCommand extends ModerateMemberCommand {
         if (input.getLength() == CHANNEL + 1) {
             final IChatter target = this.getInstance().getChatterManager().getChatter(input.get(TARGET));
 
-            if (target == null) {
+            if (target == null || !sender.canSee(target)) {
                 return Collections.emptyList();
             }
 
