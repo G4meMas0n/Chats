@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  *
  * created: June 23th, 2020
- * changed: June 23th, 2020
+ * changed: July 5th, 2020
  */
 public interface ICommandInput {
 
@@ -23,12 +23,6 @@ public interface ICommandInput {
      * Represents the enable option for the state "off" ("false").
      */
     @NotNull String ENABLE_ON = "on";
-
-    /**
-     * Returns the used command alias of the executed/tab-completed command.
-     * @return the used alias.
-     */
-    @NotNull String getAlias();
 
     /**
      * Returns the passed command arguments of the executed/tab-completed command.
@@ -50,13 +44,20 @@ public interface ICommandInput {
     int getLength();
 
     /**
+     * Gets the requested index from the command input.
+     * @param index the index of the argument.
+     * @return the passed argument at the given index.
+     */
+    @NotNull String get(final int index);
+
+    /**
      * Gets the requested chat color by the given argument index, throwing an exception when the arguments at the given
      * index is not a parsable chat color.
      * @param index the index of the argument.
      * @return the parsed chat color.
-     * @throws InvalidColorException Thrown when the argument at the given index is not a parsable chat color.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable chat color.
      */
-    @NotNull ChatColor getChatColor(final int index) throws InvalidColorException;
+    @NotNull ChatColor getChatColor(final int index) throws InvalidArgumentException;
 
     /**
      * Gets the requested format that starts by the given argument index, replacing all '&' to '§'.
@@ -73,85 +74,78 @@ public interface ICommandInput {
     @NotNull String getMessage(final int start);
 
     /**
-     * Gets the requested index from the command input.
-     * @param index the index of the argument.
-     * @return the passed argument at the given index.
-     */
-    @NotNull String get(final int index);
-
-    /**
      * Gets the requested boolean by the given index, throwing an exception when the argument at the given index is not
      * a parsable boolean value.
      * @param index the index of the argument.
      * @return the parsed boolean.
-     * @throws InvalidBooleanException Thrown when the argument at the given index is not a parsable boolean.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable boolean.
      */
-    boolean getBoolean(final int index) throws InvalidBooleanException;
+    boolean getBoolean(final int index) throws InvalidArgumentException;
 
     /**
      * Gets the requested enable state by the given index, throwing an exception when the argument at the given index
      * is not a parsable enable state.
      * @param index the index of the argument.
      * @return the parsed enable state as boolean.
-     * @throws InvalidBooleanException Thrown when the argument at the given index is not a parsable enable state.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable enable state.
      */
-    boolean getEnable(final int index) throws InvalidBooleanException;
+    boolean getEnable(final int index) throws InvalidArgumentException;
 
     /**
      * Gets the requested double by the given index, throwing an exception when the argument at the given index is not
      * a parsable double value.
      * @param index the index of the argument.
      * @return the parsed double value.
-     * @throws InvalidNumberException Thrown when the argument at the given index is not a parsable double value.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable double value.
      */
     @SuppressWarnings("unused")
-    double getDouble(final int index) throws InvalidNumberException;
+    double getDouble(final int index) throws InvalidArgumentException;
 
     /**
      * Gets the requested float by the given index, throwing an exception when the argument at the given index is not
      * a parsable float value.
      * @param index the index of the argument.
      * @return the parsed float value.
-     * @throws InvalidNumberException Thrown when the argument at the given index is not a parsable float value.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable float value.
      */
     @SuppressWarnings("unused")
-    float getFloat(final int index) throws InvalidNumberException;
+    float getFloat(final int index) throws InvalidArgumentException;
 
     /**
      * Gets the requested integer by the given index, throwing an exception when the argument at the given index is not
      * a parsable integer value.
      * @param index the index of the argument.
      * @return the parsed integer.
-     * @throws InvalidNumberException Thrown when the argument at the given index is not a parsable integer.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable integer.
      */
-    int getInteger(final int index) throws InvalidNumberException;
+    int getInteger(final int index) throws InvalidArgumentException;
 
     /**
      * Gets the requested unsigned integer by the given index, throwing an exception when the argument at the given
      * index is not a parsable unsigned integer.
      * @param index the index of the argument.
      * @return the parsed unsigned integer.
-     * @throws InvalidNumberException Thrown when the argument at the given index is not a parsable unsigned integer.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable unsigned integer.
      */
     @SuppressWarnings("unused")
-    int getUnsignedInteger(final int index) throws InvalidNumberException;
+    int getUnsignedInteger(final int index) throws InvalidArgumentException;
 
     /**
      * Gets the requested long by the given index, throwing an exception when the argument at the given index is not
      * a parsable long.
      * @param index the index of the argument.
      * @return the parsed long.
-     * @throws InvalidNumberException Thrown when the argument at the given index is not a parsable long.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable long.
      */
     @SuppressWarnings("unused")
-    long getLong(final int index) throws InvalidNumberException;
+    long getLong(final int index) throws InvalidArgumentException;
 
     /**
      * Gets the requested unsigned long by the given index, throwing an exception when the argument at the given index
      * is not a parsable unsigned long.
      * @param index the index of the argument.
      * @return the parsed unsigned long.
-     * @throws InvalidNumberException Thrown when the argument at the given index is not parsable unsigned long.
+     * @throws InvalidArgumentException Thrown when the argument at the given index is not parsable unsigned long.
      */
-    long getUnsignedLong(final int index) throws InvalidNumberException;
+    long getUnsignedLong(final int index) throws InvalidArgumentException;
 }

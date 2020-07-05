@@ -5,9 +5,9 @@ import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidChannelException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: February 8th, 2020
- * changed: June 23th, 2020
+ * changed: July 3rd, 2020
  */
 public final class DeleteCommand extends BasicCommand {
 
@@ -42,7 +42,7 @@ public final class DeleteCommand extends BasicCommand {
             final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
 
             if (channel == null || channel.isConversation()) {
-                throw new InvalidChannelException(input.get(CHANNEL));
+                throw new ChannelNotExistException(input.get(CHANNEL));
             }
 
             if (sender.canDelete(channel)) {

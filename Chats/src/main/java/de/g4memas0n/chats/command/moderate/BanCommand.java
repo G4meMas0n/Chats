@@ -5,9 +5,10 @@ import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidPlayerException;
+import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -21,9 +22,9 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: March 12th, 2020
- * changed: June 21th, 2020
+ * changed: July 4th, 2020
  */
-public final class BanCommand extends ModerateMemberCommand {
+public final class BanCommand extends ModerateCommand {
 
     public BanCommand() {
         super("ban", 2, 2);
@@ -35,18 +36,12 @@ public final class BanCommand extends ModerateMemberCommand {
 
     @Override
     public boolean execute(@NotNull final ICommandSource sender,
-                           @NotNull final ICommandInput input,
-                           @NotNull final IChannel channel) throws InputException {
+                           @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
-            if (channel.isDefault()) {
-                sender.sendMessage(Messages.tlErr("banDefault"));
-                return true;
-            }
-
             final IChatter target = this.getInstance().getChatterManager().getChatter(input.get(TARGET));
 
             if (target == null || !sender.canSee(target)) {
-                throw new InvalidPlayerException(input.get(TARGET));
+                throw new PlayerNotFoundException(input.get(TARGET));
             }
 
             if (target.equals(sender)) {
@@ -54,27 +49,43 @@ public final class BanCommand extends ModerateMemberCommand {
                 return true;
             }
 
-            if (channel.isBanned(target.getUniqueId())) {
-                sender.sendMessage(Messages.tl("banAlready", target.getDisplayName(), channel.getColoredName()));
-                return true;
+            final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
+
+            if (channel == null || channel.isConversation()) {
+                throw new ChannelNotExistException(input.get(CHANNEL));
             }
 
-            if (!channel.isMember(target)) {
-                sender.sendMessage(Messages.tl("noMember", target.getDisplayName(), channel.getColoredName()));
-                return true;
-            }
-
-            if (sender.canBan(target, channel)) {
-                if (channel.banMember(target)) {
-                    sender.sendMessage(Messages.tl("banMember", target.getDisplayName(), channel.getColoredName()));
+            if (sender.canModerate(channel)) {
+                if (channel.isDefault()) {
+                    sender.sendMessage(Messages.tlErr("banDefault"));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("banFailed", target.getDisplayName(), channel.getColoredName()));
+                if (channel.isBanned(target.getUniqueId())) {
+                    sender.sendMessage(Messages.tl("banAlready", target.getDisplayName(), channel.getColoredName()));
+                    return true;
+                }
+
+                if (!channel.isMember(target)) {
+                    sender.sendMessage(Messages.tl("noMember", target.getDisplayName(), channel.getColoredName()));
+                    return true;
+                }
+
+                if (sender.canBan(target, channel)) {
+                    if (channel.banMember(target)) {
+                        sender.sendMessage(Messages.tl("banMember", target.getDisplayName(), channel.getColoredName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(Messages.tl("banFailed", target.getDisplayName(), channel.getColoredName()));
+                    return true;
+                }
+
+                sender.sendMessage(Messages.tl("banDenied", target.getDisplayName(), channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("banDenied", target.getDisplayName(), channel.getColoredName()));
+            sender.sendMessage(Messages.tl("moderateDenied", channel.getColoredName()));
             return true;
         }
 
@@ -115,7 +126,7 @@ public final class BanCommand extends ModerateMemberCommand {
         if (input.getLength() == CHANNEL + 1) {
             final IChatter target = this.getInstance().getChatterManager().getChatter(input.get(TARGET));
 
-            if (target == null) {
+            if (target == null || !sender.canSee(target)) {
                 return Collections.emptyList();
             }
 

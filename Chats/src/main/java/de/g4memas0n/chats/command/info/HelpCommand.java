@@ -5,9 +5,9 @@ import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.BasicPluginCommand;
 import de.g4memas0n.chats.command.chatter.ChatterCommand;
-import de.g4memas0n.chats.command.delegate.DelegateCommand;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.input.CommandInput;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +22,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: February 8th, 2020
- * changed: June 23th, 2020
+ * changed: July 5th, 2020
  */
 public final class HelpCommand extends BasicCommand {
 
@@ -40,63 +40,36 @@ public final class HelpCommand extends BasicCommand {
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) {
         if (this.argsInRange(input.getLength())) {
-            if (input.getLength() == this.getMinArgs()) {
-                sender.sendMessage(Messages.tl("helpHeader", Messages.tl("commands")));
+            if (input.getLength() == this.getMaxArgs()) {
+                final BasicCommand command = this.getRegistered(input.get(COMMAND));
 
-                for (final BasicCommand command : this.getRegistered()) {
-                    if (command instanceof BasicPluginCommand) {
-                        if (command instanceof ChatterCommand && !(sender instanceof IChatter)) {
-                            continue;
-                        }
-
-                        if (sender.hasPermission(command.getPermission())) {
-                            sender.sendMessage(Messages.tl("helpCommand", command.getName(), command.getDescription()));
-                        }
-                    }
+                if (command == null || !sender.hasPermission(command.getPermission())) {
+                    sender.sendMessage(Messages.tlErr("commandNotFound", input.get(COMMAND)));
+                    return true;
                 }
 
-                sender.sendMessage(Messages.tl("helpFooter", this.getUsage().replaceAll("\\[(.*?)]", "$1")));
+                for (final String message : command.help(sender, new CommandInput())) {
+                    sender.sendMessage(message);
+                }
+
                 return true;
             }
 
-            final BasicCommand command = this.getRegistered(input.get(COMMAND));
+            sender.sendMessage(Messages.tl("helpHeader", Messages.tl("commands")));
 
-            if (command == null) {
-                sender.sendMessage(Messages.tlErr("commandNotFound", input.get(COMMAND)));
-                return true;
-            }
-
-            if (sender.hasPermission(command.getPermission())) {
-                sender.sendMessage(Messages.tl("helpHeader", command.getName()));
-                sender.sendMessage(Messages.tl("helpDescription", command.getDescription()));
-                sender.sendMessage(Messages.tl("helpUsage", command.getUsage()));
-
-                if (!command.getAliases().isEmpty()) {
-                    sender.sendMessage(Messages.tlJoin("helpAliases", command.getAliases()));
-                }
-
-                if (command instanceof DelegateCommand) {
-                    final List<String> commands = new ArrayList<>();
-
-                    for (final BasicCommand delegate : ((DelegateCommand) command).getCommands()) {
-                        if (delegate instanceof ChatterCommand && !(sender instanceof IChatter)) {
-                            continue;
-                        }
-
-                        if (sender.hasPermission(delegate.getPermission())) {
-                            commands.add(delegate.getName());
-                        }
+            for (final BasicCommand command : this.getRegistered()) {
+                if (command instanceof BasicPluginCommand) {
+                    if (command instanceof ChatterCommand && !(sender instanceof IChatter)) {
+                        continue;
                     }
 
-                    Collections.sort(commands);
-
-                    sender.sendMessage(Messages.tlJoin("helpCommands", commands));
+                    if (sender.hasPermission(command.getPermission())) {
+                        sender.sendMessage(Messages.tl("helpCommand", command.getName(), command.getDescription()));
+                    }
                 }
-
-                return true;
             }
 
-            sender.sendMessage(Messages.tlErr("commandNotFound", input.get(COMMAND)));
+            sender.sendMessage(Messages.tl("helpFooter", this.getUsage().replaceAll("\\[(.*)]", "$1")));
             return true;
         }
 

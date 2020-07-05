@@ -17,7 +17,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: June 21th, 2020
- * changed: June 21th, 2020
+ * changed: July 5th, 2020
  */
 public abstract class ChatterCommand extends BasicPluginCommand {
 
@@ -30,8 +30,8 @@ public abstract class ChatterCommand extends BasicPluginCommand {
     @Override
     public final boolean execute(@NotNull final ICommandSource sender,
                                  @NotNull final ICommandInput input) throws InputException {
-        if (sender instanceof IChatter) {
-            return this.execute((IChatter) sender, input);
+        if (sender.getChatter() != null) {
+            return this.execute(sender.getChatter(), input);
         }
 
         sender.sendMessage(Messages.tlErr("commandNotAvailable", this.getName()));
@@ -51,8 +51,8 @@ public abstract class ChatterCommand extends BasicPluginCommand {
     @Override
     public final @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                                    @NotNull final ICommandInput input) {
-        if (sender instanceof IChatter) {
-            return this.tabComplete((IChatter) sender, input);
+        if (sender.getChatter() != null) {
+            return this.tabComplete(sender.getChatter(), input);
         }
 
         return Collections.emptyList();

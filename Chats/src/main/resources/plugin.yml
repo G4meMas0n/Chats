@@ -1,6 +1,6 @@
 main: de.g4memas0n.chats.Chats
 name: Chats
-version: 1.0.0
+version: 1.0.0-pre1
 description: A Plugin that provides a channel based chat.
 author: G4meMas0n
 api-version: '1.13'
@@ -66,7 +66,6 @@ permissions:
       chats.kick: true
       chats.mute: true
       chats.pardon: true
-      chats.unmute: true
 
   # Wildcard permissions:
   chats.create.type.*:
@@ -75,12 +74,14 @@ permissions:
     children:
       chats.create.type.persist: true
       chats.create.type.standard: true
+
   chats.delete.type.*:
     description: Allows to delete all channel types.
     default: false
     children:
       chats.delete.type.persist: true
       chats.delete.type.standard: true
+
   chats.list.type.*:
     description: Allows to list all channel types.
     default: false
@@ -88,6 +89,7 @@ permissions:
       chats.list.type.conversation: true
       chats.list.type.standard: true
       chats.list.type.persist: true
+
   chats.modify.type.*:
     description: Allows to modify all modify types.
     default: false
@@ -99,15 +101,15 @@ permissions:
       chats.modify.type.cross-world: true
       chats.modify.type.custom-format: true
       chats.modify.type.distance: true
-      chats.modify.type.moderators: true
+      chats.modify.type.moderator: true
       chats.modify.type.owner: true
       chats.modify.type.password: true
       chats.modify.type.short-name: true
+
   chats.view.type.*:
     description: Allows to view all info types.
     default: false
     children:
-      chats.view.type.bans: true
       chats.view.type.color: true
       chats.view.type.cross-world: true
       chats.view.type.distance: true
@@ -118,6 +120,7 @@ permissions:
       chats.view.type.password: true
       chats.view.type.short-name: true
       chats.view.type.type: true
+
   chats.view.*:
     description: Allows to view all channel informations.
     default: false
@@ -129,6 +132,7 @@ permissions:
       chats.view.who: true
       chats.view.who.persist.all: true
       chats.view.who.standard.all: true
+
   chats.reload.type.*:
     description: Allows to reload all reload types.
     default: false
@@ -137,6 +141,7 @@ permissions:
       chats.reload.type.channels: true
       chats.reload.type.chatters: true
       chats.reload.type.config: true
+
   chats.save.type.*:
     description: Allows to reload all reload types.
     default: false
@@ -145,93 +150,3 @@ permissions:
       chats.save.type.channels: true
       chats.save.type.chatters: true
       chats.save.type.config: true
-
-  # Predefined permission (Only available for testing):
-  chats.user:
-    description: Permission for granting user access.
-    default: false
-    children:
-      chats.channel: true
-      chats.focus: true
-      chats.help: true
-      chats.ignore: true
-      chats.join: true
-      chats.leave: true
-      chats.list: true
-      chats.moderate: true
-      chats.msg: true
-      chats.speak: true
-      chats.use: true
-  chats.vip:
-    description: Permission for granting vip access.
-    default: false
-    children:
-      chats.create: true
-      chats.create.limit: true
-      chats.create.type.standard: true
-      chats.delete: true
-      chats.delete.own: true
-      chats.moderate.own: true
-      chats.modify: true
-      chats.modify.own: true
-      chats.user: true
-      chats.view.info: true
-      chats.view.info.own: true
-      chats.view.who: true
-      chats.view.who.own: true
-  chats.moderator:
-    description: Permission for granting moderator access.
-    default: false
-    children:
-      chats.ban: true
-      chats.ban.exempt: true
-      chats.broadcast: true
-      chats.delete: true
-      chats.delete.type.standard: true
-      chats.ignore.exempt: true
-      chats.kick: true
-      chats.kick.exempt: true
-      chats.list.type.standard: true
-      chats.mute: true
-      chats.mute.exempt: true
-      chats.pardon: true
-      chats.unmute: true
-      chats.user: true
-      chats.view.info: true
-      chats.view.info.standard.all: true
-      chats.view.type.owner: true
-      chats.view.type.password: true
-      chats.view.type.short-name: true
-      chats.view.type.type: true
-      chats.view.who: true
-      chats.view.who.standard.all: true
-  chats.admin:
-    description: Permission for granting admin access.
-    default: op
-    children:
-      chats.cleanup: true
-      chats.vip: true
-      chats.moderator: true
-      chats.create.limit: false
-      chats.create.type.*: true
-      chats.delete.type.*: true
-      chats.focus.persist.all: true
-      chats.ignore.bypass: true
-      chats.join.persist.all: true
-      chats.leave.persist.all: true
-      chats.list.type.*: true
-      chats.moderate.persist.all: true
-      chats.moderate.standard.all: true
-      chats.modify.persist.all: true
-      chats.modify.standard.all: true
-      chats.modify.type.*: true
-      chats.msg.exempt: false
-      chats.msg.exempt.bypass: true
-      chats.reload: true
-      chats.reload.type.*: true
-      chats.save: true
-      chats.save.type.*: true
-      chats.social-spy: true
-      chats.speak.persist.all: true
-      chats.version: true
-      chats.view.*: true

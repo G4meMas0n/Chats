@@ -2,22 +2,14 @@ package de.g4memas0n.chats.command;
 
 import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.chatter.CommandSource;
-import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.ICommandSource;
-import de.g4memas0n.chats.command.chatter.ChatterCommand;
-import de.g4memas0n.chats.command.delegate.DelegateCommand;
 import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.CommandInput;
+import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidBooleanException;
-import de.g4memas0n.chats.util.input.InvalidChannelException;
-import de.g4memas0n.chats.util.input.InvalidColorException;
-import de.g4memas0n.chats.util.input.InvalidFormatException;
-import de.g4memas0n.chats.util.input.InvalidNameException;
-import de.g4memas0n.chats.util.input.InvalidNumberException;
-import de.g4memas0n.chats.util.input.InvalidPasswordException;
-import de.g4memas0n.chats.util.input.InvalidPlayerException;
-import de.g4memas0n.chats.util.input.InvalidTypeException;
+import de.g4memas0n.chats.util.input.InvalidArgumentException;
+import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import de.g4memas0n.chats.util.logging.Log;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,7 +17,6 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -37,7 +28,7 @@ import java.util.logging.Level;
  * @since Release 1.0.0
  *
  * created: February 25th, 2020
- * changed: June 23th, 2020
+ * changed: July 5th, 2020
  */
 public abstract class BasicPluginCommand extends BasicCommand implements TabExecutor {
 
@@ -161,7 +152,7 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
 
     @Override
     public final boolean onCommand(@NotNull final CommandSender sender,
-                                   @NotNull final Command ignored,
+                                   @NotNull final Command command,
                                    @NotNull final String alias,
                                    @NotNull final String[] arguments) {
         if (this.command == null) {
@@ -170,103 +161,27 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
         }
 
         if (sender.hasPermission(this.getPermission())) {
-            final ICommandSource source = sender instanceof Player ? this.getInstance().getChatterManager().getChatter((Player) sender) : new CommandSource(sender);
+            final ICommandSource source = sender instanceof Player
+                    ? this.getInstance().getChatterManager().getChatter((Player) sender)
+                    : new CommandSource(sender);
+            final ICommandInput input = new CommandInput(arguments);
 
             try {
-                if (!this.execute(source, new CommandInput(alias, arguments))) {
-                    sender.sendMessage(Messages.tl("helpHeader", this.getName()));
-                    sender.sendMessage(Messages.tl("helpDescription", this.getDescription()));
-                    sender.sendMessage(Messages.tl("helpUsage", this.getUsage()));
-
-                    if (!this.getAliases().isEmpty()) {
-                        sender.sendMessage(Messages.tlJoin("helpAliases", this.getAliases()));
-                    }
-
-                    if (this instanceof DelegateCommand) {
-                        final List<String> commands = new ArrayList<>();
-
-                        for (final BasicCommand command : ((DelegateCommand) this).getCommands()) {
-                            if (command instanceof ChatterCommand && !(source instanceof IChatter)) {
-                                continue;
-                            }
-
-                            if (sender.hasPermission(command.getPermission())) {
-                                commands.add(command.getName());
-                            }
-                        }
-
-                        Collections.sort(commands);
-
-                        sender.sendMessage(Messages.tlJoin("helpCommands", commands));
-                    }
-                }
-
-                return true;
-            } catch (InvalidBooleanException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("invalidBoolean"));
+                if (this.execute(source, input)) {
                     return true;
                 }
 
-                source.sendMessage(Messages.tlErr(ex.getKey()));
-            } catch (InvalidChannelException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("channelNotExist", ex.getName()));
-                    return true;
+                for (final String message : this.help(source, input)) {
+                    source.sendMessage(message);
                 }
-
-                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getName()));
-            } catch (InvalidColorException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("invalidColor"));
-                    return true;
-                }
-
-                source.sendMessage(Messages.tlErr(ex.getKey()));
-            } catch (InvalidFormatException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("invalidFormat", Messages.tl(ex.getFormat())));
-                    return true;
-                }
-
-                source.sendMessage(Messages.tlErr(ex.getKey(), Messages.tl(ex.getFormat())));
-            } catch (InvalidNameException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("invalidName", ex.getName()));
-                    return true;
-                }
-
-                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getName()));
-            } catch (InvalidNumberException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("invalidNumber"));
-                    return true;
-                }
-
-                source.sendMessage(Messages.tlErr(ex.getKey()));
-            } catch (InvalidPasswordException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("invalidPassword", ex.getPassword()));
-                    return true;
-                }
-
-                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getPassword()));
-            } catch (InvalidPlayerException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("playerNotFound", ex.getName()));
-                    return true;
-                }
-
-                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getName()));
-            } catch (InvalidTypeException ex) {
-                if (ex.getKey() == null) {
-                    source.sendMessage(Messages.tlErr("invalidType", ex.getIdentifier()));
-                    return true;
-                }
-
-                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getIdentifier()));
+            } catch (ChannelNotExistException ex) {
+                source.sendMessage(Messages.tlErr("channelNotExist", ex.getChannel()));
+            } catch (PlayerNotFoundException ex) {
+                source.sendMessage(Messages.tlErr("playerNotFound", ex.getPlayer()));
+            } catch (InvalidArgumentException ex) {
+                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getArguments()));
             } catch (InputException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Command execution has thrown an unexpected exception: ", ex);
+                Log.getPlugin().log(Level.SEVERE, String.format("Command execution of '%s' has thrown an unexpected input exception: ", this.getName()), ex);
             }
 
             return true;
@@ -290,7 +205,7 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
             final ICommandSource source = sender instanceof Player
                     ? this.getInstance().getChatterManager().getChatter((Player) sender) : new CommandSource(sender);
 
-            return this.tabComplete(source, new CommandInput(alias, arguments));
+            return this.tabComplete(source, new CommandInput(arguments));
         }
 
         return Collections.emptyList();

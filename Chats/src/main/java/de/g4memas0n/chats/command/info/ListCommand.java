@@ -7,13 +7,15 @@ import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidTypeException;
+import de.g4memas0n.chats.util.input.InvalidArgumentException;
 import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The list command that allows to list available channels.
@@ -22,7 +24,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: February 8th, 2020
- * changed: June 22th, 2020
+ * changed: July 5th, 2020
  */
 public final class ListCommand extends BasicCommand {
 
@@ -44,28 +46,19 @@ public final class ListCommand extends BasicCommand {
                 final ChannelType type = ChannelType.getType(input.get(TYPE));
 
                 if (type == null) {
-                    throw new InvalidTypeException(input.get(TYPE));
+                    throw new InvalidArgumentException("invalidType", input.get(TYPE));
                 }
 
                 if (sender.canList(type)) {
                     final List<String> channels = new ArrayList<>();
 
-                    if (type == ChannelType.CONVERSATION) {
-                        for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-                            if (!channel.isConversation()) {
-                                continue;
-                            }
-
-                            channels.add(channel.getColor() + channel.getShortName());
+                    for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                        if (channel.getType() != type) {
+                            continue;
                         }
-                    } else {
-                        for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-                            if (channel.getType() != type) {
-                                continue;
-                            }
 
-                            channels.add(channel.getColoredName());
-                        }
+                        channels.add(!channel.isConversation() ? channel.getColoredName()
+                                : channel.getColor() + channel.getShortName());
                     }
 
                     if (channels.isEmpty()) {
@@ -78,11 +71,6 @@ public final class ListCommand extends BasicCommand {
                     sender.sendMessage(Messages.tl("listHeader", Messages.tlType(type)));
                     sender.sendMessage(Messages.tlJoin("listChannels", channels));
                     return true;
-                }
-
-                // Check if type is CONVERSATION, to hide this type for users with no permission.
-                if (type == ChannelType.CONVERSATION) {
-                    throw new InvalidTypeException(input.get(TYPE));
                 }
 
                 sender.sendMessage(Messages.tl("listDenied", Messages.tlType(type)));
@@ -114,6 +102,19 @@ public final class ListCommand extends BasicCommand {
         }
 
         return false;
+    }
+
+    @Override
+    public @NotNull List<String> help(@NotNull final ICommandSource sender,
+                                      @NotNull final ICommandInput input) {
+        final List<String> help = super.help(sender, input);
+
+        help.add(Messages.tlJoin("helpTypes", Arrays.stream(ChannelType.values())
+                .filter(sender::canList)
+                .map(ChannelType::getIdentifier)
+                .collect(Collectors.toList())));
+
+        return help;
     }
 
     @Override

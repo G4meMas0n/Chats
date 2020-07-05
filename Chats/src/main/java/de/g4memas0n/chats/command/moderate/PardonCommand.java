@@ -6,9 +6,10 @@ import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidPlayerException;
+import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -23,9 +24,9 @@ import java.util.UUID;
  * @since Release 1.0.0
  *
  * created: April 8th, 2020
- * changed: June 22th, 2020
+ * changed: July 4th, 2020
  */
-public final class PardonCommand extends ModerateMemberCommand {
+public final class PardonCommand extends ModerateCommand {
 
     public PardonCommand() {
         super("pardon", 2, 2);
@@ -38,31 +39,41 @@ public final class PardonCommand extends ModerateMemberCommand {
 
     @Override
     public boolean execute(@NotNull final ICommandSource sender,
-                           @NotNull final ICommandInput input,
-                           @NotNull final IChannel channel) throws InputException {
+                           @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
             final IOfflineChatter target = this.getInstance().getChatterManager().getOfflineChatter(input.get(TARGET));
 
             if (target == null) {
-                throw new InvalidPlayerException(input.get(TARGET));
+                throw new PlayerNotFoundException(input.get(TARGET));
             }
 
-            final IChatter online = target instanceof IChatter ? (IChatter) target : null;
+            final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
 
-            if (!channel.isBanned(target.getUniqueId())) {
-                sender.sendMessage(Messages.tl("pardonAlready", (online != null && sender.canSee(online))
+            if (channel == null || channel.isConversation()) {
+                throw new ChannelNotExistException(input.get(CHANNEL));
+            }
+
+            if (sender.canModerate(channel)) {
+                final IChatter online = target instanceof IChatter ? (IChatter) target : null;
+
+                if (!channel.isBanned(target.getUniqueId())) {
+                    sender.sendMessage(Messages.tl("pardonAlready", (online != null && sender.canSee(online))
+                            ? online.getDisplayName() : target.getName(), channel.getColoredName()));
+                    return true;
+                }
+
+                if (channel.pardonMember(target)) {
+                    sender.sendMessage(Messages.tl("pardonMember", (online != null && sender.canSee(online))
+                            ? online.getDisplayName() : target.getName(), channel.getColoredName()));
+                    return true;
+                }
+
+                sender.sendMessage(Messages.tl("pardonFailed", (online != null && sender.canSee(online))
                         ? online.getDisplayName() : target.getName(), channel.getColoredName()));
                 return true;
             }
 
-            if (channel.pardonMember(target)) {
-                sender.sendMessage(Messages.tl("pardonMember", (online != null && sender.canSee(online))
-                        ? online.getDisplayName() : target.getName(), channel.getColoredName()));
-                return true;
-            }
-
-            sender.sendMessage(Messages.tl("pardonFailed", (online != null && sender.canSee(online))
-                    ? online.getDisplayName() : target.getName(), channel.getColoredName()));
+            sender.sendMessage(Messages.tl("moderateDenied", channel.getColoredName()));
             return true;
         }
 

@@ -3,6 +3,7 @@ package de.g4memas0n.chats.listener;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.util.Permission;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  *
  * created: January 7th, 2020
- * changed: June 17th, 2020
+ * changed: July 4th, 2020
  */
 public final class ConnectionListener extends BasicListener {
 
@@ -36,15 +37,17 @@ public final class ConnectionListener extends BasicListener {
     }
 
     private void delayedJoin(@NotNull final IChatter chatter) {
-        for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-            if (chatter.forcedJoin(channel)) {
-                chatter.joinChannel(channel);
+        if (!chatter.hasPermission(Permission.FORCE.getChildren("exempt"))) {
+            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                if (chatter.forcedJoin(channel)) {
+                    chatter.joinChannel(channel);
+                }
             }
-        }
 
-        for (final IChannel channel : chatter.getChannels()) {
-            if (chatter.forcedFocus(channel)) {
-                chatter.setFocus(channel);
+            for (final IChannel channel : chatter.getChannels()) {
+                if (chatter.forcedFocus(channel)) {
+                    chatter.setFocus(channel);
+                }
             }
         }
 
@@ -55,9 +58,11 @@ public final class ConnectionListener extends BasicListener {
     public void onPlayerQuit(@NotNull final PlayerQuitEvent event) {
         final IChatter chatter = this.getInstance().getChatterManager().unloadChatter(event.getPlayer());
 
-        for (final IChannel channel : chatter.getChannels()) {
-            if (chatter.forcedLeave(channel)) {
-                chatter.leaveChannel(channel);
+        if (!chatter.hasPermission(Permission.FORCE.getChildren("exempt"))) {
+            for (final IChannel channel : chatter.getChannels()) {
+                if (chatter.forcedLeave(channel)) {
+                    chatter.leaveChannel(channel);
+                }
             }
         }
 

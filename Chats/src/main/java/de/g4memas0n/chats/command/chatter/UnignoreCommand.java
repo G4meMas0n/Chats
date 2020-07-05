@@ -15,24 +15,24 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The ignore command that allows to ignore a player.
+ * The unignore command that allows to unignore a player.
  *
  * @author G4meMas0n
  * @since Release 1.0.0
  *
- * created: January 11th, 2020
+ * created: July 3rd, 2020
  * changed: July 3rd, 2020
  */
-public final class IgnoreCommand extends ChatterCommand {
+public class UnignoreCommand extends ChatterCommand {
 
     private static final int TARGET = 0;
 
-    public IgnoreCommand() {
-        super("ignore", 0, 1);
+    public UnignoreCommand() {
+        super("unignore", 0 , 1);
 
-        this.setDescription("Ignores a player or list all ignored players.");
+        this.setDescription("Unignores a player or lists all ignored players.");
         this.setPermission(Permission.IGNORE.getNode());
-        this.setUsage("/ignore [<player>]");
+        this.setUsage("/unignore [<player>]");
     }
 
     @Override
@@ -64,33 +64,27 @@ public final class IgnoreCommand extends ChatterCommand {
                 return true;
             }
 
-            final IChatter target = this.getInstance().getChatterManager().getChatter(input.get(TARGET));
+            if (sender.isIgnore()) {
+                sender.sendMessage(Messages.tl("ignoreNobody"));
+                return true;
+            }
 
-            if (target == null || !sender.canSee(target)) {
+            final IOfflineChatter target = this.getInstance().getChatterManager().getOfflineChatter(input.get(TARGET));
+
+            if (target == null) {
                 throw new PlayerNotFoundException(input.get(TARGET));
             }
 
-            if (target.equals(sender)) {
-                sender.sendMessage(Messages.tlErr("ignoreSelf"));
+            final IChatter online = target instanceof IChatter ? (IChatter) target : null;
+
+            if (sender.removeIgnore(target.getUniqueId())) {
+                sender.sendMessage(Messages.tl("unignoreChatter", online != null && sender.canSee(online)
+                        ? online.getDisplayName() : target.getName()));
                 return true;
             }
 
-            if (sender.isIgnore(target.getUniqueId())) {
-                sender.sendMessage(Messages.tl("ignoreAlready", target.getDisplayName()));
-                return true;
-            }
-
-            if (sender.canIgnore(target)) {
-                if (sender.addIgnore(target.getUniqueId())) {
-                    sender.sendMessage(Messages.tl("ignoreChatter", target.getDisplayName()));
-                    return true;
-                }
-
-                sender.sendMessage(Messages.tl("ignoreAlready", target.getDisplayName()));
-                return true;
-            }
-
-            sender.sendMessage(Messages.tl("ignoreDenied", target.getDisplayName()));
+            sender.sendMessage(Messages.tl("unignoreAlready", online != null && sender.canSee(online)
+                    ? online.getDisplayName() : target.getName()));
             return true;
         }
 
@@ -103,15 +97,16 @@ public final class IgnoreCommand extends ChatterCommand {
         if (input.getLength() == TARGET + 1) {
             final List<String> completion = new ArrayList<>();
 
-            for (final IChatter target : this.getInstance().getChatterManager().getChatters()) {
-                if (target.equals(sender) || sender.isIgnore(target.getUniqueId()) || !sender.canSee(target)) {
+            for (final UUID uniqueId : sender.getIgnores()) {
+                final IOfflineChatter ignored = this.getInstance().getChatterManager().getOfflineChatter(uniqueId);
+
+                if (ignored == null) {
+                    sender.removeIgnore(uniqueId);
                     continue;
                 }
 
-                if (sender.canIgnore(target)) {
-                    if (StringUtil.startsWithIgnoreCase(target.getName(), input.get(TARGET))) {
-                        completion.add(target.getName());
-                    }
+                if (StringUtil.startsWithIgnoreCase(ignored.getName(), input.get(TARGET))) {
+                    completion.add(ignored.getName());
                 }
             }
 

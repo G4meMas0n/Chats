@@ -13,13 +13,13 @@
 
     <name>Chats</name>
     <artifactId>chats</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-pre1</version>
 
     <dependencies>
         <dependency>
             <groupId>de.g4memas0n</groupId>
             <artifactId>chats-api</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-pre1</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
@@ -32,7 +32,7 @@
 
     <build>
         <directory>target</directory>
-        <finalName>Chats_v${project.version}</finalName>
+        <finalName>${project.name}_v${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

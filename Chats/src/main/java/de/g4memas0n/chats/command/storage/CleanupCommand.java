@@ -2,6 +2,7 @@ package de.g4memas0n.chats.command.storage;
 
 import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
+import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.util.Permission;
@@ -24,9 +25,11 @@ import java.util.logging.Level;
  * @since Release 1.0.0
  *
  * created: June 17th, 2020
- * changed: June 23th, 2020
+ * changed: July 5th, 2020
  */
-public final class CleanupCommand extends StorageCommand {
+public final class CleanupCommand extends BasicCommand {
+
+    private static final int INFO_COUNT = 100;
 
     private static final int DAYS = 0;
 
@@ -47,6 +50,11 @@ public final class CleanupCommand extends StorageCommand {
             final long cleanupTime = System.currentTimeMillis();
 
             final Set<IOfflineChatter> cleanup = this.getInstance().getChatterManager().getOfflineChatters();
+
+            if (cleanup.size() > INFO_COUNT) {
+                sender.sendMessage(Messages.tl("cleanupRunning"));
+            }
+
             final Future<?> load = this.getInstance().runStorageTask(() -> cleanup.forEach(IStorageHolder::load));
 
             try {

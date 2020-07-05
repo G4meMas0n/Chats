@@ -7,7 +7,7 @@ import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidPlayerException;
+import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -21,52 +21,46 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: June 17th, 2020
- * changed: June 23th, 2020
+ * changed: July 5th, 2020
  */
 public final class SocialSpyCommand extends BasicCommand {
 
-    private static final int TARGET = 0;
-    private static final int ENABLE = 1;
+    private static final int ENABLE = 0;
+    private static final int TARGET = 1;
 
     public SocialSpyCommand() {
         super("social-spy", 0, 2);
 
         this.setDescription("Enables or disables social spying.");
         this.setPermission(Permission.SOCIAL_SPY.getNode());
-        this.setUsage("/chats social-spy [<player> (on|off)]");
+        this.setUsage("/chats social-spy [(on|off) [<player>]]");
     }
 
     @Override
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
-            if (input.getLength() != this.getMinArgs() && input.getLength() != this.getMaxArgs()) {
+            if (input.getLength() != this.getMaxArgs() && !sender.isChatter()) {
                 return false;
             }
 
-            if (input.getLength() == this.getMinArgs() && !(sender instanceof IChatter)) {
-                sender.sendMessage(Messages.tl("helpHeader", this.getName()));
-                sender.sendMessage(Messages.tl("helpDescription", this.getDescription()));
-                sender.sendMessage(Messages.tl("helpUsage", this.getUsage().replaceAll("\\[(.*?)]", "$1")));
-                return true;
+            final IChatter target = input.getLength() != this.getMaxArgs() ? sender.getChatter()
+                    : this.getInstance().getChatterManager().getChatter(input.get(TARGET));
+
+            if (target == null || (!target.equals(sender) && !sender.canSee(target))) {
+                throw new PlayerNotFoundException(input.get(TARGET));
             }
 
-            final IChatter target = input.getLength() == this.getMaxArgs()
-                    ? this.getInstance().getChatterManager().getChatter(input.get(TARGET))
-                    : (sender instanceof IChatter ? (IChatter) sender : null);
-
-            if (target == null) {
-                throw new InvalidPlayerException(input.getLength() == this.getMaxArgs() ? input.get(TARGET) : "CONSOLE");
-            }
-
-            final boolean enable = input.getLength() == this.getMaxArgs() ? input.getEnable(ENABLE) : !target.isSocialSpy();
+            final boolean enable = input.getLength() == this.getMinArgs() ? !target.isSocialSpy() : input.getEnable(ENABLE);
 
             if (target.setSocialSpy(enable)) {
-                sender.sendMessage(Messages.tl("spyChanged", target.getDisplayName(), Messages.tlState(enable)));
+                sender.sendMessage(Messages.tl("spyChanged", target.getDisplayName(),
+                        Messages.tlState(target.isSocialSpy())));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("spyAlready", target.getDisplayName(), Messages.tlState(enable)));
+            sender.sendMessage(Messages.tl("spyAlready", target.getDisplayName(),
+                    Messages.tlState(target.isSocialSpy())));
             return true;
         }
 
@@ -74,26 +68,21 @@ public final class SocialSpyCommand extends BasicCommand {
     }
 
     @Override
+    public @NotNull List<String> help(@NotNull final ICommandSource sender,
+                                      @NotNull final ICommandInput input) {
+        final List<String> help = new ArrayList<>();
+
+        help.add(Messages.tl("helpHeader", this.getName()));
+        help.add(Messages.tl("helpDescription", this.getDescription()));
+        help.add(Messages.tl("helpUsage", sender.isChatter() ? this.getUsage()
+                : this.getUsage().replaceAll("\\[(.*)]", "$1")));
+
+        return help;
+    }
+
+    @Override
     public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                              @NotNull final ICommandInput input) {
-        if (input.getLength() == TARGET + 1) {
-            final List<String> completion = new ArrayList<>();
-
-            for (final IChatter chatter : this.getInstance().getChatterManager().getChatters()) {
-                if (chatter.equals(sender) || !sender.canSee(chatter)) {
-                    continue;
-                }
-
-                if (StringUtil.startsWithIgnoreCase(chatter.getName(), input.get(TARGET))) {
-                    completion.add(chatter.getName());
-                }
-            }
-
-            Collections.sort(completion);
-
-            return completion;
-        }
-
         if (input.getLength() == ENABLE + 1) {
             final List<String> completion = new ArrayList<>();
 
@@ -104,6 +93,24 @@ public final class SocialSpyCommand extends BasicCommand {
             if (StringUtil.startsWithIgnoreCase(ICommandInput.ENABLE_ON, input.get(ENABLE))) {
                 completion.add(ICommandInput.ENABLE_ON);
             }
+
+            return completion;
+        }
+
+        if (input.getLength() == TARGET + 1) {
+            final List<String> completion = new ArrayList<>();
+
+            for (final IChatter target : this.getInstance().getChatterManager().getChatters()) {
+                if (target.equals(sender) || !sender.canSee(target)) {
+                    continue;
+                }
+
+                if (StringUtil.startsWithIgnoreCase(target.getName(), input.get(TARGET))) {
+                    completion.add(target.getName());
+                }
+            }
+
+            Collections.sort(completion);
 
             return completion;
         }

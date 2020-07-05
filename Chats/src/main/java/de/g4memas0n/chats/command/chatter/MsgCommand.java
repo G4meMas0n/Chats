@@ -6,7 +6,7 @@ import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.util.Permission;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidPlayerException;
+import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import java.util.List;
  * @since Release 1.0.0
  *
  * created: September 13th, 2019
- * changed: June 21th, 2020
+ * changed: July 3rd, 2020
  */
 public final class MsgCommand extends ChatterCommand {
 
@@ -44,7 +44,7 @@ public final class MsgCommand extends ChatterCommand {
             final IChatter partner = this.getInstance().getChatterManager().getChatter(input.get(PARTNER));
 
             if (partner == null || !sender.canSee(partner)) {
-                throw new InvalidPlayerException(input.get(PARTNER));
+                throw new PlayerNotFoundException(input.get(PARTNER));
             }
 
             if (partner.equals(sender)) {
@@ -57,7 +57,7 @@ public final class MsgCommand extends ChatterCommand {
                 return true;
             }
 
-            if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.formChildren("bypass"))) {
+            if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.getChildren("bypass"))) {
                 sender.sendMessage(Messages.tl("ignoredSender", partner.getDisplayName()));
                 return true;
             }

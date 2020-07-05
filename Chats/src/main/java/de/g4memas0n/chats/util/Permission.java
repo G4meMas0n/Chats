@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  *
  * created: January 8th, 2020
- * changed: June 25th, 2020
+ * changed: July 5th, 2020
  */
 public enum Permission {
 
@@ -19,6 +19,7 @@ public enum Permission {
      * to regulate moderator permissions.
      * Available ban permissions:
      * - chats.ban (Allows to access the "ban" command)
+     * - chats.ban.bypass (Allows to bypass channel bans)
      * - chats.ban.exempt (Allows to being exempt from channel bans)
      */
     BAN("ban", true),
@@ -46,7 +47,7 @@ public enum Permission {
      * types.
      * Available create permissions:
      * - chats.create (Allows to access the "create" command)
-     * - chats.create.limit (Limits the channel creation, that max one channel can be created)
+     * - chats.create.unlimited (Allows to create an unlimited count of new channels)
      * - chats.create.type.persist (Allows to create persistent channels)
      * - chats.create.type.standard (Allows to create standard channels)
      * - chats.create.type.* (Allows to create all channel types)
@@ -77,6 +78,7 @@ public enum Permission {
     /**
      * Permissions for forced actions.
      * Available force permissions:
+     * - chats.force.exempt (Allows to being exempt from forcing actions)
      * - chats.force.focus.<FullName> (Forces to focus a persist channel with name <FullName> on login)
      * - chats.force.join.<FullName> (Forces to join a persist channel with name <FullName> on login)
      * - chats.force.leave.<FullName> (Forces to leave a persist channel with name <FullName> on logout)
@@ -163,6 +165,7 @@ public enum Permission {
      * - chats.modify.type.cross-world (Allows to modify the cross world option)
      * - chats.modify.type.custom-format (Allows to modify the custom format option)
      * - chats.modify.type.distance (Allows to modify the distance)
+     * - chats.modify.type.moderator (Allows to modify the moderators)
      * - chats.modify.type.owner (Allows to modify the owner)
      * - chats.modify.type.password (Allows to modify the password)
      * - chats.modify.type.short-name (Allows to modify the short name)
@@ -189,6 +192,7 @@ public enum Permission {
      * to regulate moderator permissions.
      * Available mute permissions:
      * - chats.mute (Allows to access the "mute" command)
+     * - chats.mute.bypass (Allows to bypass channel mutes)
      * - chats.mute.exempt (Allows to being exempt from mutes)
      */
     MUTE("mute", true),
@@ -240,13 +244,6 @@ public enum Permission {
      * - chats.speak.persist.all (Allows to speak in all persistent channels)
      */
     SPEAK("speak", true),
-
-    /**
-     * Permissions for unmute chatters from channels. Allows to access the "unmute" command.
-     * This permission should be a children of {@link Permission#MODERATE}, but can be removed
-     * to regulate moderator permissions.
-     */
-    UNMUTE("unmute", false),
 
     /**
      * Permission for the main plugin (chats) command. Allows to access the "chats" command.
@@ -319,7 +316,7 @@ public enum Permission {
         return this.node;
     }
 
-    public @NotNull String formChildren(@NotNull final String children) {
+    public @NotNull String getChildren(@NotNull final String children) {
         if (!this.children) {
             return this.node;
         }
@@ -327,7 +324,7 @@ public enum Permission {
         return this.node + DELIMITER + children;
     }
 
-    public @NotNull String formChildren(@NotNull final String prefix, @NotNull final String children) {
+    public @NotNull String getChildren(@NotNull final String prefix, @NotNull final String children) {
         if (!this.children) {
             return this.node;
         }
