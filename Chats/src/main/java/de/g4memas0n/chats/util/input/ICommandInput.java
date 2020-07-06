@@ -8,9 +8,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: June 23th, 2020
- * changed: July 5th, 2020
  */
 public interface ICommandInput {
 
@@ -26,12 +23,14 @@ public interface ICommandInput {
 
     /**
      * Returns the passed command arguments of the executed/tab-completed command.
+     *
      * @return the passed arguments.
      */
     @NotNull String[] getArguments();
 
     /**
      * Returns a new command input that starts on the given start index and uses the previous arguments as alias.
+     *
      * @param start index where the new command input starts.
      * @return the new converted command input.
      */
@@ -39,12 +38,14 @@ public interface ICommandInput {
 
     /**
      * Returns the length of the passed arguments.
+     *
      * @return the count of passed arguments.
      */
     int getLength();
 
     /**
      * Gets the requested index from the command input.
+     *
      * @param index the index of the argument.
      * @return the passed argument at the given index.
      */
@@ -53,6 +54,7 @@ public interface ICommandInput {
     /**
      * Gets the requested chat color by the given argument index, throwing an exception when the arguments at the given
      * index is not a parsable chat color.
+     *
      * @param index the index of the argument.
      * @return the parsed chat color.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable chat color.
@@ -60,7 +62,8 @@ public interface ICommandInput {
     @NotNull ChatColor getChatColor(final int index) throws InvalidArgumentException;
 
     /**
-     * Gets the requested format that starts by the given argument index, replacing all '&' to '§'.
+     * Gets the requested format that starts by the given argument index, replacing all {@code &} to {@code §}.
+     *
      * @param start the start index of the argument.
      * @return the format starting from the given index.
      */
@@ -68,6 +71,7 @@ public interface ICommandInput {
 
     /**
      * Gets the requested message that starts by the given argument index.
+     *
      * @param start the start index of the argument.
      * @return the message starting from the given index.
      */
@@ -76,6 +80,7 @@ public interface ICommandInput {
     /**
      * Gets the requested boolean by the given index, throwing an exception when the argument at the given index is not
      * a parsable boolean value.
+     *
      * @param index the index of the argument.
      * @return the parsed boolean.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable boolean.
@@ -85,6 +90,7 @@ public interface ICommandInput {
     /**
      * Gets the requested enable state by the given index, throwing an exception when the argument at the given index
      * is not a parsable enable state.
+     *
      * @param index the index of the argument.
      * @return the parsed enable state as boolean.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable enable state.
@@ -94,6 +100,7 @@ public interface ICommandInput {
     /**
      * Gets the requested double by the given index, throwing an exception when the argument at the given index is not
      * a parsable double value.
+     *
      * @param index the index of the argument.
      * @return the parsed double value.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable double value.
@@ -104,6 +111,7 @@ public interface ICommandInput {
     /**
      * Gets the requested float by the given index, throwing an exception when the argument at the given index is not
      * a parsable float value.
+     *
      * @param index the index of the argument.
      * @return the parsed float value.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable float value.
@@ -114,6 +122,7 @@ public interface ICommandInput {
     /**
      * Gets the requested integer by the given index, throwing an exception when the argument at the given index is not
      * a parsable integer value.
+     *
      * @param index the index of the argument.
      * @return the parsed integer.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable integer.
@@ -123,6 +132,7 @@ public interface ICommandInput {
     /**
      * Gets the requested unsigned integer by the given index, throwing an exception when the argument at the given
      * index is not a parsable unsigned integer.
+     *
      * @param index the index of the argument.
      * @return the parsed unsigned integer.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable unsigned integer.
@@ -133,6 +143,7 @@ public interface ICommandInput {
     /**
      * Gets the requested long by the given index, throwing an exception when the argument at the given index is not
      * a parsable long.
+     *
      * @param index the index of the argument.
      * @return the parsed long.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable long.
@@ -143,6 +154,7 @@ public interface ICommandInput {
     /**
      * Gets the requested unsigned long by the given index, throwing an exception when the argument at the given index
      * is not a parsable unsigned long.
+     *
      * @param index the index of the argument.
      * @return the parsed unsigned long.
      * @throws InvalidArgumentException Thrown when the argument at the given index is not parsable unsigned long.

@@ -24,9 +24,6 @@ import java.util.Set;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: May 29th, 2020
- * changed: July 5th, 2020
  */
 public abstract class DelegateCommand extends BasicPluginCommand {
 

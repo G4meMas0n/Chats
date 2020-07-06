@@ -6,16 +6,13 @@ import de.g4memas0n.chats.command.storage.ReloadCommand;
 import de.g4memas0n.chats.command.manage.SocialSpyCommand;
 import de.g4memas0n.chats.command.info.VersionCommand;
 import de.g4memas0n.chats.command.storage.SaveCommand;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 
 /**
  * The chats command that bundles commands handling the plugin together.
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: March 5th, 2020
- * changed: June 23th, 2020
  */
 public final class ChatsCommand extends DelegateCommand {
 

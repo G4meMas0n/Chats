@@ -22,9 +22,6 @@ import java.util.ResourceBundle;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 11th, 2020
- * changed: June 19th, 2020
  */
 public final class Messages {
 

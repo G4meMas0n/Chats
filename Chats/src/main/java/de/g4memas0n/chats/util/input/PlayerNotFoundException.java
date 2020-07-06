@@ -7,9 +7,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMason
  * @since Release 1.0.0
- *
- * created: July 3rd, 2020
- * changed: July 5th, 2020
  */
 public class PlayerNotFoundException extends InputException {
 

@@ -15,9 +15,6 @@ import java.util.List;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: June 21th, 2020
- * changed: July 5th, 2020
  */
 public abstract class ChatterCommand extends BasicPluginCommand {
 
@@ -40,7 +37,9 @@ public abstract class ChatterCommand extends BasicPluginCommand {
 
     /**
      * Executes the command for the given chatter, returning its success.
-     * If false is returned, then the help of the command will be sent to the sender.
+     *
+     * <p>If false is returned, then the help of the command will be sent to the sender.</p>
+     *
      * @param sender the chatter who executed the command.
      * @param input the input of the sender, including used alias and passed arguments.
      * @return true if the command execution was valid, false otherwise.
@@ -60,6 +59,7 @@ public abstract class ChatterCommand extends BasicPluginCommand {
 
     /**
      * Requests a list of possible completions for a command argument.
+     *
      * @param sender the chatter who tab-completed the command.
      * @param input the input of the sender, including used alias and the passed arguments including the final partial
      *              argument to be completed.

@@ -7,7 +7,7 @@ import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.storage.IStorageFile;
 import de.g4memas0n.chats.storage.InvalidStorageFileException;
 import de.g4memas0n.chats.storage.MissingStorageFileException;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.logging.Log;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
@@ -31,9 +31,6 @@ import java.util.stream.Collectors;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: August 6th, 2019
- * changed: July 5th, 2020
  */
 public class StandardChatter implements IChatter {
 

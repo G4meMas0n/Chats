@@ -10,39 +10,43 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 2nd, 2020
- * changed: May 1st, 2020
  */
 public interface IFormatter {
 
     /**
      * Returns the default announce format that was specified in the plugin configuration file.
+     *
      * @return the default announce format.
      */
     @NotNull String getAnnounceFormat();
 
     /**
      * Returns the default broadcast format that was specified in the plugin configuration file.
+     *
      * @return the default broadcast format.
      */
     @NotNull String getBroadcastFormat();
 
     /**
      * Returns the default chat format that was specified in the plugin configuration file.
+     *
      * @return the default chat format.
      */
     @NotNull String getChatFormat();
 
     /**
      * Returns the conversation chat format that was specified in the plugin configuration file.
+     *
      * @return the conversation chat format.
      */
     @NotNull String getConversationFormat();
 
     /**
-     * Formats the given announce format. Replaces all Placeholder that are available for this format and strips all
-     * other Placeholder from the given format.
+     * Formats the given announce format.
+     *
+     * <p>Replaces all Placeholder that are available for this format and strips all other Placeholder from the given
+     * format.</p>
+     *
      * @param channel the channel to format this announce message.
      * @param format the format that is used for this announce message.
      * @param message the message for this announce.
@@ -53,8 +57,11 @@ public interface IFormatter {
                                    @NotNull final String message);
 
     /**
-     * Formats the given broadcast format. Replaces all Placeholder that are available for this format and strips all
-     * other Placeholder from the given format.
+     * Formats the given broadcast format.
+     *
+     * <p>Replaces all Placeholder that are available for this format and strips all other Placeholder from the given
+     * format.</p>
+     *
      * @param channel the channel to format this broadcast message.
      * @param format the format that is used for this broadcast message.
      * @param message the message for this broadcast.
@@ -65,8 +72,11 @@ public interface IFormatter {
                                     @NotNull final String message);
 
     /**
-     * Formats the given chat format. Replaces all Placeholder that are available for this format and strips all
-     * other Placeholder from the given format.
+     * Formats the given chat format.
+     *
+     * <p>Replaces all Placeholder that are available for this format and strips all other Placeholder from the given
+     * format.</p>
+     *
      * @param channel the channel to format this chat message.
      * @param format the format that is used for this chat message.
      * @param sender the sender of the message.
@@ -79,9 +89,14 @@ public interface IFormatter {
                                @NotNull final String message);
 
     /**
-     * Formats the given conversation format. Replaces all Placeholder that are available for this format and strips all
-     * other Placeholder from the given format. This method will replace the {@link Placeholder#CON_ADDRESS} placeholder
-     * to "{0}" and the {@link Placeholder#CON_PARTNER} placeholder to "{1}".
+     * Formats the given conversation format.
+     *
+     * <p>Replaces all Placeholder that are available for this format and strips all other Placeholder from the given
+     * format.</p>
+     *
+     * <p><i><b>Note:</b> This method will replace the {@link Placeholder#CON_ADDRESS} placeholder to {@code "{0}"} and
+     * the {@link Placeholder#CON_PARTNER} placeholder to {@code "{1}"}.</i></p>
+     *
      * @param channel the conversation channel to format this conversation message.
      * @param format the format that is used for the conversation message.
      * @param message the message from the sender.

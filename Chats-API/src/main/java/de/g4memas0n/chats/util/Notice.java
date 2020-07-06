@@ -7,16 +7,15 @@ import java.util.Map;
 
 /**
  * Representation of a Notice, that provides author, time, and message methods of notices for easier notice handling.
- * Currently unused.
+ *
+ * <p><i><b>Note:</b> Currently unused.</i></p>
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 5th, 2019
- * changed: June 25th, 2020
  */
 @SuppressWarnings("unused")
 public class Notice implements Comparable<Notice> {
+
     private static final String MAP_KEY_AUTHOR = "author";
     private static final String MAP_KEY_MESSAGE = "message";
     private static final String MAP_KEY_TIME = "time";
@@ -81,17 +80,17 @@ public class Notice implements Comparable<Notice> {
     }
 
     @Override
-    public int compareTo(@NotNull final Notice notice) {
+    public final int compareTo(@NotNull final Notice notice) {
         return Long.compare(this.timeMillis, notice.timeMillis);
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return "Notice{author=" + this.getAuthor() + ";message=" + this.getMessage() + ";time=" + this.getTime() + "}";
     }
 
     @Override
-    public boolean equals(@NotNull final Object object) {
+    public final boolean equals(@NotNull final Object object) {
         if (this == object) {
             return true;
         }
@@ -107,7 +106,7 @@ public class Notice implements Comparable<Notice> {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         final int prime = 47;
         int result = 2;
 

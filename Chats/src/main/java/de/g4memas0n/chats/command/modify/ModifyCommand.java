@@ -7,7 +7,7 @@ import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
@@ -31,9 +31,6 @@ import java.util.stream.Collectors;
  *
  * @author G4meMas0n
  * @since 0.1.0-SNAPSHOT
- *
- * created: January 18th, 2020
- * changed: July 5th, 2020
  */
 public final class ModifyCommand extends BasicCommand {
 
@@ -266,9 +263,6 @@ public final class ModifyCommand extends BasicCommand {
      *
      * @author G4meMas0n
      * @since Release 1.0.0
-     *
-     * created: July 3rd, 2020
-     * changed: July 5th, 2020
      */
     public abstract static class Modifier {
 
@@ -307,13 +301,41 @@ public final class ModifyCommand extends BasicCommand {
             return this.maxArgs;
         }
 
+        /**
+         * Returns whether this modifier accepts the given modify type.
+         *
+         * @param type the modify type to check.
+         * @return true when this modifier accepts the given type.
+         */
         public abstract boolean accept(@NotNull final ModifyType type);
 
+        /**
+         * Executes the modifier for the given sender, channel and type, returning its success.
+         *
+         * <p>If false is returned, then the help of the modifier will be sent to the sender.</p>
+         *
+         * @param sender the source who executed the modifier.
+         * @param input the input of the sender, including passed arguments.
+         * @param channel the channel to modify.
+         * @param type the type to modify.
+         * @return true if the modifier execution was valid, false otherwise.
+         * @throws InputException Thrown when an argument of the input is invalid.
+         */
         public abstract boolean execute(@NotNull final ICommandSource sender,
                                         @NotNull final ICommandInput input,
                                         @NotNull final IChannel channel,
                                         @NotNull final ModifyType type) throws InputException;
 
+        /**
+         * Requests a list of possible completions for a modifier argument.
+         *
+         * @param sender the source who tab-completed the modifier.
+         * @param input the input of the sender, including the passed arguments including the final partial argument to
+         *              be completed.
+         * @param channel the channel to modify.
+         * @param type the type to modify.
+         * @return a list of possible completions for the final arguments.
+         */
         public abstract @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                                           @NotNull final ICommandInput input,
                                                           @NotNull final IChannel channel,
@@ -349,9 +371,6 @@ public final class ModifyCommand extends BasicCommand {
      *
      * @author G4meMas0n
      * @since Release 1.0.0
-     *
-     * created: July 3rd, 2020
-     * changed: July 4th, 2020
      */
     public static final class ModeratorAddModifier extends Modifier {
 
@@ -425,9 +444,6 @@ public final class ModifyCommand extends BasicCommand {
      *
      * @author G4meMas0n
      * @since Release 1.0.0
-     *
-     * created: July 4th, 2020
-     * changed: July 4th, 2020
      */
     public static final class ModeratorRemoveModifier extends Modifier {
 
@@ -506,9 +522,6 @@ public final class ModifyCommand extends BasicCommand {
      *
      * @author G4meMas0n
      * @since Release 1.0.0
-     *
-     * created: July 3rd, 2020
-     * changed: July 4th, 2020
      */
     public static final class RemoveModifier extends Modifier {
 
@@ -607,9 +620,6 @@ public final class ModifyCommand extends BasicCommand {
      *
      * @author G4meMas0n
      * @since Release 1.0.0
-     *
-     * created: July 3rd, 2020
-     * changed: July 4th, 2020
      */
     public static final class ResetModifier extends Modifier {
 
@@ -675,9 +685,6 @@ public final class ModifyCommand extends BasicCommand {
      *
      * @author G4meMas0n
      * @since Release 1.0.0
-     *
-     * created: July 3rd, 2020
-     * changed: July 5th, 2020
      */
     public static final class SetModifier extends Modifier {
 

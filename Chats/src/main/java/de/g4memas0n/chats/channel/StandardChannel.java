@@ -30,9 +30,6 @@ import java.util.UUID;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 13th, 2019
- * changed: July 4th, 2020
  */
 public class StandardChannel implements IChannel {
 

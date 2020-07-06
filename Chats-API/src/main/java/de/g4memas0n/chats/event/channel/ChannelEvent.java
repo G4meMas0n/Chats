@@ -9,9 +9,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 2nd, 2020
- * changed: June 23th, 2020
  */
 public abstract class ChannelEvent extends Event {
 

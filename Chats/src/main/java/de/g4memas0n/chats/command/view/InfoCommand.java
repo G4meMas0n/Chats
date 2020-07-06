@@ -5,7 +5,7 @@ import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
@@ -21,9 +21,6 @@ import java.util.List;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: March 5th, 2020
- * changed: July 4th, 2020
  */
 public final class InfoCommand extends BasicCommand {
 

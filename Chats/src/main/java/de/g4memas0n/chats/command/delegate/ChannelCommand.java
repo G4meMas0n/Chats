@@ -23,7 +23,7 @@ import de.g4memas0n.chats.command.moderate.UnmuteCommand;
 import de.g4memas0n.chats.command.modify.ModifyCommand;
 import de.g4memas0n.chats.command.view.InfoCommand;
 import de.g4memas0n.chats.command.view.WhoCommand;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -36,9 +36,6 @@ import java.util.List;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 10th, 2020
- * changed: July 5th, 2020
  */
 public final class ChannelCommand extends DelegateCommand {
 

@@ -9,10 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * Chatter Event that is called when a chatter changed the active channel.
  *
  * @author G4meMas0n
- * @since 0.0.1-SNAPSHOT
- *
- * created: July 5th, 2019
- * changed: June 23th, 2020
+ * @since Release 1.0.0
  */
 public final class ChatterFocusChangedEvent extends ChatterEvent {
 

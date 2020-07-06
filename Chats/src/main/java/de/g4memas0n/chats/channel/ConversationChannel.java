@@ -5,7 +5,7 @@ import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.event.chatter.ChatterChatConversationEvent;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,9 +21,6 @@ import java.util.UUID;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 3rd, 2020
- * changed: July 4th, 2020
  */
 public final class ConversationChannel extends StandardChannel {
 
@@ -356,9 +353,12 @@ public final class ConversationChannel extends StandardChannel {
 
     /**
      * Builds the full name for conversation channels.
-     * The full name is build of the uniqueId of both players concatenated with a underscore ("_").
-     * The order in which the chatters are specified as arguments does not matter as they are compared before. So
-     * buildConversationName(first, second) will return the same as buildConversationName(second, first).
+     *
+     * <p>The full name is build of the uniqueId of both players concatenated with a underscore ("_").</p>
+     *
+     * <p>The order in which the chatters are specified as arguments does not matter as they are compared before.<br>
+     * So buildConversationName(first, second) will return the same as buildConversationName(second, first).</p>
+     *
      * @param first the first chatter to build the full name of the conversation.
      * @param second the second chatter to build the full name of the conversation.
      * @return the full name of the conversation for the given chatters.
@@ -373,9 +373,12 @@ public final class ConversationChannel extends StandardChannel {
 
     /**
      * Builds the short name for conversation channels.
-     * The short name is build of the name of both players concatenated with a underscore ("_").
-     * The order in which the chatters are specified as arguments does not matter as they are compared before. So
-     * buildConversationName(first, second) will return the same as buildConversationName(second, first).
+     *
+     * <p>The short name is build of the name of both players concatenated with a underscore ("_").</p>
+     *
+     * <p>The order in which the chatters are specified as arguments does not matter as they are compared before.<br>
+     * So buildConversationName(first, second) will return the same as buildConversationName(second, first).</p>
+     *
      * @param first the first chatter to build the short name of the conversation.
      * @param second the second chatter to build the short name of the conversation.
      * @return the short name of the conversation for the given chatters.

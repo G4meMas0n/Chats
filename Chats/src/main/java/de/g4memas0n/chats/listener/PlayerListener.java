@@ -3,7 +3,7 @@ package de.g4memas0n.chats.listener;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,16 +15,15 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 9th, 2020
- * changed: July 4th, 2020
  */
 public final class PlayerListener extends BasicListener {
 
     /**
      * This method will perform all chat actions according the result of {@link Event#isAsynchronous()}.
-     * When the given event is called asynchronous, the chat action will be performed asynchronous. When it is called
-     * synchronous, the chat action will be synchronous scheduled on the next server tick.
+     *
+     * <p>When the given event is called asynchronous, the chat action will be performed asynchronous.<br/>
+     * When it is called synchronous, the chat action will be synchronous scheduled on the next server tick.</p>
+     *
      * @param event the called player chat event.
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

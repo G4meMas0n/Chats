@@ -8,11 +8,20 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>chats</artifactId>
   <name>Chats</name>
-  <version>1.0.0</version>
+  <version>1.0.0-pre2</version>
   <build>
     <directory>target</directory>
-    <finalName>Chats_v${project.version}</finalName>
+    <finalName>${project.name}_v${project.version}</finalName>
     <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.6</version>
@@ -29,32 +38,22 @@
             <goals>
               <goal>shade</goal>
             </goals>
-            <configuration>
-              <artifactSet>
-                <excludes>
-                  <exclude>org.jetbrains:annotations</exclude>
-                  <exlcude>org.fusesource.jansi:jansi</exlcude>
-                </excludes>
-              </artifactSet>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <excluse>META-INF/**</excluse>
-                  </excludes>
-                </filter>
-              </filters>
-            </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
         <configuration>
-          <source>8</source>
-          <target>8</target>
-          <encoding>UTF-8</encoding>
+          <artifactSet>
+            <excludes>
+              <exclude>org.jetbrains:annotations</exclude>
+            </excludes>
+          </artifactSet>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <excluse>META-INF/**</excluse>
+              </excludes>
+            </filter>
+          </filters>
         </configuration>
       </plugin>
     </plugins>
@@ -64,7 +63,7 @@
       <groupId>org.fusesource.jansi</groupId>
       <artifactId>jansi</artifactId>
       <version>1.18</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.spigotmc</groupId>

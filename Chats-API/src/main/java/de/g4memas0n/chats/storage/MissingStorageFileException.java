@@ -8,9 +8,6 @@ import java.io.File;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: May 18th, 2020
- * changed: May 18th, 2020
  */
 public final class MissingStorageFileException extends Exception {
 

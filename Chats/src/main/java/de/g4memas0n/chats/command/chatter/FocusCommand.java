@@ -3,7 +3,7 @@ package de.g4memas0n.chats.command.chatter;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.input.ChannelNotExistException;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
@@ -18,9 +18,6 @@ import java.util.List;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 11th, 2020
- * changed: July 3rd, 2020
  */
 public final class FocusCommand extends ChatterCommand {
 

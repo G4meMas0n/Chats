@@ -16,60 +16,70 @@ import java.util.concurrent.Future;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 26th, 2019
- * changed: June 17th, 2020
  */
 public interface IChats extends Plugin {
 
     /**
      * Returns the channel manager of this plugin, that handle all channels.
+     *
      * @return the used channel manager.
      */
     @NotNull IChannelManager getChannelManager();
 
     /**
      * Returns the chatter manager of this plugin, that handle all chatters.
+     *
      * @return the used chatter manager.
      */
     @NotNull IChatterManager getChatterManager();
 
     /**
      * Returns the formatter of this plugin, used for all chat formatting actions.
+     *
      * @return the used formatter.
      */
     @NotNull IFormatter getFormatter();
 
     /**
      * Returns the settings of this plugin.
+     *
      * @return the used settings.
      */
     @NotNull ISettings getSettings();
 
     /**
-     * Returns the chat service of this plugin, used for extended chat formatting. Can be null when there is no
-     * registered chat service of the vault plugin.
+     * Returns the chat service of this plugin, used for extended chat formatting.
+     *
+     * <p>Can be null when there is no registered chat service of the vault plugin.</p>
+     *
      * @return the used chat service.
      */
     @Nullable Chat getChatService();
 
     /**
-     * Sets the chat service for this plugin. Can be null to remove the chat service.
+     * Sets the chat service for this plugin.
+     *
+     * <p>The given service can be null to remove the chat service.</p>
+     *
      * @param service the by vault registered chat service.
      */
     void setChatService(@Nullable final Chat service);
 
     /**
      * Submits a task for execution on the storage thread and returns a Future representing that task.
-     * The Future's get method will return null upon successful completion.
+     *
+     * <p>The Future's get method will return null upon successful completion.</p>
+     *
      * @param task the task to submit.
      * @return a Future representing pending completion of the task.
+     * @see Future#get()
      */
     @NotNull Future<?> runStorageTask(@NotNull final Runnable task);
 
     /**
      * Submits a task for execution on the next server tick on the main server thread and returns a BukkitTask
      * representing that task.
+     *
      * @param task the task to run.
      * @return a BukkitTask that contains the id number.
      */
@@ -77,15 +87,20 @@ public interface IChats extends Plugin {
 
     /**
      * Schedules a task for execution after the delay specified in the settings on the storage thread and returns a
-     * Future representing that task. The Future's get method will return null upon successful completion.
+     * Future representing that task.
+     *
+     * <p>The Future's get method will return null upon successful completion.</p>
+     *
      * @param task the task to schedule.
      * @return a Future representing pending completion of the task.
+     * @see Future#get()
      */
     @NotNull Future<?> scheduleStorageTask(@NotNull final Runnable task);
 
     /**
      * Schedules a task for execution after the given ticks on the main server thread and returns a BukkitTask
      * representing that task.
+     *
      * @param task the task to schedule.
      * @param delay the ticks to wait before running the task
      * @return a BukkitTask that contains the id number

@@ -26,9 +26,6 @@ import java.util.UUID;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 29th, 2020
- * changed: June 7th, 2020
  */
 public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
 

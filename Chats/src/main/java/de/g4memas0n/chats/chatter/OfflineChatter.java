@@ -19,9 +19,6 @@ import java.util.stream.Collectors;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: May 9th, 2020
- * changed: June 18th, 2020
  */
 public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatter> {
 

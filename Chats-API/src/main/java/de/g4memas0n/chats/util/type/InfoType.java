@@ -8,9 +8,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: March 17th, 2020
- * changed: July 5th, 2020
  */
 public enum InfoType implements Type {
 
@@ -102,8 +99,10 @@ public enum InfoType implements Type {
     }
 
     /**
-     * Returns the info type with the given identifier. Can be null when there is no info type with the given
-     * identifier;
+     * Returns the info type with the given identifier.
+     *
+     * <p>Can be null when there is no info type with the given identifier.</p>
+     *
      * @param identifier the identifier to search for the type.
      * @return the info type with the given identifier or null if there is no with the given identifier.
      */

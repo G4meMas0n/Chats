@@ -3,6 +3,7 @@ package de.g4memas0n.chats.event.chatter;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Placeholder;
+import de.g4memas0n.chats.storage.configuration.ISettings;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -12,9 +13,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 11th, 2019
- * changed: May 1st, 2020
  */
 public final class ChatterChatChannelEvent extends ChatterEvent implements Cancellable {
 
@@ -52,10 +50,26 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
         return this.channel;
     }
 
+    /**
+     * Returns the used chat format for this chat message.
+     *
+     * @return the chat format
+     * @see IChannel#getChatFormat()
+     * @see ISettings#getChatFormat()
+     */
     public @NotNull String getFormat() {
         return this.format;
     }
 
+    /**
+     * Sets the used chat format for this chat message.
+     *
+     * <p>The given format must include the {@link Placeholder#MESSAGE} placeholder and one of the sender placeholders
+     * {@link Placeholder#SENDER} or {@link Placeholder#SENDER_PLAIN}, otherwise it will throw an exception.</p>
+     *
+     * @param format the new chat format.
+     * @throws IllegalArgumentException Thrown when the given format does not include the required placeholders.
+     */
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
         if (!format.contains(Placeholder.SENDER.toString()) && !format.contains(Placeholder.SENDER_PLAIN.toString())) {
             throw new IllegalArgumentException("Format is missing {sender} or {sender-plain} placeholder: " + format);
@@ -68,10 +82,20 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
         this.format = format;
     }
 
+    /**
+     * Returns the message of this chat message.
+     *
+     * @return the chat message.
+     */
     public @NotNull String getMessage() {
         return this.message;
     }
 
+    /**
+     * Sets the message of this chat message.
+     *
+     * @param message the new chat message.
+     */
     public void setMessage(@NotNull final String message) {
         this.message = message;
     }

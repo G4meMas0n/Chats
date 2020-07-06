@@ -8,9 +8,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 3rd, 2020
- * changed: May 31th, 2020
  */
 public enum StorageType implements Type {
 
@@ -57,6 +54,7 @@ public enum StorageType implements Type {
 
     /**
      * Returns the default reload type.
+     *
      * @return the default reload type.
      */
     public static @NotNull StorageType getDefault() {
@@ -64,8 +62,10 @@ public enum StorageType implements Type {
     }
 
     /**
-     * Returns the reload type with the given identifier. Can be null when there is no reload type with the given
-     * identifier;
+     * Returns the reload type with the given identifier.
+     *
+     * <p>Can be null when there is no reload type with the given identifier.</p>
+     *
      * @param identifier the identifier to search for the type.
      * @return the reload type with the given identifier or null if there is no with the given identifier.
      */

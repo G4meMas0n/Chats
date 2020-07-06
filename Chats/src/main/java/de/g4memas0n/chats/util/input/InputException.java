@@ -7,9 +7,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: June 23th, 2020
- * changed: July 5th, 2020
  */
 public abstract class InputException extends Exception {
 

@@ -9,9 +9,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 5th, 2019
- * changed: June 23th, 2019
  */
 public abstract class ChatterEvent extends Event {
 

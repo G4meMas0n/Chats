@@ -16,9 +16,6 @@ import java.util.UUID;
  *
  * @author G4meMason
  * @since Release 1.0.0
- *
- * created: June 14th, 2020
- * changed: June 19th, 2020
  */
 public final class ChatterCache implements IStorageHolder {
 

@@ -1,7 +1,7 @@
 package de.g4memas0n.chats.chatter;
 
 import de.g4memas0n.chats.channel.IChannel;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
 import de.g4memas0n.chats.util.type.ModifyType;
@@ -18,9 +18,6 @@ import java.util.List;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: April 4th, 2020
- * changed: July 5th, 2020
  */
 public final class CommandSource implements ICommandSource {
 

@@ -43,9 +43,6 @@ import java.util.logging.Level;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 26th, 2019
- * changed: June 22th, 2020
  */
 public final class Chats extends JavaPlugin implements IChats {
 

@@ -1,6 +1,8 @@
-package de.g4memas0n.chats.chatter;
+package de.g4memas0n.chats.permission;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
+import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
 import de.g4memas0n.chats.util.type.ModifyType;
@@ -9,19 +11,18 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Permissible Interface that provides methods to check whether a permissible is permitted to something or not.
- * This Interface is used for the {@link ICommandSource} Interface, to determine whether the command source is
- * permitted to perform a command action.
+ *
+ * <p>This Interface is used for the {@link ICommandSource} Interface, to determine whether the command source is
+ * permitted to perform a command action.</p>
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 8th, 2020
- * changed: July 5th, 2020
  */
 public interface IPermissible {
 
     /**
-     * Checks whether this command source has the given permission node
+     * Checks whether this command source has the given permission node.
+     *
      * @param node the permission node to check.
      * @return true when this command source has the permission, false otherwise.
      */
@@ -29,6 +30,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to ban the given chatter from the given channel.
+     *
      * @param chatter the chatter to check the permission.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
@@ -37,6 +39,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to create a channel of the given type.
+     *
      * @param type the channel type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -44,6 +47,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to delete the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -51,6 +55,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to focus the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -58,6 +63,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to ignore the given chatter.
+     *
      * @param chatter the chatter to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -65,6 +71,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to join the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -72,6 +79,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to kick the given chatter from the given channel.
+     *
      * @param chatter the chatter to check the permission.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
@@ -80,6 +88,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to leave the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -87,6 +96,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to list the given channel type.
+     *
      * @param type the channel type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -94,6 +104,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to list the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -101,7 +112,9 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to message the given chatter.
-     * When this permissible can't see the given chatter it returns false.
+     *
+     * <p>When this permissible can't see the given chatter it returns false.</p>
+     *
      * @param chatter the chatter to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -109,6 +122,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to moderate the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -116,6 +130,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to modify the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -123,6 +138,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to modify the given type of the given channel.
+     *
      * @param channel the channel to check the permission.
      * @param type the modify type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
@@ -131,6 +147,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to mute the given chatter in the given channel.
+     *
      * @param chatter the chatter to check the permission.
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
@@ -139,6 +156,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to reload the given storage type.
+     *
      * @param type the reload type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -146,6 +164,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to save the given storage type.
+     *
      * @param type the type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -153,6 +172,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible can see the given chatter.
+     *
      * @param chatter the chatter to check.
      * @return true when this permissible can see the given chatter, false otherwise.
      */
@@ -160,6 +180,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to speak in the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
@@ -167,6 +188,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to view the given info type of the given channel.
+     *
      * @param channel the channel to check the permission.
      * @param type the info type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
@@ -175,6 +197,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to view the information's of the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible it permitted, false otherwise.
      */
@@ -182,6 +205,7 @@ public interface IPermissible {
 
     /**
      * Returns whether this permissible is permitted to view the members of the given channel.
+     *
      * @param channel the channel to check the permission.
      * @return true when this permissible it permitted, false otherwise.
      */

@@ -7,13 +7,11 @@ import java.util.regex.Pattern;
 
 /**
  * Representation of a Version, that provides a easier updater implementation.
- * Currently unused.
+ *
+ * <p><i><b>Note:</b> Currently unused.</i></p>
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 20th, 2020
- * changed: April 18th, 2020
  */
 @SuppressWarnings("unused")
 public class Version implements Comparable<Version> {
@@ -79,7 +77,7 @@ public class Version implements Comparable<Version> {
     }
 
     @Override
-    public int compareTo(@NotNull final Version version) {
+    public final int compareTo(@NotNull final Version version) {
         if (this.major != version.getMajor()) {
             return Integer.compare(this.major, version.getMajor());
         }
@@ -96,7 +94,7 @@ public class Version implements Comparable<Version> {
     }
 
     @Override
-    public boolean equals(@Nullable final Object object) {
+    public final boolean equals(@Nullable final Object object) {
         if (object == null) {
             return false;
         }
@@ -118,7 +116,7 @@ public class Version implements Comparable<Version> {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         final int prime = 31;
         int result = 1;
 
@@ -131,7 +129,7 @@ public class Version implements Comparable<Version> {
     }
 
     @Override
-    public @NotNull String toString() {
+    public final @NotNull String toString() {
         final StringBuilder version = new StringBuilder();
 
         version.append(this.major);

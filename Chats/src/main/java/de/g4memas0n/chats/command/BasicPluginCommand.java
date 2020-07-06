@@ -26,9 +26,6 @@ import java.util.logging.Level;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 25th, 2020
- * changed: July 5th, 2020
  */
 public abstract class BasicPluginCommand extends BasicCommand implements TabExecutor {
 

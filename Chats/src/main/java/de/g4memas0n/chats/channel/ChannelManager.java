@@ -22,9 +22,6 @@ import java.util.logging.Level;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: November 14th, 2019
- * changed: June 17th, 2020
  */
 public final class ChannelManager implements IChannelManager {
 

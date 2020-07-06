@@ -2,6 +2,7 @@ package de.g4memas0n.chats.event.chatter;
 
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Placeholder;
+import de.g4memas0n.chats.storage.configuration.ISettings;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -11,9 +12,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 12th, 2019
- * changed: May 1st, 2020
  */
 public final class ChatterChatConversationEvent extends ChatterEvent implements Cancellable {
 
@@ -51,10 +49,25 @@ public final class ChatterChatConversationEvent extends ChatterEvent implements 
         return this.partner;
     }
 
+    /**
+     * Returns the used conversation format for this conversation.
+     *
+     * @return the conversation format.
+     * @see ISettings#getConversationFormat()
+     */
     public @NotNull String getFormat() {
         return this.format;
     }
 
+    /**
+     * Sets the used conversation format for this conversation.
+     *
+     * <p>The given format must include the {@link Placeholder#CON_ADDRESS}, {@link Placeholder#CON_PARTNER} and
+     * {@link Placeholder#MESSAGE} placeholder, otherwise it will throw an exception.</p>
+     *
+     * @param format the new conversation format.
+     * @throws IllegalArgumentException Thrown when the given format does not include the required placeholders.
+     */
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
         if (!format.contains(Placeholder.CON_ADDRESS.toString())) {
             throw new IllegalArgumentException("Format is missing {con-address} placeholder: " + format);
@@ -71,10 +84,20 @@ public final class ChatterChatConversationEvent extends ChatterEvent implements 
         this.format = format;
     }
 
+    /**
+     * Returns the message of this conversation.
+     *
+     * @return the conversation message.
+     */
     public @NotNull String getMessage() {
         return this.message;
     }
 
+    /**
+     * Sets the message of this conversation.
+     *
+     * @param message the new conversation message.
+     */
     public void setMessage(@NotNull final String message) {
         this.message = message;
     }

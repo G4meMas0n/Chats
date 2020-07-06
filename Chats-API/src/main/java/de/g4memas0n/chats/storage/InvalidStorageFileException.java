@@ -8,9 +8,6 @@ import java.io.File;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 3rd, 2019
- * changed: January 17th, 2020
  */
 public final class InvalidStorageFileException extends Exception {
 

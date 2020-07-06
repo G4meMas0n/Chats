@@ -23,9 +23,6 @@ import java.util.stream.Collectors;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 3rd, 2020
- * changed: June 18th, 2020
  */
 public class PersistChannel extends StandardChannel implements IStorageHolder {
 

@@ -8,9 +8,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 3rd, 2020
- * changed: July 4th, 2020
  */
 public enum ModifyType implements Type {
 
@@ -102,8 +99,10 @@ public enum ModifyType implements Type {
     }
 
     /**
-     * Returns the modify type with the given identifier. Can be null when there is no modify type with the given
-     * identifier;
+     * Returns the modify type with the given identifier.
+     *
+     * <p>Can be null when there is no modify type with the given identifier.</p>
+     *
      * @param identifier the identifier to search for the type.
      * @return the modify type with the given identifier or null if there is no with the given identifier.
      */

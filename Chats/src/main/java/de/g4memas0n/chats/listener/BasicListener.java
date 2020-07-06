@@ -15,9 +15,6 @@ import java.util.List;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 6th, 2020
- * changed: June 17th, 2020
  */
 public abstract class BasicListener implements Listener {
 

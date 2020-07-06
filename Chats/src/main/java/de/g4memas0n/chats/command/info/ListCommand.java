@@ -4,7 +4,7 @@ import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
 import de.g4memas0n.chats.util.input.InvalidArgumentException;
@@ -22,9 +22,6 @@ import java.util.stream.Collectors;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 8th, 2020
- * changed: July 5th, 2020
  */
 public final class ListCommand extends BasicCommand {
 

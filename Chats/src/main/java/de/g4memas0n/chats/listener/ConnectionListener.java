@@ -3,7 +3,7 @@ package de.g4memas0n.chats.listener;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -15,9 +15,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 7th, 2020
- * changed: July 4th, 2020
  */
 public final class ConnectionListener extends BasicListener {
 

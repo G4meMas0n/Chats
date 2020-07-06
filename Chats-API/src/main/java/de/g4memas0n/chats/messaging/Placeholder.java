@@ -7,9 +7,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 13th, 2019
- * changed: May 1st, 2020
  */
 public enum Placeholder {
 
@@ -55,31 +52,36 @@ public enum Placeholder {
 
     /**
      * Represents the group placeholder that will be replaced with the senders group name.
-     * Note: This only works with Vault.
+     *
+     * <p><i><b>Note:</b> This only works with Vault.</i></p>
      */
     SENDER_GROUP("{group}"),
 
     /**
      * Represents the group prefix placeholder that will be replaced with the senders group prefix.
-     * Note: This only works with Vault.
+     *
+     * <p><i><b>Note:</b> This only works with Vault.</i></p>
      */
     SENDER_GROUP_PREFIX("{group-prefix}"),
 
     /**
      * Represents the group suffix placeholder that will be replaced with the senders group suffix.
-     * Note: This only works with Vault.
+     *
+     * <p><i><b>Note:</b> This only works with Vault.</i></p>
      */
     SENDER_GROUP_SUFFIX("{group-suffix}"),
 
     /**
      * Represents the sender prefix placeholder that will be replaced with the senders prefix.
-     * Note: This only works with Vault.
+     *
+     * <p><i><b>Note:</b> This only works with Vault.</i></p>
      */
     SENDER_PREFIX("{sender-prefix}"),
 
     /**
      * Represents the sender suffix placeholder that will be replaced with the senders suffix.
-     * Note: This only works with Vault.
+     *
+     * <p><i><b>Note:</b> This only works with Vault.</i></p>
      */
     SENDER_SUFFIX("{sender-suffix}"),
 
@@ -101,6 +103,7 @@ public enum Placeholder {
 
     /**
      * Strips all founded Placeholder contained in the given input string.
+     *
      * @param input the string that should be stripped.
      * @return the stripped input string.
      */

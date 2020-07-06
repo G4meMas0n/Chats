@@ -15,9 +15,6 @@ import java.util.Map;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: June 15th, 2020
- * changed: June 15th, 2020
  */
 public enum ANSICode {
 

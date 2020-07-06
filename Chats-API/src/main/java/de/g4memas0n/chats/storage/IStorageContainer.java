@@ -5,9 +5,6 @@ package de.g4memas0n.chats.storage;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: June 9th, 2020
- * changed: June 9th, 2020
  */
 public interface IStorageContainer {
 

@@ -4,7 +4,7 @@ import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.Permission;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.input.ICommandInput;
 import de.g4memas0n.chats.util.input.InputException;
 import de.g4memas0n.chats.util.input.PlayerNotFoundException;
@@ -19,9 +19,6 @@ import java.util.List;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: June 17th, 2020
- * changed: July 5th, 2020
  */
 public final class SocialSpyCommand extends BasicCommand {
 

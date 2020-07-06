@@ -8,9 +8,6 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 3rd, 2020
- * changed: May 29th, 2020
  */
 public enum ChannelType implements Type {
 
@@ -52,6 +49,7 @@ public enum ChannelType implements Type {
 
     /**
      * Returns the default channel type.
+     *
      * @return the default channel type.
      */
     public static @NotNull ChannelType getDefault() {
@@ -59,8 +57,10 @@ public enum ChannelType implements Type {
     }
 
     /**
-     * Returns the channel type with the given identifier. Can be null when there is no channel type with the given
-     * identifier;
+     * Returns the channel type with the given identifier.
+     *
+     * <p>Can be null when there is no channel type with the given identifier.</p>
+     *
      * @param identifier the identifier to search for the type.
      * @return the channel type with the given identifier or null if there is no with the given identifier.
      */

@@ -17,9 +17,6 @@ import java.util.Locale;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: February 12th, 2020
- * changed: June 15th, 2020
  */
 public final class Settings implements ISettings {
 

@@ -15,9 +15,6 @@ import java.util.logging.Logger;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: March 24th, 2020
- * changed: June 15th, 2020
  */
 public class BasicLogger extends Logger {
 

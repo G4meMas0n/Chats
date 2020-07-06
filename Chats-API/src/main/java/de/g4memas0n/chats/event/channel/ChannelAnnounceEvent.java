@@ -2,6 +2,7 @@ package de.g4memas0n.chats.event.channel;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.messaging.Placeholder;
+import de.g4memas0n.chats.storage.configuration.ISettings;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -11,9 +12,6 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: January 2nd, 2020
- * changed: May 1st, 2020
  */
 public final class ChannelAnnounceEvent extends ChannelEvent implements Cancellable {
 
@@ -43,10 +41,26 @@ public final class ChannelAnnounceEvent extends ChannelEvent implements Cancella
         this.cancel = cancel;
     }
 
+    /**
+     * Returns the used announce format for this announce.
+     *
+     * @return the announce format
+     * @see IChannel#getAnnounceFormat()
+     * @see ISettings#getAnnounceFormat()
+     */
     public @NotNull String getFormat() {
         return this.format;
     }
 
+    /**
+     * Sets the used announce format for this announce.
+     *
+     * <p>The given format must include the {@link Placeholder#MESSAGE} placeholder, otherwise it will throw an
+     * exception.</p>
+     *
+     * @param format the new announce format.
+     * @throws IllegalArgumentException Thrown when the given format does not include the required placeholders.
+     */
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
         if (!format.contains(Placeholder.MESSAGE.toString())) {
             throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
@@ -55,10 +69,20 @@ public final class ChannelAnnounceEvent extends ChannelEvent implements Cancella
         this.format = format;
     }
 
+    /**
+     * Returns the message of this announce.
+     *
+     * @return the announce message.
+     */
     public @NotNull String getMessage() {
         return this.message;
     }
 
+    /**
+     * Sets the message of this announce.
+     *
+     * @param message the new announce message.
+     */
     public void setMessage(@NotNull final String message) {
         this.message = message;
     }

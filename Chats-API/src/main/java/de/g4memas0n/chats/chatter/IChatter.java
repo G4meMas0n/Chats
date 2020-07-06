@@ -1,6 +1,7 @@
 package de.g4memas0n.chats.chatter;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.permission.IForcible;
 import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -13,36 +14,40 @@ import java.util.UUID;
  *
  * @author G4meMas0n
  * @since Release 1.0.0
- *
- * created: July 12th, 2019
- * changed: July 5th, 2020
  */
 public interface IChatter extends ICommandSource, IFilterable, IForcible, IOfflineChatter, Comparable<IChatter> {
 
     /**
      * Returns the player of this chatter.
+     *
      * @return the player of this chatter.
      */
     @NotNull Player getPlayer();
 
     /**
      * Returns the "friendly" name to display of this chatter.
+     *
      * @return the display name of this chatter.
+     * @see Player#getDisplayName()
      */
     @NotNull String getDisplayName();
 
     // Active Channel Methods:
     /**
      * Returns the currently channel in that this chatter is focused.
+     *
      * @return the currently focused channel of this chatter.
      */
     @NotNull IChannel getFocus();
 
     /**
-     * Sets a new channel as the currently focused channel of this chatter. Can be null when the default channel should
-     * be the new focused channel.
-     * The old focused channel will be saved as 'last-focused-channel' when it is a non conversation channel, and will
-     * be saved as 'last-persist-channel' when it is a persistent channel.
+     * Sets a new channel as the currently focused channel of this chatter.
+     *
+     * <p>The channel can be null when the default channel should be the new focused channel.</p>
+     *
+     * <p><i><b>Note:</b> The old focused channel will be saved as 'last-focused-channel' when it is a non conversation
+     * channel, and will be saved as 'last-persist-channel' when it is a persistent channel.</i></p>
+     *
      * @param channel the new channel that should be the currently focused channel of this chatter, or null.
      * @return true when the currently focused channel was changed as result of this call, false otherwise.
      */
@@ -50,31 +55,41 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
 
     // Last Sources Methods:
     /**
-     * Returns the last channel that this chatter had focused. Can be null when there is no last focused channel.
-     * This Channel can be any non conversation channel.
+     * Returns the last channel that this chatter had focused.
+     *
+     * <p>Can be null when there is no last focused channel.</p>
+     *
+     * <p><i><b>Note:</b> This Channel can be any non conversation channel.</i></p>
+     *
      * @return the last focused channel of this chatter. or null when there is no last focused channel.
      */
     @SuppressWarnings("unused")
     @Nullable IChannel getLastFocused();
 
     /**
-     * Returns the last persist channel that this chatter had focused. Can be null when there is no last focused
-     * persist channel.
-     * This Channel can only be persist channels.
+     * Returns the last persist channel that this chatter had focused.
+     *
+     * <p>Can be null when there is no last focused persist channel.</p>
+     *
+     * <p><i><b>Note:</b> This Channel can only be persist channels.</i></p>
+     *
      * @return the last focused persist channel of this chatter or null when there is no last focused channel.
      */
     @SuppressWarnings("unused")
     @Nullable IChannel getLastPersist();
 
     /**
-     * Returns the last partner this chatter had a conversation with. Can be null when there is no last conversation
-     * this chatter had
+     * Returns the last partner this chatter had a conversation with.
+     *
+     * <p>Can be null when there is no last conversation this chatter had.</p>
+     *
      * @return the last conversation partner.
      */
     @Nullable IChatter getLastPartner();
 
     /**
      * Sets a new chatters this chatter had a conversation with.
+     *
      * @param partner the new last conversation partner.
      * @return true when the last conversation partner was changed as result of this call, false otherwise.
      */
@@ -84,26 +99,37 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
 
     /**
      * Returns all channel that this chatter is owning.
-     * Can be all types instead of {@link ChannelType#CONVERSATION} of channels.
+     *
+     * <p>Can be all types instead of {@link ChannelType#CONVERSATION} of channels.</p>
+     *
      * @return the channels this chatter is owning.
      */
     @NotNull Set<IChannel> getOwningChannels();
 
     /**
-     * Returns all channel that this chatter is in. Can be all types of channels.
+     * Returns all channel that this chatter is in.
+     *
+     * <p>Can be all types of channels.</p>
+     *
      * @return the channels this chatter is in.
      */
     @NotNull Set<IChannel> getChannels();
 
     /**
-     * Joins a new channel. Adds the given channel to this chatter and calls {@link IChannel#addMember(IChatter)}.
+     * Joins a new channel.
+     *
+     * <p>Adds the given channel to this chatter and calls {@link IChannel#addMember(IChatter)}.</p>
+     *
      * @param channel the channel to join.
      * @return true when the channel was joined as result of this call, false otherwise.
      */
     boolean joinChannel(@NotNull final IChannel channel);
 
     /**
-     * Leaves a channel. Removes the given channel from this chatter and calls {@link IChannel#removeMember(IChatter)}.
+     * Leaves a channel.
+     *
+     * <p>Removes the given channel from this chatter and calls {@link IChannel#removeMember(IChatter)}.</p>
+     *
      * @param channel the channel to leave.
      * @return true when the channel was left as result of this call, false otherwise.
      */
@@ -111,6 +137,7 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
 
     /**
      * Returns whether this chatter contains the given channel or not.
+     *
      * @param channel the channel that should be checked.
      * @return true when the collection of channels contains given the channel, false otherwise.
      */
@@ -119,6 +146,7 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
     // Ignored Chatter Collection Methods:
     /**
      * Adds a ignored player for this chatter.
+     *
      * @param uniqueId the uniqueId of the player to add.
      * @return true when the player was ignored as result of this call, false otherwise.
      */
@@ -126,6 +154,7 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
 
     /**
      * Removes a ignored player from this chatter.
+     *
      * @param uniqueId the uniqueId of the player to remove.
      * @return true when the player was unignored as result of this call, false otherwise.
      */
@@ -133,6 +162,7 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
 
     /**
      * Returns whether the given uniqueId is ignored from this chatter.
+     *
      * @param uniqueId the uniqueId of the player to check.
      * @return true when the given uniqueId is ignored, false otherwise.
      */
@@ -140,6 +170,7 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
 
     /**
      * Returns whether this chatter is ignoring someone.
+     *
      * @return true when someone is ignored, false otherwise.
      */
     boolean isIgnore();
