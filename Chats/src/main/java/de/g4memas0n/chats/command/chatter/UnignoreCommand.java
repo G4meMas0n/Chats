@@ -61,7 +61,7 @@ public class UnignoreCommand extends ChatterCommand {
                 return true;
             }
 
-            if (sender.isIgnore()) {
+            if (!sender.isIgnore()) {
                 sender.sendMessage(Messages.tl("ignoreNobody"));
                 return true;
             }

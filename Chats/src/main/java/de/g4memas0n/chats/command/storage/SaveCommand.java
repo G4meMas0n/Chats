@@ -83,7 +83,7 @@ public final class SaveCommand extends BasicCommand {
                     } else if (type.equals(StorageType.CHATTER)) {
                         final IChatter chatter = this.getInstance().getChatterManager().getChatter(input.get(STORAGE));
 
-                        if (chatter == null) {
+                        if (chatter == null || !sender.canSee(chatter)) {
                             throw new PlayerNotFoundException(input.get(STORAGE));
                         }
 
@@ -92,7 +92,7 @@ public final class SaveCommand extends BasicCommand {
                         try {
                             task.get();
 
-                            sender.sendMessage(Messages.tl("saveChatter", chatter.getName()));
+                            sender.sendMessage(Messages.tl("saveChatter", chatter.getDisplayName()));
                             return true;
                         } catch (ExecutionException ex) {
                             Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
@@ -100,7 +100,7 @@ public final class SaveCommand extends BasicCommand {
                             Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
                         }
 
-                        sender.sendMessage(Messages.tl("saveFailed", chatter.getName()));
+                        sender.sendMessage(Messages.tl("saveFailed", chatter.getDisplayName()));
                         return true;
                     }
 

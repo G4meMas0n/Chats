@@ -32,10 +32,9 @@ commands:
     permission: chats.focus
     usage: /focus <channel> [<password>]
   ignore:
-    aliases: [unignore]
-    description: Ignores or unignores a player.
+    description: Ignores a player.
     permission: chats.ignore
-    usage: /ignore|unignore <player>
+    usage: /ignore <player>
   join:
     description: Joins a new channel.
     permission: chats.join
@@ -54,6 +53,10 @@ commands:
     description: Starts a conversation with or sends a private message to the last conversation partner.
     permission: chats.msg
     usage: /reply [<message>]
+  unignore:
+    description: Unignores a player.
+    permission: chats.ignore
+    usage: /unignore <player>
 
 permissions:
   # Basic moderate permission.

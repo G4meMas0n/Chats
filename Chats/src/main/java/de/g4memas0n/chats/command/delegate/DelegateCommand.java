@@ -126,7 +126,7 @@ public abstract class DelegateCommand extends BasicPluginCommand {
     @Override
     public @NotNull List<String> help(@NotNull final ICommandSource sender,
                                       @NotNull final ICommandInput input) {
-        if (input.getLength() >= ARGUMENTS + 1) {
+        if (input.getLength() >= DELEGATE + 1) {
             final BasicCommand delegate = this.getCommand(input.get(DELEGATE));
 
             if (delegate != null && sender.hasPermission(delegate.getPermission())) {
@@ -146,6 +146,8 @@ public abstract class DelegateCommand extends BasicPluginCommand {
                 delegates.add(delegate.getName());
             }
         }
+
+        Collections.sort(delegates);
 
         help.add(Messages.tlJoin("helpCommands", delegates));
 

@@ -455,7 +455,7 @@ public class StandardChannel implements IChannel {
 
     @Override
     public synchronized boolean addMember(@NotNull final IChatter member) {
-        if (this.members.contains(member) || this.bans.contains(member.getUniqueId())) {
+        if (this.members.contains(member)) {
             return false;
         }
 
@@ -463,8 +463,9 @@ public class StandardChannel implements IChannel {
 
         this.setMember(member, true);
 
-        if (!member.hasChannel(this)) {
-            member.joinChannel(this);
+        if (!member.hasChannel(this) && !member.joinChannel(this)) {
+            this.setMember(member, false);
+            return false;
         }
 
         this.instance.getServer().getPluginManager().callEvent(new ChannelChatterJoinedEvent(this, member));
@@ -479,8 +480,9 @@ public class StandardChannel implements IChannel {
 
         this.setMember(member, false);
 
-        if (member.hasChannel(this)) {
-            member.leaveChannel(this);
+        if (member.hasChannel(this) && !member.leaveChannel(this)) {
+            this.setMember(member, true);
+            return false;
         }
 
         this.performAnnounce(Messages.tl("announceLeave", this.getColor().toString(), member.getDisplayName()));

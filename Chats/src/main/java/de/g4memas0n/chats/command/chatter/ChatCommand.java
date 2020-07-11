@@ -71,7 +71,8 @@ public final class ChatCommand extends ChatterCommand {
             final List<String> completion = new ArrayList<>();
 
             for (final IChannel channel : sender.getChannels()) {
-                if (channel.isConversation() || channel.isMuted(sender.getUniqueId())) {
+                if (channel.isConversation() || channel.equals(sender.getFocus())
+                        || channel.isMuted(sender.getUniqueId())) {
                     continue;
                 }
 

@@ -6,6 +6,7 @@ import de.g4memas0n.chats.channel.IChannelManager;
 import de.g4memas0n.chats.chatter.ChatterManager;
 import de.g4memas0n.chats.chatter.IChatterManager;
 import de.g4memas0n.chats.command.BasicCommand;
+import de.g4memas0n.chats.command.chatter.UnignoreCommand;
 import de.g4memas0n.chats.command.delegate.ChannelCommand;
 import de.g4memas0n.chats.command.delegate.ChatsCommand;
 import de.g4memas0n.chats.command.chatter.IgnoreCommand;
@@ -61,7 +62,7 @@ public final class Chats extends JavaPlugin implements IChats {
     private boolean loaded;
 
     public Chats() {
-        this.commands = new HashSet<>(6, 1);
+        this.commands = new HashSet<>(7, 1);
         this.listeners = new HashSet<>(4, 1);
 
         Log.initialize(super.getLogger(), this);
@@ -325,6 +326,7 @@ public final class Chats extends JavaPlugin implements IChats {
         this.commands.add(new IgnoreCommand());
         this.commands.add(new MsgCommand());
         this.commands.add(new ReplyCommand());
+        this.commands.add(new UnignoreCommand());
 
         this.commands.forEach(command -> command.register(this));
 

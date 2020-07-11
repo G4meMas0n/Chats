@@ -9,7 +9,6 @@ import de.g4memas0n.chats.command.chatter.ChatterCommand;
 import de.g4memas0n.chats.command.chatter.FocusCommand;
 import de.g4memas0n.chats.command.chatter.JoinCommand;
 import de.g4memas0n.chats.command.chatter.LeaveCommand;
-import de.g4memas0n.chats.command.chatter.UnignoreCommand;
 import de.g4memas0n.chats.command.info.ListCommand;
 import de.g4memas0n.chats.command.manage.CreateCommand;
 import de.g4memas0n.chats.command.manage.DeleteCommand;
@@ -40,7 +39,7 @@ import java.util.List;
 public final class ChannelCommand extends DelegateCommand {
 
     public ChannelCommand() {
-        super("channel", 17);
+        super("channel", 16);
 
         this.addCommand(new BanCommand());
         this.addCommand(new BroadcastCommand());
@@ -57,7 +56,6 @@ public final class ChannelCommand extends DelegateCommand {
         this.addCommand(new MuteCommand());
         this.addCommand(new PardonCommand());
         this.addCommand(new UnmuteCommand());
-        this.addCommand(new UnignoreCommand());
         this.addCommand(new WhoCommand());
 
         this.setAliases(Collections.singletonList("ch"));

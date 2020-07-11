@@ -57,7 +57,7 @@ public final class ChatterManager implements IChatterManager {
 
     @Override
     public synchronized @Nullable IChatter getChatter(@NotNull final String name) {
-        final Player player = this.instance.getServer().getPlayer(name);
+        final Player player = this.instance.getServer().getPlayerExact(name);
 
         if (player != null && player.isOnline()) {
             return this.getChatter(player);
@@ -163,7 +163,7 @@ public final class ChatterManager implements IChatterManager {
 
     @Override
     public synchronized @Nullable IOfflineChatter getOfflineChatter(@NotNull final String name) {
-        final Player player = this.instance.getServer().getPlayer(name);
+        final Player player = this.instance.getServer().getPlayerExact(name);
 
         if (player != null) {
             return this.getOfflineChatter(player.getUniqueId());
@@ -219,23 +219,29 @@ public final class ChatterManager implements IChatterManager {
                 Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
             }
 
-            Log.getPlugin().debug("Username-cache has been loaded. Cleaning it up...");
+            Log.getPlugin().debug("Username-cache has been loaded.");
 
-            for (final String name : this.cache.getKeys()) {
-                final UUID uniqueId = this.cache.get(name);
+            if (this.cache.getKeys().size() >= this.directory.listFiles(File::isFile).length) {
+                Log.getPlugin().debug("Detected too many entries in username-cache. Cleaning it up...");
 
-                if (uniqueId != null) {
-                    final IStorageFile storage = new YamlStorageFile(this.directory, uniqueId.toString());
+                for (final String name : this.cache.getKeys()) {
+                    final UUID uniqueId = this.cache.get(name);
 
-                    if (storage.getFile().exists()) {
-                        continue;
+                    if (uniqueId != null) {
+                        final IStorageFile storage = new YamlStorageFile(this.directory, uniqueId.toString());
+
+                        if (storage.getFile().exists()) {
+                            continue;
+                        }
                     }
+
+                    this.cache.invalidate(name);
                 }
 
-                this.cache.invalidate(name);
-            }
+                Log.getPlugin().debug("Username-cache has been cleaned up. Saving it...");
 
-            Log.getPlugin().debug("Username-cache has been cleaned up.");
+                this.instance.runStorageTask(this.cache::save);
+            }
         }
 
         if (!this.chatters.isEmpty()) {
@@ -253,8 +259,9 @@ public final class ChatterManager implements IChatterManager {
 
             Log.getPlugin().info("Online chatters has been loaded.");
 
-            this.instance.runSyncTask(() -> this.chatters.values().forEach(chatter ->
-                    chatter.sendMessage(Messages.tl("focusCurrent", chatter.getFocus().getColoredName()))));
+            this.instance.scheduleSyncTask(() -> this.chatters.values().forEach(chatter -> chatter.sendMessage(
+                    Messages.tl("focusCurrent", chatter.getFocus().getColoredName()))),
+                    this.instance.getSettings().getInformDelay());
         }
     }
 

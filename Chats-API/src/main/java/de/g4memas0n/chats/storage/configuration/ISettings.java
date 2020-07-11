@@ -95,4 +95,11 @@ public interface ISettings extends IStorageHolder {
      * @return the auto save delay.
      */
     int getSaveDelay();
+
+    /**
+     * Returns the configured inform delay from the config file.
+     *
+     * @return the inform delay.
+     */
+    int getInformDelay();
 }

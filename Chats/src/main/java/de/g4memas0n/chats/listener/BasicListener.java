@@ -66,7 +66,7 @@ public abstract class BasicListener implements Listener {
 
                 final Class<?> clazz = method.getParameterTypes()[0];
 
-                if (clazz.isAssignableFrom(Event.class)) {
+                if (clazz.isAssignableFrom(Event.class) && !events.contains(clazz.getSimpleName())) {
                     events.add(clazz.getSimpleName());
                 }
             }

@@ -4,11 +4,18 @@ import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
+import de.g4memas0n.chats.util.logging.Log;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
 
 /**
  * The Connection Listener, listening for player join and quit events.
@@ -18,51 +25,87 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class ConnectionListener extends BasicListener {
 
-    public ConnectionListener() { }
+    private final Map<UUID, Future<?>> loads;
 
-    @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerJoin(@NotNull final PlayerJoinEvent event) {
+    public ConnectionListener() {
+        this.loads = new HashMap<>();
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerJoinLoad(@NotNull final PlayerJoinEvent event) {
         final IChatter chatter = this.getInstance().getChatterManager().loadChatter(event.getPlayer());
 
-        this.getInstance().runStorageTask(() -> delayedLoad(chatter));
+        this.loads.put(chatter.getUniqueId(), this.getInstance().runStorageTask(chatter::load));
     }
 
-    private void delayedLoad(@NotNull final IChatter chatter) {
-        chatter.load();
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerJoinForce(@NotNull final PlayerJoinEvent event) {
+        final IChatter chatter = this.getInstance().getChatterManager().getChatter(event.getPlayer());
 
-        this.getInstance().runSyncTask(() -> delayedJoin(chatter));
-    }
+        try {
+            final Future<?> task = this.loads.remove(chatter.getUniqueId());
 
-    private void delayedJoin(@NotNull final IChatter chatter) {
-        if (!chatter.hasPermission(Permission.FORCE.getChildren("exempt"))) {
-            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-                if (chatter.forcedJoin(channel)) {
-                    chatter.joinChannel(channel);
-                }
+            if (task == null || chatter.hasPermission(Permission.FORCE.getChildren("exempt"))) {
+                return;
             }
 
-            for (final IChannel channel : chatter.getChannels()) {
-                if (chatter.forcedFocus(channel)) {
-                    chatter.setFocus(channel);
-                }
+            task.get();
+        } catch (ExecutionException ex) {
+            Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+        } catch (InterruptedException ex) {
+            Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+        }
+
+        for (final IChannel channel : chatter.getChannels()) {
+            if (chatter.forcedLeave(channel)) {
+                channel.setMember(chatter, false);
+                chatter.leaveChannel(channel);
             }
         }
 
-        chatter.sendMessage(Messages.tl("focusCurrent", chatter.getFocus().getColoredName()));
+        for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+            if (!chatter.hasChannel(channel) && chatter.forcedJoin(channel)) {
+                channel.setMember(chatter, true);
+                chatter.joinChannel(channel);
+            }
+        }
+
+        for (final IChannel channel : chatter.getChannels()) {
+            if (chatter.forcedFocus(channel)) {
+                chatter.setFocus(channel);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerJoinInform(@NotNull final PlayerJoinEvent event) {
+        final IChatter chatter = this.getInstance().getChatterManager().getChatter(event.getPlayer());
+
+        this.getInstance().scheduleSyncTask(() -> chatter.sendMessage(
+                Messages.tl("focusCurrent", chatter.getFocus().getColoredName())),
+                this.getInstance().getSettings().getInformDelay());
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerQuit(@NotNull final PlayerQuitEvent event) {
-        final IChatter chatter = this.getInstance().getChatterManager().unloadChatter(event.getPlayer());
+    public void onPlayerQuitForce(@NotNull final PlayerQuitEvent event) {
+        final IChatter chatter = this.getInstance().getChatterManager().getChatter(event.getPlayer());
 
-        if (!chatter.hasPermission(Permission.FORCE.getChildren("exempt"))) {
-            for (final IChannel channel : chatter.getChannels()) {
-                if (chatter.forcedLeave(channel)) {
-                    chatter.leaveChannel(channel);
-                }
-            }
+        if (chatter.hasPermission(Permission.FORCE.getChildren("exempt"))) {
+            return;
         }
 
-        this.getInstance().runStorageTask(chatter::save);
+        for (final IChannel channel : chatter.getChannels()) {
+            if (chatter.forcedLeave(channel)) {
+                channel.setMember(chatter, false);
+                chatter.leaveChannel(channel);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerQuitUnload(@NotNull final PlayerQuitEvent event) {
+        final IChatter chatter = this.getInstance().getChatterManager().unloadChatter(event.getPlayer());
+
+        this.getInstance().runSyncTask(chatter::save);
     }
 }

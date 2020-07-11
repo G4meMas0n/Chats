@@ -45,14 +45,11 @@ public final class HelpCommand extends BasicCommand {
                     return true;
                 }
 
-                for (final String message : command.help(sender, new CommandInput())) {
-                    sender.sendMessage(message);
-                }
-
+                sender.sendMessage(command.help(sender, new CommandInput()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("helpHeader", Messages.tl("commands")));
+            final List<String> commands = new ArrayList<>();
 
             for (final BasicCommand command : this.getRegistered()) {
                 if (command instanceof BasicPluginCommand) {
@@ -61,11 +58,15 @@ public final class HelpCommand extends BasicCommand {
                     }
 
                     if (sender.hasPermission(command.getPermission())) {
-                        sender.sendMessage(Messages.tl("helpCommand", command.getName(), command.getDescription()));
+                        commands.add(Messages.tl("helpCommand", command.getName(), command.getDescription()));
                     }
                 }
             }
 
+            Collections.sort(commands);
+
+            sender.sendMessage(Messages.tl("helpHeader", Messages.tl("commands")));
+            sender.sendMessage(commands);
             sender.sendMessage(Messages.tl("helpFooter", this.getUsage().replaceAll("\\[(.*)]", "$1")));
             return true;
         }
