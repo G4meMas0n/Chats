@@ -1,17 +1,20 @@
 package de.g4memas0n.chats.command.moderate;
 
 import de.g4memas0n.chats.channel.IChannel;
-import de.g4memas0n.chats.chatter.ICommandSource;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.chatter.IChatter;
+import de.g4memas0n.chats.command.BasicCommand;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
 
 /**
  * The broadcast command that allows to send broadcasts to channels.
@@ -19,7 +22,7 @@ import java.util.List;
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public final class BroadcastCommand extends ModerateCommand {
+public final class BroadcastCommand extends BasicCommand {
 
     private static final int CHANNEL = 0;
     private static final int MESSAGE = 1;
@@ -31,6 +34,25 @@ public final class BroadcastCommand extends ModerateCommand {
         this.setDescription("Broadcasts a message to a channel.");
         this.setPermission(Permission.BROADCAST.getNode());
         this.setUsage("/channel (broadcast|bc) <channel> <message>");
+    }
+
+    @Override
+    public boolean hide(@NotNull final ICommandSource sender) {
+        if (sender instanceof IChatter) {
+            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                if (channel.isConversation()) {
+                    continue;
+                }
+
+                if (sender.canModerate(channel)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -48,7 +70,7 @@ public final class BroadcastCommand extends ModerateCommand {
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("moderateDenied", channel.getColoredName()));
+            sender.sendMessage(tl("moderateDenied", channel.getColoredName()));
             return true;
         }
 

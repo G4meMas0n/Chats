@@ -4,7 +4,6 @@ import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.logging.Log;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -51,22 +50,18 @@ public final class ConnectionListener extends BasicListener {
 
             task.get();
         } catch (ExecutionException ex) {
-            Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+            this.getInstance().getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
         } catch (InterruptedException ex) {
-            Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
-        }
-
-        for (final IChannel channel : chatter.getChannels()) {
-            if (chatter.forcedLeave(channel)) {
-                channel.setMember(chatter, false);
-                chatter.leaveChannel(channel);
-            }
+            this.getInstance().getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
         }
 
         for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-            if (!chatter.hasChannel(channel) && chatter.forcedJoin(channel)) {
-                channel.setMember(chatter, true);
-                chatter.joinChannel(channel);
+            if (chatter.hasChannel(channel)) {
+                continue;
+            }
+
+            if (chatter.forcedJoin(channel)) {
+                chatter.joinChannel(channel, true);
             }
         }
 
@@ -79,11 +74,13 @@ public final class ConnectionListener extends BasicListener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoinInform(@NotNull final PlayerJoinEvent event) {
-        final IChatter chatter = this.getInstance().getChatterManager().getChatter(event.getPlayer());
+        if (this.getInstance().getSettings().isInform()) {
+            final IChatter chatter = this.getInstance().getChatterManager().getChatter(event.getPlayer());
 
-        this.getInstance().scheduleSyncTask(() -> chatter.sendMessage(
-                Messages.tl("focusCurrent", chatter.getFocus().getColoredName())),
-                this.getInstance().getSettings().getInformDelay());
+            this.getInstance().scheduleSyncTask(() -> chatter.sendMessage(
+                    Messages.tl("focusCurrent", chatter.getFocus().getColoredName())),
+                    this.getInstance().getSettings().getInformDelay());
+        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -96,8 +93,7 @@ public final class ConnectionListener extends BasicListener {
 
         for (final IChannel channel : chatter.getChannels()) {
             if (chatter.forcedLeave(channel)) {
-                channel.setMember(chatter, false);
-                chatter.leaveChannel(channel);
+                chatter.leaveChannel(channel, true);
             }
         }
     }

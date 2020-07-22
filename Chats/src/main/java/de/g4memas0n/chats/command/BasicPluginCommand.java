@@ -1,16 +1,6 @@
 package de.g4memas0n.chats.command;
 
 import de.g4memas0n.chats.Chats;
-import de.g4memas0n.chats.chatter.CommandSource;
-import de.g4memas0n.chats.chatter.ICommandSource;
-import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.CommandInput;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidArgumentException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
-import de.g4memas0n.chats.util.logging.Log;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -20,6 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * Abstract Plugin Command Representation that represent commands that are registered to bukkit/spigot.
@@ -153,38 +146,38 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
                                    @NotNull final String alias,
                                    @NotNull final String[] arguments) {
         if (this.command == null) {
-            Log.getPlugin().severe(String.format("Unregistered plugin command '%s' was executed.", this.getName()));
+            this.getInstance().getLogger().severe(String.format("Unregistered plugin command '%s' was executed.", this.getName()));
             return true;
         }
 
         if (sender.hasPermission(this.getPermission())) {
             final ICommandSource source = sender instanceof Player
-                    ? this.getInstance().getChatterManager().getChatter((Player) sender)
-                    : new CommandSource(sender);
-            final ICommandInput input = new CommandInput(arguments);
+                    ? this.getInstance().getChatterManager().getChatter((Player) sender) : new BasicCommandSource(sender);
 
             try {
-                if (this.execute(source, input)) {
+                if (this.execute(source, new BasicCommandInput(arguments))) {
                     return true;
                 }
 
-                for (final String message : this.help(source, input)) {
-                    source.sendMessage(message);
-                }
+                // Invalid command usage. Send command help:
+                source.sendMessage(tl("helpHeader", this.getName()));
+                source.sendMessage(tl("helpDescription", this.getDescription()));
+                source.sendMessage(tl("helpUsage", this.getUsage()));
             } catch (ChannelNotExistException ex) {
-                source.sendMessage(Messages.tlErr("channelNotExist", ex.getChannel()));
+                source.sendMessage(tlErr("channelNotExist", ex.getChannel()));
             } catch (PlayerNotFoundException ex) {
-                source.sendMessage(Messages.tlErr("playerNotFound", ex.getPlayer()));
+                source.sendMessage(tlErr("playerNotFound", ex.getPlayer()));
             } catch (InvalidArgumentException ex) {
-                source.sendMessage(Messages.tlErr(ex.getKey(), ex.getArguments()));
+                source.sendMessage(tlErr(ex.getKey(), ex.getArguments()));
             } catch (InputException ex) {
-                Log.getPlugin().log(Level.SEVERE, String.format("Command execution of '%s' has thrown an unexpected input exception: ", this.getName()), ex);
+                this.getInstance().getLogger().log(Level.SEVERE, String.format("Command execution of '%s' has thrown "
+                        + "an unexpected input exception: ", this.getName()), ex);
             }
 
             return true;
         }
 
-        sender.sendMessage(Messages.tl("noPermission"));
+        sender.sendMessage(tl("noPermission"));
         return true;
     }
 
@@ -194,15 +187,16 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
                                                      @NotNull final String alias,
                                                      @NotNull final String[] arguments) {
         if (this.command == null) {
-            Log.getPlugin().severe(String.format("Unregistered plugin command '%s' was tab completed", this.getName()));
+            this.getInstance().getLogger().severe(String.format("Unregistered plugin command '%s' was tab completed", this.getName()));
+
             return Collections.emptyList();
         }
 
         if (sender.hasPermission(this.getPermission())) {
             final ICommandSource source = sender instanceof Player
-                    ? this.getInstance().getChatterManager().getChatter((Player) sender) : new CommandSource(sender);
+                    ? this.getInstance().getChatterManager().getChatter((Player) sender) : new BasicCommandSource(sender);
 
-            return this.tabComplete(source, new CommandInput(arguments));
+            return this.tabComplete(source, new BasicCommandInput(arguments));
         }
 
         return Collections.emptyList();

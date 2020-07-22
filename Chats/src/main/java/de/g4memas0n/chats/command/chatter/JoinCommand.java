@@ -2,16 +2,18 @@ package de.g4memas0n.chats.command.chatter;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The join command that allows to joins a new channel.
@@ -44,37 +46,37 @@ public final class JoinCommand extends ChatterCommand {
 
             if (sender.canJoin(channel)) {
                 if (channel.isBanned(sender.getUniqueId()) && !sender.hasPermission(Permission.BAN.getChildren("bypass"))) {
-                    sender.sendMessage(Messages.tl("bannedMember", channel.getColoredName()));
+                    sender.sendMessage(tl("bannedMember", channel.getColoredName()));
                     return true;
                 }
 
                 if (channel.hasPassword()) {
                     if (input.getLength() != this.getMaxArgs()) {
-                        sender.sendMessage(Messages.tl("passwordMissing", channel.getColoredName()));
+                        sender.sendMessage(tl("passwordMissing", channel.getColoredName()));
                         return true;
                     }
 
                     if (!input.get(PASSWORD).equals(channel.getPassword())) {
-                        sender.sendMessage(Messages.tlErr("passwordInvalid"));
+                        sender.sendMessage(tlErr("passwordInvalid"));
                         return true;
                     }
                 } else {
                     if (input.getLength() != this.getMinArgs()) {
-                        sender.sendMessage(Messages.tl("noPassword"));
+                        sender.sendMessage(tl("noPassword"));
                         return true;
                     }
                 }
 
                 if (sender.joinChannel(channel)) {
-                    sender.sendMessage(Messages.tl("joinChannel", channel.getColoredName()));
+                    sender.sendMessage(tl("joinChannel", channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("joinAlready", channel.getColoredName()));
+                sender.sendMessage(tl("joinAlready", channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("joinDenied", channel.getColoredName()));
+            sender.sendMessage(tl("joinDenied", channel.getColoredName()));
             return true;
         }
 

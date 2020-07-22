@@ -1,6 +1,6 @@
 main: de.g4memas0n.chats.Chats
 name: Chats
-version: 1.0.0-pre2
+version: 1.0.0-pre3
 description: A Plugin that provides a channel based chat.
 author: G4meMas0n
 api-version: '1.13'

@@ -2,41 +2,41 @@ package de.g4memas0n.chats;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import de.g4memas0n.chats.channel.ChannelManager;
-import de.g4memas0n.chats.channel.IChannelManager;
 import de.g4memas0n.chats.chatter.ChatterManager;
-import de.g4memas0n.chats.chatter.IChatterManager;
 import de.g4memas0n.chats.command.BasicCommand;
-import de.g4memas0n.chats.command.chatter.UnignoreCommand;
-import de.g4memas0n.chats.command.delegate.ChannelCommand;
-import de.g4memas0n.chats.command.delegate.ChatsCommand;
 import de.g4memas0n.chats.command.chatter.IgnoreCommand;
 import de.g4memas0n.chats.command.chatter.MsgCommand;
 import de.g4memas0n.chats.command.chatter.ReplyCommand;
+import de.g4memas0n.chats.command.chatter.UnignoreCommand;
+import de.g4memas0n.chats.command.delegate.ChannelCommand;
+import de.g4memas0n.chats.command.delegate.ChatsCommand;
 import de.g4memas0n.chats.listener.BasicListener;
 import de.g4memas0n.chats.listener.ConnectionListener;
 import de.g4memas0n.chats.listener.PlayerListener;
 import de.g4memas0n.chats.listener.PluginListener;
 import de.g4memas0n.chats.messaging.Formatter;
-import de.g4memas0n.chats.messaging.IFormatter;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.storage.YamlStorageFile;
-import de.g4memas0n.chats.storage.configuration.ISettings;
 import de.g4memas0n.chats.storage.configuration.Settings;
 import de.g4memas0n.chats.util.logging.BasicLogger;
-import de.g4memas0n.chats.util.logging.Log;
+import de.g4memas0n.chats.util.logging.BasicLogger.FileFormatter;
 import net.milkbowl.vault.chat.Chat;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 
 /**
@@ -47,17 +47,24 @@ import java.util.logging.Level;
  */
 public final class Chats extends JavaPlugin implements IChats {
 
+    private static final String DIRECTORY_LOGS = "logs";
+
     private final Set<BasicCommand> commands;
     private final Set<BasicListener> listeners;
 
+    private final BasicLogger pluginLogger;
+    private final BasicLogger chatLogger;
+
     private ScheduledExecutorService executor;
-    private IChannelManager channelManager;
-    private IChatterManager chatterManager;
-    private IFormatter formatter;
-    private ISettings settings;
+
+    private ChannelManager channelManager;
+    private ChatterManager chatterManager;
+
+    private Formatter formatter;
+    private Messages messages;
+    private Settings settings;
     private Chat chatService;
 
-    private Messages messages;
     private boolean enabled;
     private boolean loaded;
 
@@ -65,11 +72,12 @@ public final class Chats extends JavaPlugin implements IChats {
         this.commands = new HashSet<>(7, 1);
         this.listeners = new HashSet<>(4, 1);
 
-        Log.initialize(super.getLogger(), this);
+        this.pluginLogger = new BasicLogger(super.getLogger(), "Plugin", this.getName());
+        this.chatLogger = new BasicLogger(super.getLogger(), "Chat");
     }
 
     @Override
-    public @NotNull IChannelManager getChannelManager() {
+    public @NotNull ChannelManager getChannelManager() {
         if (this.channelManager == null) {
             throw new IllegalStateException("Tried to get the channel manager before it was set");
         }
@@ -78,7 +86,7 @@ public final class Chats extends JavaPlugin implements IChats {
     }
 
     @Override
-    public @NotNull IChatterManager getChatterManager() {
+    public @NotNull ChatterManager getChatterManager() {
         if (this.chatterManager == null) {
             throw new IllegalStateException("Tried to get the chatter manager before it was set");
         }
@@ -87,21 +95,12 @@ public final class Chats extends JavaPlugin implements IChats {
     }
 
     @Override
-    public @NotNull IFormatter getFormatter() {
+    public @NotNull Formatter getFormatter() {
         if (this.formatter == null) {
             throw new IllegalStateException("Tried to get the formatter before it was set");
         }
 
         return this.formatter;
-    }
-
-    @Override
-    public @NotNull ISettings getSettings() {
-        if (this.settings == null) {
-            throw new IllegalStateException("Tried to get the settings before it was set");
-        }
-
-        return this.settings;
     }
 
     public @NotNull Messages getMessages() {
@@ -110,6 +109,15 @@ public final class Chats extends JavaPlugin implements IChats {
         }
 
         return this.messages;
+    }
+
+    @Override
+    public @NotNull Settings getSettings() {
+        if (this.settings == null) {
+            throw new IllegalStateException("Tried to get the settings before it was set");
+        }
+
+        return this.settings;
     }
 
     @Override
@@ -130,10 +138,33 @@ public final class Chats extends JavaPlugin implements IChats {
         }
 
         this.settings = new Settings(this);
+        this.settings.load();
 
-        Log.load(this.settings);
+        this.pluginLogger.setDebug(this.settings.isLogDebug());
 
-        this.messages = new Messages(this.getDataFolder());
+        try {
+            final File directory = new File(this.getDataFolder(), DIRECTORY_LOGS);
+
+            if (directory.mkdirs()) {
+                this.getLogger().debug(String.format("Directory '%s' does not exist. Creating it...", directory));
+            }
+
+            final String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis()));
+            final String pattern = directory.getAbsolutePath() + "/" + date + "_Chat-%u.log";
+            final FileHandler handler = new FileHandler(pattern, true);
+
+            handler.setFormatter(new FileFormatter());
+
+            this.chatLogger.setFileHandler(handler);
+        } catch (IOException ex) {
+            this.getLogger().warning(String.format("Unable to create file handler: %s", ex.getMessage()));
+        }
+
+        this.chatLogger.setColored(this.settings.isLogColored());
+        this.chatLogger.setUseParentHandlers(this.settings.isLogToConsole());
+        this.chatLogger.setUseFileHandler(this.settings.isLogToFile());
+
+        this.messages = new Messages(this.getDataFolder(), this.getLogger());
         this.messages.setLocale(this.settings.getLocale());
 
         this.formatter = new Formatter(this);
@@ -156,16 +187,64 @@ public final class Chats extends JavaPlugin implements IChats {
             this.onLoad();
         }
 
-        this.setupStorageExecutor();
-        this.setupChatService();
+        if (this.executor == null || this.executor.isShutdown()) {
+            this.getLogger().debug("Setting up storage executor...");
+
+            this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("Storage Thread").build());
+
+            this.getLogger().debug("Storage executor has been setup.");
+        }
+
+        if (this.getServer().getPluginManager().getPlugin(PluginListener.VAULT) != null) {
+            this.getLogger().info("Detected supported plugin: 'Vault'! Setting up chat service...");
+
+            final RegisteredServiceProvider<Chat> rsp = this.getServer().getServicesManager().getRegistration(Chat.class);
+
+            if (rsp != null) {
+                this.chatService = rsp.getProvider();
+
+                this.getLogger().info("Chat service has been set up. Vault integration has been enabled.");
+            } else {
+                this.getLogger().warning("Unable to setup chat service. Vault integration has been disabled.");
+            }
+        } else {
+            this.getLogger().warning("Unable to detect plugin 'Vault'! Vault integration has been disabled.");
+        }
 
         this.channelManager.load();
         this.chatterManager.load();
 
         this.messages.enable();
 
-        this.setupListeners();
-        this.setupCommands();
+        if (this.commands.isEmpty()) {
+            this.getLogger().debug("Setting up plugin commands...");
+
+            this.commands.add(new ChannelCommand());
+            this.commands.add(new ChatsCommand());
+            this.commands.add(new IgnoreCommand());
+            this.commands.add(new MsgCommand());
+            this.commands.add(new ReplyCommand());
+            this.commands.add(new UnignoreCommand());
+
+            this.getLogger().debug("All plugin commands has been setup.");
+        }
+
+        if (this.listeners.isEmpty()) {
+            this.getLogger().debug("Setting up plugin listeners...");
+
+            this.listeners.add(new PluginListener());
+            this.listeners.add(new ConnectionListener());
+            this.listeners.add(new PlayerListener());
+
+            this.getLogger().debug("All plugin listeners has been setup.");
+        }
+
+        this.getLogger().debug("Register all plugin commands and listeners...");
+
+        this.commands.forEach(command -> command.register(this));
+        this.listeners.forEach(listener -> listener.register(this));
+
+        this.getLogger().debug("All plugin commands and listeners has been registered.");
 
         this.enabled = true;
     }
@@ -197,8 +276,8 @@ public final class Chats extends JavaPlugin implements IChats {
                 this.getLogger().warning("Storage executor got terminated after termination timeout. "
                         + "Running tasks now, that never commenced execution...");
 
-                for (final Runnable runnable : this.executor.shutdownNow()) {
-                    runnable.run();
+                for (final Runnable task : this.executor.shutdownNow()) {
+                    task.run();
                 }
             } else {
                 this.getLogger().debug("Storage executor was successfully terminated.");
@@ -207,13 +286,13 @@ public final class Chats extends JavaPlugin implements IChats {
             this.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage executor to terminate.", ex);
         }
 
-        Log.exit();
-
-        this.listeners.clear();
-        this.commands.clear();
+        if (this.pluginLogger.getFileHandler() != null) {
+            this.pluginLogger.getFileHandler().close();
+        }
 
         this.channelManager = null;
         this.chatterManager = null;
+
         this.chatService = null;
         this.formatter = null;
         this.settings = null;
@@ -225,33 +304,28 @@ public final class Chats extends JavaPlugin implements IChats {
 
     @Override
     public @NotNull BasicLogger getLogger() {
-        return Log.getPlugin();
+        return this.pluginLogger;
+    }
+
+    public @NotNull BasicLogger getChatLogger() {
+        return this.chatLogger;
     }
 
     @Override
-    public @NotNull FileConfiguration getConfig() {
-        // Should always true, because the implementation of IStorageFile extends YamlConfiguration which is a
-        // FileConfiguration.
-        if (this.settings.getStorage() instanceof YamlStorageFile) {
-            return (YamlStorageFile) this.settings.getStorage();
-        }
-
-        return super.getConfig();
+    public @NotNull YamlStorageFile getConfig() {
+        return this.settings.getStorage();
     }
 
     @Override
     public void reloadConfig() {
         this.settings.load();
 
-        Log.load(this.settings);
+        this.pluginLogger.setDebug(this.settings.isLogDebug());
+        this.chatLogger.setColored(this.settings.isLogColored());
+        this.chatLogger.setUseParentHandlers(this.settings.isLogToConsole());
+        this.chatLogger.setUseFileHandler(this.settings.isLogToFile());
 
         this.messages.setLocale(this.settings.getLocale());
-
-        /*
-        for (final BasicCommand current : this.getCommands()) {
-            current.setDescription(Messages.tl("commandDescription_" + current.getName()));
-        }
-        */
     }
 
     @Override
@@ -259,93 +333,20 @@ public final class Chats extends JavaPlugin implements IChats {
         this.settings.save();
     }
 
-    private void setupStorageExecutor() {
-        if (this.executor != null && !this.executor.isShutdown()) {
-            this.getLogger().severe("Tried to setup storage executor twice. It was already setup.");
-            return;
-        }
-
-        this.getLogger().debug("Setting up storage executor...");
-
-        this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("Storage Thread").build());
-
-        this.getLogger().debug("Storage executor has been setup.");
-    }
-
-    private void setupChatService() {
-        if (this.chatService != null) {
-            this.getLogger().severe("Tried to setup chat service twice. It was already setup.");
-            return;
-        }
-
-        if (this.getServer().getPluginManager().getPlugin(PluginListener.VAULT) == null) {
-            this.getLogger().warning("Unable to detect plugin 'Vault'! Vault integration has been disabled.");
-            return;
-        }
-
-        this.getLogger().info("Detected supported plugin: 'Vault'! Setting up chat service...");
-
-        final RegisteredServiceProvider<Chat> rsp = this.getServer().getServicesManager().getRegistration(Chat.class);
-
-        if (rsp == null) {
-            this.getLogger().warning("Unable to setup chat service. Vault integration has been disabled.");
-        } else {
-            this.chatService = rsp.getProvider();
-
-            this.getLogger().info("Chat service has been set up. Vault integration has been enabled.");
-        }
-    }
-
-    private void setupListeners() {
-        if (!this.listeners.isEmpty()) {
-            this.getLogger().severe("Tried to register plugin listeners twice. They are already registered.");
-            return;
-        }
-
-        this.getLogger().debug("Register plugin listeners...");
-
-        this.listeners.add(new PluginListener());
-        this.listeners.add(new ConnectionListener());
-        this.listeners.add(new PlayerListener());
-
-        this.listeners.forEach(listener -> listener.register(this));
-
-        this.getLogger().debug("All plugin listeners has been registered.");
-    }
-
-    private void setupCommands() {
-        if (!this.commands.isEmpty()) {
-            this.getLogger().severe("Tried to register plugin commands twice. They are already registered.");
-            return;
-        }
-
-        this.getLogger().debug("Register plugin commands...");
-
-        this.commands.add(new ChannelCommand());
-        this.commands.add(new ChatsCommand());
-        this.commands.add(new IgnoreCommand());
-        this.commands.add(new MsgCommand());
-        this.commands.add(new ReplyCommand());
-        this.commands.add(new UnignoreCommand());
-
-        this.commands.forEach(command -> command.register(this));
-
-        this.getLogger().debug("All plugin commands has been registered.");
-    }
-
     public @NotNull Future<?> runStorageTask(@NotNull final Runnable task) {
         return this.executor.submit(task);
-    }
-
-    public @NotNull BukkitTask runSyncTask(@NotNull final Runnable task) {
-        return this.getServer().getScheduler().runTask(this, task);
     }
 
     public @NotNull Future<?> scheduleStorageTask(@NotNull final Runnable task) {
         return this.executor.schedule(task, this.settings.getSaveDelay(), TimeUnit.SECONDS);
     }
 
-    public @NotNull BukkitTask scheduleSyncTask(@NotNull final Runnable task, final long delay) {
+    public @NotNull BukkitTask runSyncTask(@NotNull final Runnable task) {
+        return this.getServer().getScheduler().runTask(this, task);
+    }
+
+    public @NotNull BukkitTask scheduleSyncTask(@NotNull final Runnable task,
+                                                final long delay) {
         return this.getServer().getScheduler().runTaskLater(this, task, delay);
     }
 }

@@ -131,6 +131,21 @@ public interface IChannel extends Comparable<IChannel> {
     boolean setCrossWorld(final boolean crossWorld);
 
     /**
+     * Returns whether this channel will announce channel joins and leaves.
+     *
+     * @return true when this channel will announce joins joins and leaves.
+     */
+    boolean isVerbose();
+
+    /**
+     * Sets whether this channel will announce channel joins and leaves.
+     *
+     * @param verbose true if this channel should announce channel joins and leaves.
+     * @return true when the option was changed as result of this call, false otherwise.
+     */
+    boolean setVerbose(final boolean verbose);
+
+    /**
      * Returns whether this channel uses custom formats or not.
      *
      * @return true when it uses custom formats, false otherwise.
@@ -251,17 +266,15 @@ public interface IChannel extends Comparable<IChannel> {
     @NotNull Set<IChatter> getMembers();
 
     /**
-     * Sets a member for this channel.
+     * Adds a new member to this channel.
      *
-     * <p><i><b>Note:</b> This method will not remove this channel from the given chatter and will not announce the
-     * leaving. Please use the {@link IChannel#addMember(IChatter)} and {@link IChannel#removeMember(IChatter)} or the
-     * {@link IChatter#joinChannel(IChannel)} and {@link IChatter#leaveChannel(IChannel)} methods.</i></p>
+     * <p>This method will add this channel to the given chatter when it is not already added.</p>
      *
-     * @param chatter the chatter to set.
-     * @param member true to add to members, false to remove from members.
-     * @return true when the chatter was added or remove as result of this call, false otherwise.
+     * @param chatter the member to add.
+     * @return true when the member was added as result of this call, false otherwise.
+     * @see IChatter#joinChannel(IChannel)
      */
-    boolean setMember(@NotNull final IChatter chatter, final boolean member);
+    boolean addMember(@NotNull final IChatter chatter);
 
     /**
      * Adds a new member to this channel.
@@ -269,9 +282,11 @@ public interface IChannel extends Comparable<IChannel> {
      * <p>This method will add this channel to the given chatter when it is not already added.</p>
      *
      * @param chatter the member to add.
+     * @param silent true when the member should added silently.
      * @return true when the member was added as result of this call, false otherwise.
+     * @see IChatter#joinChannel(IChannel, boolean)
      */
-    boolean addMember(@NotNull final IChatter chatter);
+    boolean addMember(@NotNull final IChatter chatter, final boolean silent);
 
     /**
      * Removes a member from this channel.
@@ -280,8 +295,29 @@ public interface IChannel extends Comparable<IChannel> {
      *
      * @param chatter the member to remove.
      * @return true when the member was removed as result of this call, false otherwise.
+     * @see IChatter#leaveChannel(IChannel)
      */
     boolean removeMember(@NotNull final IChatter chatter);
+
+    /**
+     * Removes a member from this channel.
+     *
+     * <p>This method will remove this channel from the given chatter when it is not already removed.</p>
+     *
+     * @param chatter the member to remove.
+     * @param silent true when the member should removed silently.
+     * @return true when the member was removed as result of this call, false otherwise.
+     * @see IChatter#leaveChannel(IChannel, boolean)
+     */
+    boolean removeMember(@NotNull final IChatter chatter, final boolean silent);
+
+    /**
+     * Returns whether the given chatter is a member of this channel or not.
+     *
+     * @param chatter the chatter to check.
+     * @return true when the given chatter is a member, false otherwise.
+     */
+    boolean isMember(@NotNull final IChatter chatter);
 
     /**
      * Bans a member from this channel.
@@ -293,16 +329,6 @@ public interface IChannel extends Comparable<IChannel> {
      * @return true when the member was banned as result of this call, false otherwise.
      */
     boolean banMember(@NotNull final IChatter member);
-
-    /**
-     * Pardons a banned chatter in this channel.
-     *
-     * <p>This method will pardon the banned uniqueId of the given offline chatter.</p>
-     *
-     * @param chatter the banned chatter to pardon.
-     * @return true when the banned chatter was pardoned as result of this call, false otherwise.
-     */
-    boolean pardonMember(@NotNull final IOfflineChatter chatter);
 
     /**
      * Kicks a member from this channel.
@@ -325,6 +351,16 @@ public interface IChannel extends Comparable<IChannel> {
     boolean muteMember(@NotNull final IChatter member);
 
     /**
+     * Pardons a banned chatter in this channel.
+     *
+     * <p>This method will pardon the banned uniqueId of the given offline chatter.</p>
+     *
+     * @param chatter the banned chatter to pardon.
+     * @return true when the banned chatter was pardoned as result of this call, false otherwise.
+     */
+    boolean pardonMember(@NotNull final IOfflineChatter chatter);
+
+    /**
      * Unmutes a muted member in this channel.
      *
      * <p>This method will unmute the given channel in this channel, when it is not already unmuted.</p>
@@ -333,14 +369,6 @@ public interface IChannel extends Comparable<IChannel> {
      * @return true when the member was unmuted as result of this call, false otherwise.
      */
     boolean unmuteMember(@NotNull final IOfflineChatter member);
-
-    /**
-     * Returns whether the given chatter is a member of this channel or not.
-     *
-     * @param chatter the chatter to check.
-     * @return true when the given chatter is a member, false otherwise.
-     */
-    boolean isMember(@NotNull final IChatter chatter);
 
     /**
      * Returns all banned members of this channel.
@@ -373,38 +401,6 @@ public interface IChannel extends Comparable<IChannel> {
      * @return true when the given uniqueId is banned, false otherwise.
      */
     boolean isBanned(@NotNull final UUID uniqueId);
-
-    /**
-     * Returns all moderators of this channel.
-     *
-     * @return the uniqueIds of the moderators.
-     */
-    @NotNull Set<UUID> getModerators();
-
-    /**
-     * Sets the moderators for this channel.
-     *
-     * @param moderators the uniqueIds of the moderators.
-     * @return true when the moderators has changed as result of this call, false otherwise.
-     */
-    boolean setModerators(@NotNull final Set<UUID> moderators);
-
-    /**
-     * Sets a moderator for this channel.
-     *
-     * @param uniqueId the uniqueId of the moderator to set.
-     * @param moderator true to add the moderator, false to remove.
-     * @return true when the moderator was added or removed as result of this call, false otherwise.
-     */
-    boolean setModerator(@NotNull final UUID uniqueId, final boolean moderator);
-
-    /**
-     * Returns whether the given uniqueId is a moderator of this channel.
-     *
-     * @param uniqueId the uniqueId of the chatter to check.
-     * @return true when the given uniqueId is a moderator, false otherwise.
-     */
-    boolean isModerator(@NotNull final UUID uniqueId);
 
     /**
      * Returns all muted members of this channel.

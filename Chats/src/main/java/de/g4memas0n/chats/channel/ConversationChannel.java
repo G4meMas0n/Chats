@@ -1,6 +1,6 @@
 package de.g4memas0n.chats.channel;
 
-import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.event.chatter.ChatterChatConversationEvent;
@@ -12,7 +12,6 @@ import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.text.MessageFormat;
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,19 +23,25 @@ import java.util.UUID;
  */
 public final class ConversationChannel extends StandardChannel {
 
-    public ConversationChannel(@NotNull final IChats instance,
+    public ConversationChannel(@NotNull final Chats instance,
                                @NotNull final IChatter first,
                                @NotNull final IChatter second) throws IllegalArgumentException {
         super(instance, buildName(first, second));
 
         super.setShortName(buildShort(first, second));
         super.setColor(ChatColor.LIGHT_PURPLE);
+        super.setVerbose(false);
 
         this.addMember(first);
         this.addMember(second);
     }
 
     // Channel Properties Methods:
+    @Override
+    public @NotNull String getColoredName() {
+        return this.getColor() + this.getShortName();
+    }
+
     @Override
     public boolean setShortName(@Nullable final String shortName) {
         return false;
@@ -48,28 +53,8 @@ public final class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean hasPassword() {
-        return false;
-    }
-
-    @Override
-    public @Nullable String getPassword() {
-        return null;
-    }
-
-    @Override
     public boolean setPassword(@Nullable final String password) {
         return false;
-    }
-
-    @Override
-    public boolean hasDistance() {
-        return false;
-    }
-
-    @Override
-    public int getDistance() {
-        return -1;
     }
 
     @Override
@@ -78,17 +63,12 @@ public final class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean isCrossWorld() {
-        return true;
-    }
-
-    @Override
     public boolean setCrossWorld(final boolean enabled) {
         return false;
     }
 
     @Override
-    public boolean isCustomFormat() {
+    public boolean setVerbose(final boolean verbose) {
         return false;
     }
 
@@ -99,7 +79,7 @@ public final class ConversationChannel extends StandardChannel {
 
     @Override
     public @NotNull String getAnnounceFormat() {
-        return this.getInstance().getFormatter().getAnnounceFormat();
+        return this.instance.getFormatter().getAnnounceFormat();
     }
 
     @Override
@@ -108,7 +88,7 @@ public final class ConversationChannel extends StandardChannel {
     }
 
     public @NotNull String getBroadcastFormat() {
-        return this.getInstance().getFormatter().getBroadcastFormat();
+        return this.instance.getFormatter().getBroadcastFormat();
     }
 
     @Override
@@ -118,7 +98,7 @@ public final class ConversationChannel extends StandardChannel {
 
     @Override
     public @NotNull String getChatFormat() {
-        return this.getInstance().getFormatter().getConversationFormat();
+        return this.instance.getFormatter().getConversationFormat();
     }
 
     @Override
@@ -147,57 +127,47 @@ public final class ConversationChannel extends StandardChannel {
         return null;
     }
 
-    public synchronized boolean setMember(@NotNull final IChatter chatter, final boolean member) {
+    @Override
+    public synchronized boolean addMember(@NotNull final IChatter chatter) {
         if (!this.getFullName().contains(chatter.getUniqueId().toString())) {
             return false;
         }
 
-        if (member) {
-            return super.setMember(chatter, true);
-        }
-
-        if (super.setMember(chatter, false)) {
-            // Ensures that the IChannelManager#removeChannel() method is always called synchronous.
-            this.getInstance().runSyncTask(() -> this.getInstance().getChannelManager().removeChannel(this));
-            return true;
-        }
-
-        return false;
+        return super.addMember(chatter, true);
     }
 
     @Override
-    public synchronized boolean addMember(@NotNull final IChatter chatter) {
-        if (this.setMember(chatter, true)) {
-            if (!chatter.hasChannel(this)) {
-                chatter.joinChannel(this);
-            }
-
-            return true;
-        }
-
-        return false;
+    public synchronized boolean addMember(@NotNull final IChatter chatter, final boolean silent) {
+        return this.addMember(chatter);
     }
 
     @Override
     public synchronized boolean removeMember(@NotNull final IChatter chatter) {
-        if (this.setMember(chatter, false)) {
-            if (chatter.hasChannel(this)) {
-                chatter.leaveChannel(this);
-            }
+        if (this.getFullName().contains(chatter.getUniqueId().toString())) {
+            return false;
+        }
+
+        if (super.removeMember(chatter, true)) {
+            this.instance.runSyncTask(() -> this.instance.getChannelManager().removeChannel(this));
 
             return true;
         }
 
+        return false;
+    }
+
+    @Override
+    public synchronized boolean removeMember(@NotNull final IChatter chatter, final boolean silent) {
+        return this.removeMember(chatter);
+    }
+
+    @Override
+    public boolean banMember(@NotNull final IChatter member) {
         return false;
     }
 
     @Override
     public boolean kickMember(@NotNull final IChatter member) {
-        return false;
-    }
-
-    @Override
-    public boolean banMember(@NotNull final IChatter member) {
         return false;
     }
 
@@ -217,11 +187,6 @@ public final class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public @NotNull Set<UUID> getBans() {
-        return Collections.emptySet();
-    }
-
-    @Override
     public boolean setBans(@NotNull final Set<UUID> bans) {
         return false;
     }
@@ -229,36 +194,6 @@ public final class ConversationChannel extends StandardChannel {
     @Override
     public boolean setBanned(@NotNull final UUID uniqueId, final boolean banned) {
         return false;
-    }
-
-    @Override
-    public boolean isBanned(@NotNull final UUID uniqueId) {
-        return false;
-    }
-
-    @Override
-    public @NotNull Set<UUID> getModerators() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public boolean setModerators(@NotNull final Set<UUID> moderators) {
-        return false;
-    }
-
-    @Override
-    public boolean setModerator(@NotNull final UUID uniqueId, final boolean moderator) {
-        return false;
-    }
-
-    @Override
-    public boolean isModerator(@NotNull final UUID uniqueId) {
-        return false;
-    }
-
-    @Override
-    public @NotNull Set<UUID> getMutes() {
-        return Collections.emptySet();
     }
 
     @Override
@@ -272,26 +207,7 @@ public final class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean isMuted(@NotNull final UUID uniqueId) {
-        return false;
-    }
-
-    @Override
-    public boolean hasOwner() {
-        return false;
-    }
-
-    public @Nullable UUID getOwner() {
-        return null;
-    }
-
-    @Override
     public boolean setOwner(@Nullable final UUID uniqueId) {
-        return false;
-    }
-
-    @Override
-    public boolean isOwner(@NotNull final UUID uniqueId) {
         return false;
     }
 
@@ -320,15 +236,15 @@ public final class ConversationChannel extends StandardChannel {
         }
 
         final ChatterChatConversationEvent event = new ChatterChatConversationEvent(sender, partner,
-                this.getInstance().getFormatter().getConversationFormat(), message, !Bukkit.isPrimaryThread());
+                this.getChatFormat(), message, !Bukkit.isPrimaryThread());
 
-        this.getInstance().getServer().getPluginManager().callEvent(event);
+        this.instance.getServer().getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
             return;
         }
 
-        final String format = this.getInstance().getFormatter().formatConversation(this, event.getFormat(), event.getMessage());
+        final String format = this.instance.getFormatter().formatConversation(this, event.getFormat(), event.getMessage());
 
         sender.sendMessage(MessageFormat.format(format, Messages.tl("to"), partner.getDisplayName()));
         sender.setLastPartner(partner);
@@ -339,7 +255,7 @@ public final class ConversationChannel extends StandardChannel {
         if (!sender.hasPermission(Permission.SOCIAL_SPY.getChildren("exempt"))) {
             final String spy = Messages.tl("spyFormat", sender.getDisplayName(), partner.getDisplayName(), event.getMessage());
 
-            for (final IChatter chatter : this.getInstance().getChatterManager().getChatters()) {
+            for (final IChatter chatter : this.instance.getChatterManager().getChatters()) {
                 if (chatter.equals(sender) || chatter.equals(partner)) {
                     continue;
                 }
@@ -364,10 +280,10 @@ public final class ConversationChannel extends StandardChannel {
      * @return the full name of the conversation for the given chatters.
      */
     static @NotNull String buildName(@NotNull final IChatter first, @NotNull final IChatter second) {
-        if (first.compareTo(second) >= 0) {
-            return first.getPlayer().getUniqueId() + "_" + second.getPlayer().getUniqueId();
+        if (first.getUniqueId().compareTo(second.getUniqueId()) >= 0) {
+            return first.getUniqueId() + "_" + second.getUniqueId();
         } else {
-            return second.getPlayer().getUniqueId() + "_" + first.getPlayer().getUniqueId();
+            return second.getUniqueId() + "_" + first.getUniqueId();
         }
     }
 
@@ -384,10 +300,10 @@ public final class ConversationChannel extends StandardChannel {
      * @return the short name of the conversation for the given chatters.
      */
     static @NotNull String buildShort(@NotNull final IChatter first, @NotNull final IChatter second) {
-        if (first.compareTo(second) >= 0) {
-            return first.getPlayer().getName() + "_" + second.getPlayer().getName();
+        if (first.getName().compareTo(second.getName()) >= 0) {
+            return first.getName() + "_" + second.getName();
         } else {
-            return second.getPlayer().getName() + "_" + first.getPlayer().getName();
+            return second.getName() + "_" + first.getName();
         }
     }
 }

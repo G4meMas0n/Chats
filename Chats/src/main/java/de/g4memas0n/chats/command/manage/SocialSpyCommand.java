@@ -1,18 +1,20 @@
 package de.g4memas0n.chats.command.manage;
 
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlState;
 
 /**
  * The SocialSpy command, that toggle the social spying option of chatters.
@@ -34,47 +36,51 @@ public final class SocialSpyCommand extends BasicCommand {
     }
 
     @Override
-    public boolean execute(@NotNull final ICommandSource sender,
-                           @NotNull final ICommandInput input) throws InputException {
-        if (this.argsInRange(input.getLength())) {
-            if (input.getLength() != this.getMaxArgs() && !sender.isChatter()) {
-                return false;
-            }
-
-            final IChatter target = input.getLength() != this.getMaxArgs() ? sender.getChatter()
-                    : this.getInstance().getChatterManager().getChatter(input.get(TARGET));
-
-            if (target == null || (!target.equals(sender) && !sender.canSee(target))) {
-                throw new PlayerNotFoundException(input.get(TARGET));
-            }
-
-            final boolean enable = input.getLength() == this.getMinArgs() ? !target.isSocialSpy() : input.getEnable(ENABLE);
-
-            if (target.setSocialSpy(enable)) {
-                sender.sendMessage(Messages.tl("spyChanged", target.getDisplayName(),
-                        Messages.tlState(target.isSocialSpy())));
-                return true;
-            }
-
-            sender.sendMessage(Messages.tl("spyAlready", target.getDisplayName(),
-                    Messages.tlState(target.isSocialSpy())));
-            return true;
-        }
-
+    public boolean hide(@NotNull final ICommandSource sender) {
         return false;
     }
 
     @Override
-    public @NotNull List<String> help(@NotNull final ICommandSource sender,
-                                      @NotNull final ICommandInput input) {
-        final List<String> help = new ArrayList<>();
+    public boolean execute(@NotNull final ICommandSource sender,
+                           @NotNull final ICommandInput input) throws InputException {
+        if (this.argsInRange(input.getLength())) {
+            if (input.getLength() == this.getMaxArgs()) {
+                final IChatter target = this.getInstance().getChatterManager().getChatter(input.get(TARGET));
 
-        help.add(Messages.tl("helpHeader", this.getName()));
-        help.add(Messages.tl("helpDescription", this.getDescription()));
-        help.add(Messages.tl("helpUsage", sender.isChatter() ? this.getUsage()
-                : this.getUsage().replaceAll("\\[(.*)]", "$1")));
+                if (target == null || !sender.canSee(target)) {
+                    throw new PlayerNotFoundException(input.get(TARGET));
+                }
 
-        return help;
+                if (!target.equals(sender)) {
+                    if (target.setSocialSpy(input.getEnable(ENABLE))) {
+                        sender.sendMessage(tl("spyChangedOther", target.getDisplayName(), tlState(target.isSocialSpy())));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("spyAlreadyOther", target.getDisplayName(), tlState(target.isSocialSpy())));
+                    return true;
+                }
+            }
+
+            if (sender instanceof IChatter) {
+                final IChatter target = (IChatter) sender;
+
+                if (target.setSocialSpy(input.getLength() == this.getMinArgs() ? !target.isSocialSpy() : input.getEnable(ENABLE))) {
+                    sender.sendMessage(tl("spyChanged", tlState(target.isSocialSpy())));
+                    return true;
+                }
+
+                sender.sendMessage(tl("spyAlready", tlState(target.isSocialSpy())));
+                return true;
+            }
+
+            sender.sendMessage(tl("helpHeader", this.getName()));
+            sender.sendMessage(tl("helpDescription", this.getDescription()));
+            sender.sendMessage(tl("helpUsage", this.getUsage().replaceAll("\\[(.*)]", "$1")));
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -83,12 +89,20 @@ public final class SocialSpyCommand extends BasicCommand {
         if (input.getLength() == ENABLE + 1) {
             final List<String> completion = new ArrayList<>();
 
-            if (StringUtil.startsWithIgnoreCase(ICommandInput.ENABLE_OFF, input.get(ENABLE))) {
-                completion.add(ICommandInput.ENABLE_OFF);
+            if (StringUtil.startsWithIgnoreCase("off", input.get(ENABLE))) {
+                completion.add("off");
             }
 
-            if (StringUtil.startsWithIgnoreCase(ICommandInput.ENABLE_ON, input.get(ENABLE))) {
-                completion.add(ICommandInput.ENABLE_ON);
+            if (StringUtil.startsWithIgnoreCase("on", input.get(ENABLE))) {
+                completion.add("on");
+            }
+
+            if (StringUtil.startsWithIgnoreCase("disable", input.get(ENABLE))) {
+                completion.add("disable");
+            }
+
+            if (StringUtil.startsWithIgnoreCase("enable", input.get(ENABLE))) {
+                completion.add("enable");
             }
 
             return completion;

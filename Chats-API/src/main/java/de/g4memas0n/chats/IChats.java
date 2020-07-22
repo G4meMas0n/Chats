@@ -6,10 +6,8 @@ import de.g4memas0n.chats.messaging.IFormatter;
 import de.g4memas0n.chats.storage.configuration.ISettings;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.concurrent.Future;
 
 /**
  * Chats Interface, that defines the main class of this plugin.
@@ -64,47 +62,4 @@ public interface IChats extends Plugin {
      * @param service the by vault registered chat service.
      */
     void setChatService(@Nullable final Chat service);
-
-    /**
-     * Submits a task for execution on the storage thread and returns a Future representing that task.
-     *
-     * <p>The Future's get method will return null upon successful completion.</p>
-     *
-     * @param task the task to submit.
-     * @return a Future representing pending completion of the task.
-     * @see Future#get()
-     */
-    @NotNull Future<?> runStorageTask(@NotNull final Runnable task);
-
-    /**
-     * Submits a task for execution on the next server tick on the main server thread and returns a BukkitTask
-     * representing that task.
-     *
-     * @param task the task to run.
-     * @return a BukkitTask that contains the id number.
-     */
-    @NotNull BukkitTask runSyncTask(@NotNull final Runnable task);
-
-    /**
-     * Schedules a task for execution after the delay specified in the settings on the storage thread and returns a
-     * Future representing that task.
-     *
-     * <p>The Future's get method will return null upon successful completion.</p>
-     *
-     * @param task the task to schedule.
-     * @return a Future representing pending completion of the task.
-     * @see Future#get()
-     */
-    @NotNull Future<?> scheduleStorageTask(@NotNull final Runnable task);
-
-    /**
-     * Schedules a task for execution after the given ticks on the main server thread and returns a BukkitTask
-     * representing that task.
-     *
-     * @param task the task to schedule.
-     * @param delay the ticks to wait before running the task
-     * @return a BukkitTask that contains the id number
-     */
-    @SuppressWarnings("unused")
-    @NotNull BukkitTask scheduleSyncTask(@NotNull final Runnable task, final long delay);
 }

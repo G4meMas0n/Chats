@@ -2,19 +2,21 @@ package de.g4memas0n.chats.command.view;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
 import de.g4memas0n.chats.util.type.InfoType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlJoin;
 
 /**
  * The who command that allows to show the members of a channel.
@@ -35,6 +37,25 @@ public final class WhoCommand extends BasicCommand {
     }
 
     @Override
+    public boolean hide(@NotNull final ICommandSource sender) {
+        if (sender instanceof IChatter) {
+            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                if (channel.isConversation()) {
+                    continue;
+                }
+
+                if (sender.canViewWho(channel)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
@@ -48,7 +69,6 @@ public final class WhoCommand extends BasicCommand {
                 final List<String> members = new ArrayList<>();
 
                 final boolean viewOwn = sender.canView(channel, InfoType.OWNER);
-                final boolean viewMods = sender.canView(channel, InfoType.MODERATORS);
                 final boolean viewMutes = sender.canView(channel, InfoType.MUTES);
 
                 for (final IChatter member : channel.getMembers()) {
@@ -59,34 +79,29 @@ public final class WhoCommand extends BasicCommand {
                     final StringBuilder displayed = new StringBuilder();
 
                     if (channel.isOwner(member.getUniqueId()) && viewOwn) {
-                        displayed.append(Messages.tl("prefixOwner"));
-                    }
-
-                    if (channel.isModerator(member.getUniqueId()) && viewMods) {
-                        displayed.append(Messages.tl("prefixModerator"));
+                        displayed.append(tl("prefixOwner"));
                     }
 
                     if (channel.isMuted(member.getUniqueId()) && viewMutes) {
-                        displayed.append(Messages.tl("prefixMuted"));
+                        displayed.append(tl("prefixMuted"));
                     }
 
-                    displayed.append(member.getDisplayName());
-                    members.add(displayed.toString());
+                    members.add(displayed.append(member.getDisplayName()).toString());
                 }
 
                 if (members.isEmpty()) {
-                    sender.sendMessage(Messages.tl("whoNobody", channel.getColoredName()));
+                    sender.sendMessage(tl("whoNobody", channel.getColoredName()));
                     return true;
                 }
 
                 Collections.sort(members);
 
-                sender.sendMessage(Messages.tl("whoHeader", channel.getColoredName()));
-                sender.sendMessage(Messages.tlJoin("whoList", members));
+                sender.sendMessage(tl("whoHeader", channel.getColoredName()));
+                sender.sendMessage(tlJoin("whoList", members));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("whoDenied", channel.getColoredName()));
+            sender.sendMessage(tl("whoDenied", channel.getColoredName()));
             return true;
         }
 

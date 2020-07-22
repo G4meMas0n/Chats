@@ -1,8 +1,9 @@
 package de.g4memas0n.chats.chatter;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.messaging.IMessageRecipient;
 import de.g4memas0n.chats.permission.IForcible;
-import de.g4memas0n.chats.util.type.ChannelType;
+import de.g4memas0n.chats.permission.IPermissible;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +16,7 @@ import java.util.UUID;
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public interface IChatter extends ICommandSource, IFilterable, IForcible, IOfflineChatter, Comparable<IChatter> {
+public interface IChatter extends IOfflineChatter, IMessageRecipient, IFilterable, IPermissible, IForcible, Comparable<IChatter> {
 
     /**
      * Returns the player of this chatter.
@@ -96,16 +97,6 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
     boolean setLastPartner(@NotNull final IChatter partner);
 
     // Channels Collection Methods:
-
-    /**
-     * Returns all channel that this chatter is owning.
-     *
-     * <p>Can be all types instead of {@link ChannelType#CONVERSATION} of channels.</p>
-     *
-     * @return the channels this chatter is owning.
-     */
-    @NotNull Set<IChannel> getOwningChannels();
-
     /**
      * Returns all channel that this chatter is in.
      *
@@ -118,22 +109,48 @@ public interface IChatter extends ICommandSource, IFilterable, IForcible, IOffli
     /**
      * Joins a new channel.
      *
-     * <p>Adds the given channel to this chatter and calls {@link IChannel#addMember(IChatter)}.</p>
+     * <p>This method will add this chatter to the given channel when it is not already added.</p>
      *
      * @param channel the channel to join.
      * @return true when the channel was joined as result of this call, false otherwise.
+     * @see IChannel#addMember(IChatter) 
      */
     boolean joinChannel(@NotNull final IChannel channel);
 
     /**
+     * Joins a new channel.
+     *
+     * <p>This method will add this chatter to the given channel when it is not already added.</p>
+     *
+     * @param channel the channel to join.
+     * @param silent true when the channel should joined silently.
+     * @return true when the channel was joined as result of this call, false otherwise.
+     * @see IChannel#addMember(IChatter, boolean) 
+     */
+    boolean joinChannel(@NotNull final IChannel channel, final boolean silent);
+
+    /**
      * Leaves a channel.
      *
-     * <p>Removes the given channel from this chatter and calls {@link IChannel#removeMember(IChatter)}.</p>
+     * <p>This method will remove this chatter from the given channel when it is not already removed.</p>
      *
      * @param channel the channel to leave.
      * @return true when the channel was left as result of this call, false otherwise.
+     * @see IChannel#removeMember(IChatter)
      */
     boolean leaveChannel(@NotNull final IChannel channel);
+
+    /**
+     * Leaves a channel.
+     *
+     * <p>This method will remove this chatter from the given channel when it is not already removed.</p>
+     *
+     * @param channel the channel to leave.
+     * @param silent true when the channel should left silently.
+     * @return true when the channel was left as result of this call, false otherwise.
+     * @see IChannel#removeMember(IChatter, boolean)
+     */
+    boolean leaveChannel(@NotNull final IChannel channel, final boolean silent);
 
     /**
      * Returns whether this chatter contains the given channel or not.

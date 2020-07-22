@@ -1,16 +1,66 @@
+##################################################
+#       Chats - Plugin Configuration File        #
+##################################################
+
+# Sets the auto-save options of persistent channels and chatters:
 auto-save:
+  # Sets whether auto-save is enabled: (Type: Boolean, Default: true)
+  # Note: When disabled, persistent channels and chatters will not automatically saved after an update.
   enabled: true
+
+  # Sets the delay in seconds after the persistent channel or chatter is saved after an update: (Type: Long, Default: 60)
+  # Note: Will be ignored when the auto-save option is disabled. (When enabled = false)
   delay: 60
+
+# Sets the default channel: (Type: String, Default: "Global")
+# Note: Must be equal to the full-name of an existing persistent channel.
 default-channel: "Global"
+
+# Sets the default formats:
 format:
+  # Sets the default announce format: (Type: String, Default: "{color}{message}")
+  # Note: Must include the {message} placeholder.
   announce: "{color}{message}"
+
+  # Sets the default broadcast format: (Type: String, Default: "{color}[{nick}][§aBroadcast§r{color}] {message}")
+  # Note: Must include the {message} placeholder.
   broadcast: "{color}[{nick}][§aBroadcast§r{color}] {message}"
+
+  # Sets the default chat format: (Type: String, Default: "{color}[{nick}]§r{sender}{color}: {message}")
+  # Note: Must include the {sender} or {sender-plain} placeholder and the {message} placeholder.
   chat: "{color}[{nick}]§r{sender}{color}: {message}"
-  conversation: "{color}{con-address} §r{con-partner}{color}: {message}"
+
+  # Sets the conversation format: (Type: String, Default: "{color}{con-address} §r{con-partner}{color}: {message}")
+  # Note: Must include the {con-address} and the {con-partner} placeholder.
+  conversation: "{color}{con-address} {con-partner}{color}: {message}"
+
+# Sets the inform options for joining chatters:
+inform:
+  # Sets whether a joining chatter will be informed about the currently focused channel: (Type: Boolean, Default: true)
+  # Note: When disabled no currently focused channel information will be sent.
+  enabled: true
+
+  # Sets the delay in ticks after the joining will be informed about the currently focused channel: (Type: Long, Default: 0)
+  # Note: Will be ignored when the inform option is disabled. (When enabled = false)
+  delay: 0
+
+# Sets the locale of the plugin: (Type: String, Default: "en")
+# Note: Locale names are of the form: "<language>[_<country>[_<variant>]]"
 locale: "en"
+
+# Sets the various logging options:
 log:
+  # Sets the various logging options for the chat:
   chat:
+    # Sets whether the chat should be logged colored in the console: (Type: Boolean, Default: true)
+    # Note: Will be ignored when the to-console option is disabled. (When to-console = false)
     colored: true
+
+    # Sets whether the chat should be logged to the console: (Type: Boolean, Default: true)
     to-console: true
+
+    # Sets whether the chat should be logged to a log file: (Type: Boolean, Default: true)
     to-file: true
+
+  # Sets whether the plugin should log debug information's to the console: (Type: Boolean, Default: false)
   debug: false

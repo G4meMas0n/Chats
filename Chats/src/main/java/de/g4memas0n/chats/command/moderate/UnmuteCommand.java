@@ -2,20 +2,21 @@ package de.g4memas0n.chats.command.moderate;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
 
 /**
  * The unmute command that allows to unmutes a player in a channel.
@@ -53,23 +54,23 @@ public final class UnmuteCommand extends ModerateCommand {
                 final IChatter online = target instanceof IChatter ? (IChatter) target : null;
 
                 if (!channel.isMuted(target.getUniqueId())) {
-                    sender.sendMessage(Messages.tl("unmuteAlready", (online != null && sender.canSee(online))
+                    sender.sendMessage(tl("unmuteAlready", (online != null && sender.canSee(online))
                             ? online.getDisplayName() : target.getName(), channel.getColoredName()));
                     return true;
                 }
 
                 if (channel.unmuteMember(target)) {
-                    sender.sendMessage(Messages.tl("unmuteMember", (online != null && sender.canSee(online))
+                    sender.sendMessage(tl("unmuteMember", (online != null && sender.canSee(online))
                             ? online.getDisplayName() : target.getName(), channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("unmuteFailed", (online != null && sender.canSee(online))
+                sender.sendMessage(tl("unmuteFailed", (online != null && sender.canSee(online))
                         ? online.getDisplayName() : target.getName(), channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("moderateDenied", channel.getColoredName()));
+            sender.sendMessage(tl("moderateDenied", channel.getColoredName()));
             return true;
         }
 

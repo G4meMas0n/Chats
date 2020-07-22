@@ -2,17 +2,20 @@ package de.g4memas0n.chats.command.chatter;
 
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
+import static de.g4memas0n.chats.messaging.Messages.tlJoin;
 
 /**
  * The ignore command that allows to ignore a player.
@@ -51,13 +54,13 @@ public final class IgnoreCommand extends ChatterCommand {
                 }
 
                 if (ignores.isEmpty()) {
-                    sender.sendMessage(Messages.tl("ignoreNobody"));
+                    sender.sendMessage(tl("ignoreNobody"));
                     return true;
                 }
 
                 Collections.sort(ignores);
 
-                sender.sendMessage(Messages.tlJoin("ignoreList", ignores));
+                sender.sendMessage(tlJoin("ignoreList", ignores));
                 return true;
             }
 
@@ -68,26 +71,26 @@ public final class IgnoreCommand extends ChatterCommand {
             }
 
             if (target.equals(sender)) {
-                sender.sendMessage(Messages.tlErr("ignoreSelf"));
+                sender.sendMessage(tlErr("ignoreSelf"));
                 return true;
             }
 
             if (sender.isIgnore(target.getUniqueId())) {
-                sender.sendMessage(Messages.tl("ignoreAlready", target.getDisplayName()));
+                sender.sendMessage(tl("ignoreAlready", target.getDisplayName()));
                 return true;
             }
 
             if (sender.canIgnore(target)) {
                 if (sender.addIgnore(target.getUniqueId())) {
-                    sender.sendMessage(Messages.tl("ignoreChatter", target.getDisplayName()));
+                    sender.sendMessage(tl("ignoreChatter", target.getDisplayName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("ignoreAlready", target.getDisplayName()));
+                sender.sendMessage(tl("ignoreAlready", target.getDisplayName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("ignoreDenied", target.getDisplayName()));
+            sender.sendMessage(tl("ignoreDenied", target.getDisplayName()));
             return true;
         }
 

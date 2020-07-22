@@ -2,17 +2,19 @@ package de.g4memas0n.chats.command.chatter;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The msg command that allows to start a conversation with or send a private message to a player.
@@ -45,17 +47,17 @@ public final class MsgCommand extends ChatterCommand {
             }
 
             if (partner.equals(sender)) {
-                sender.sendMessage(Messages.tlErr("msgSelf"));
+                sender.sendMessage(tlErr("msgSelf"));
                 return true;
             }
 
             if (sender.isIgnore(partner.getUniqueId())) {
-                sender.sendMessage(Messages.tl("ignoredPartner", partner.getDisplayName()));
+                sender.sendMessage(tl("ignoredPartner", partner.getDisplayName()));
                 return true;
             }
 
             if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.getChildren("bypass"))) {
-                sender.sendMessage(Messages.tl("ignoredSender", partner.getDisplayName()));
+                sender.sendMessage(tl("ignoredSender", partner.getDisplayName()));
                 return true;
             }
 
@@ -64,11 +66,11 @@ public final class MsgCommand extends ChatterCommand {
 
                 if (input.getLength() == this.getMinArgs()) {
                     if (sender.setFocus(conversation)) {
-                        sender.sendMessage(Messages.tl("focusConversation", partner.getDisplayName()));
+                        sender.sendMessage(tl("focusConversation", partner.getDisplayName()));
                         return true;
                     }
 
-                    sender.sendMessage(Messages.tl("focusConversationAlready", partner.getDisplayName()));
+                    sender.sendMessage(tl("focusConversationAlready", partner.getDisplayName()));
                     return true;
                 }
 
@@ -76,7 +78,7 @@ public final class MsgCommand extends ChatterCommand {
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("msgDenied", partner.getDisplayName()));
+            sender.sendMessage(tl("msgDenied", partner.getDisplayName()));
             return true;
         }
 

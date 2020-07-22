@@ -1,7 +1,5 @@
 package de.g4memas0n.chats.storage;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * StorageHolder Interface that provide storage methods for Objects with a persistent storage.
  *
@@ -9,13 +7,6 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  */
 public interface IStorageHolder {
-
-    /**
-     * Returns the storage file of this storage holder.
-     *
-     * @return the storage file.
-     */
-    @NotNull IStorageFile getStorage();
 
     /**
      * Deletes the storage file for this storage holder.

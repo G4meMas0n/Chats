@@ -1,7 +1,6 @@
 package de.g4memas0n.chats.chatter;
 
 import de.g4memas0n.chats.storage.IStorageHolder;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 import java.util.UUID;
@@ -15,19 +14,18 @@ import java.util.UUID;
 public interface IOfflineChatter extends IStorageHolder {
 
     /**
-     * Returns the uniqueId of this (offline) chatter.
-     *
-     * @return the chatter's uniqueId.
-     * @see Player#getUniqueId()
-     */
-    @NotNull UUID getUniqueId();
-
-    /**
      * Returns the name of this (offline) chatter.
      *
      * @return the chatter's name.
      */
     @NotNull String getName();
+
+    /**
+     * Returns the uniqueId of this (offline) chatter.
+     *
+     * @return the chatter's uniqueId.
+     */
+    @NotNull UUID getUniqueId();
 
     /**
      * Returns the last time in milliseconds the (offline) chatter has played.

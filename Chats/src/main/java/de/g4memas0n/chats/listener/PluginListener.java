@@ -1,6 +1,5 @@
 package de.g4memas0n.chats.listener;
 
-import de.g4memas0n.chats.util.logging.Log;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,38 +26,40 @@ public final class PluginListener extends BasicListener {
 
         if (plugin.getName().equalsIgnoreCase(HERO_CHAT)) {
             if (!plugin.isEnabled()) {
-                Log.getPlugin().severe("Detected unsupported plugin: 'HeroChat'! Plugin is already disabled.");
+                this.getInstance().getLogger().severe("Detected unsupported plugin: 'HeroChat'! Plugin is already disabled.");
                 return;
             }
 
-            Log.getPlugin().severe("Detected unsupported plugin: HeroChat! Disabling it...");
+            this.getInstance().getLogger().severe("Detected unsupported plugin: HeroChat! Disabling it...");
             this.getInstance().getServer().getPluginManager().disablePlugin(event.getPlugin());
 
             return;
         }
 
-        if (plugin.getName().equals(VAULT)) {
+        if (plugin.getName().equalsIgnoreCase(VAULT)) {
             if (!plugin.isEnabled()) {
                 return;
             }
 
-            Log.getPlugin().info("Detected supported plugin: Vault! Setting up chat service...");
+            this.getInstance().getLogger().info("Detected supported plugin: Vault! Setting up chat service...");
 
             final RegisteredServiceProvider<Chat> rsp = this.getInstance().getServer().getServicesManager()
                     .getRegistration(Chat.class);
 
             if (rsp == null) {
                 this.getInstance().setChatService(null);
-                Log.getPlugin().severe("Unable to setup chat service. Vault integration has been disabled.");
+
+                this.getInstance().getLogger().severe("Unable to setup chat service. Vault integration has been disabled.");
+
                 return;
             }
 
             this.getInstance().setChatService(rsp.getProvider());
-            Log.getPlugin().info("Chat service has been set up. Vault integration has been enabled.");
+            this.getInstance().getLogger().info("Chat service has been set up. Vault integration has been enabled.");
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPluginDisable(@NotNull final PluginDisableEvent event) {
         final Plugin plugin = event.getPlugin();
 
@@ -68,7 +69,7 @@ public final class PluginListener extends BasicListener {
             }
 
             this.getInstance().setChatService(null);
-            Log.getPlugin().severe("Detected stop of plugin Vault! Vault integration has been disabled.");
+            this.getInstance().getLogger().severe("Detected stop of plugin Vault! Vault integration has been disabled.");
         }
     }
 }

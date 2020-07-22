@@ -47,11 +47,6 @@ public enum ModifyType implements Type {
     DISTANCE("distance"),
 
     /**
-     * Represents the moderators modify options of a channel.
-     */
-    MODERATOR("moderator"),
-
-    /**
      * Represents the owner modify option of a channel.
      */
     OWNER("owner"),
@@ -64,7 +59,12 @@ public enum ModifyType implements Type {
     /**
      * Represents the short-name modify option of a channel.
      */
-    SHORT_NAME("short-name");
+    SHORT_NAME("short-name"),
+
+    /**
+     * Represents the verbose modify option of a channel.
+     */
+    VERBOSE("verbose");
 
     private final String identifier;
 

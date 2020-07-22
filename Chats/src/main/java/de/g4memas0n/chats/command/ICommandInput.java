@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.util.input;
+package de.g4memas0n.chats.command;
 
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
@@ -10,16 +10,6 @@ import org.jetbrains.annotations.NotNull;
  * @since Release 1.0.0
  */
 public interface ICommandInput {
-
-    /**
-     * Represents the enable option for the state "on" ("true").
-     */
-    @NotNull String ENABLE_OFF = "off";
-
-    /**
-     * Represents the enable option for the state "off" ("false").
-     */
-    @NotNull String ENABLE_ON = "on";
 
     /**
      * Returns the passed command arguments of the executed/tab-completed command.

@@ -1,6 +1,6 @@
 package de.g4memas0n.chats.channel;
 
-import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.event.channel.ChannelAnnounceEvent;
@@ -15,7 +15,6 @@ import de.g4memas0n.chats.event.channel.ChannelChatterUnmuteEvent;
 import de.g4memas0n.chats.event.chatter.ChatterChatChannelEvent;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.messaging.Placeholder;
-import de.g4memas0n.chats.util.logging.Log;
 import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,6 +24,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import static de.g4memas0n.chats.messaging.Messages.tl;
+
 /**
  * Implementation of a standard channel that is non persist over server restarts.
  *
@@ -33,9 +34,10 @@ import java.util.UUID;
  */
 public class StandardChannel implements IChannel {
 
+    public static final String INVALID = "all";
     public static final String REGEX = "[a-zA-Z0-9]{3,16}";
 
-    private final IChats instance;
+    protected final Chats instance;
 
     // Channel Properties Variables:
     private final String fullName;
@@ -51,16 +53,16 @@ public class StandardChannel implements IChannel {
 
     private boolean crossWorld;
     private boolean customFormat;
+    private boolean verbose;
 
     private int distance;
 
     // Channel Collection Variables:
     private final Set<IChatter> members;
-    private Set<UUID> moderators;
     private Set<UUID> mutes;
     private Set<UUID> bans;
 
-    public StandardChannel(@NotNull final IChats instance,
+    public StandardChannel(@NotNull final Chats instance,
                            @NotNull final String fullName) throws IllegalArgumentException {
         if (fullName.isEmpty()) {
             throw new IllegalArgumentException("Full name can not be empty");
@@ -71,8 +73,9 @@ public class StandardChannel implements IChannel {
                     fullName, REGEX));
         }
 
-        if (fullName.equalsIgnoreCase("all")) {
-            throw new IllegalArgumentException(String.format("Full name equals invalid name: %s", "all"));
+        if (fullName.equalsIgnoreCase(INVALID)) {
+            throw new IllegalArgumentException(String.format("Full name '%s' equals invalid name: %s",
+                    fullName, INVALID));
         }
 
         this.instance = instance;
@@ -80,16 +83,12 @@ public class StandardChannel implements IChannel {
         this.color = ChatColor.WHITE;
         this.crossWorld = true;
         this.customFormat = false;
+        this.verbose = true;
         this.distance = -1;
 
         this.members = new HashSet<>();
         this.bans = new HashSet<>();
-        this.moderators = new HashSet<>();
         this.mutes = new HashSet<>();
-    }
-
-    protected final @NotNull IChats getInstance() {
-        return this.instance;
     }
 
     // Channel Properties Methods:
@@ -99,8 +98,8 @@ public class StandardChannel implements IChannel {
     }
 
     @Override
-    public final @NotNull String getColoredName() {
-        return this.getColor() + this.fullName;
+    public synchronized @NotNull String getColoredName() {
+        return this.color + this.fullName;
     }
 
     @Override
@@ -144,7 +143,7 @@ public class StandardChannel implements IChannel {
         }
 
         if (!color.isColor()) {
-            throw new IllegalArgumentException("Color must be a color code: " + color.name());
+            throw new IllegalArgumentException(String.format("Color '%s' is not a valid color code", color.name()));
         }
 
         if (color == this.color) {
@@ -177,11 +176,11 @@ public class StandardChannel implements IChannel {
         }
 
         if (this.isDefault()) {
-            throw new IllegalArgumentException("Password is not allowed for default channel: " + this.getFullName());
+            throw new IllegalArgumentException(String.format("Default channel '%s' can not have a password", this.fullName));
         }
 
         if (password.length() < 3) {
-            throw new IllegalArgumentException("Password must be at least 3 characters long: " + password);
+            throw new IllegalArgumentException(String.format("Password '%s' must be at least 3 characters long", password));
         }
 
         if (password.equals(this.password)) {
@@ -228,6 +227,21 @@ public class StandardChannel implements IChannel {
     }
 
     @Override
+    public synchronized boolean isVerbose() {
+        return this.verbose;
+    }
+
+    @Override
+    public synchronized boolean setVerbose(final boolean verbose) {
+        if (verbose == this.verbose) {
+            return false;
+        }
+
+        this.verbose = verbose;
+        return true;
+    }
+
+    @Override
     public synchronized boolean isCustomFormat() {
         return this.customFormat;
     }
@@ -259,7 +273,7 @@ public class StandardChannel implements IChannel {
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         if (format.equals(this.announceFormat)) {
@@ -287,7 +301,7 @@ public class StandardChannel implements IChannel {
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         if (format.equals(this.broadcastFormat)) {
@@ -315,11 +329,11 @@ public class StandardChannel implements IChannel {
         }
 
         if (!format.contains(Placeholder.SENDER.toString()) && !format.contains(Placeholder.SENDER_PLAIN.toString())) {
-            throw new IllegalArgumentException("Format is missing {sender} or {sender-plain} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {sender} or {sender-plain} placeholder", format));
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         if (format.equals(this.chatFormat)) {
@@ -365,32 +379,32 @@ public class StandardChannel implements IChannel {
         final StringBuilder builder = new StringBuilder(this.getClass().getSimpleName());
 
         builder.append("{full-name=");
-        builder.append(this.getFullName());
+        builder.append(this.fullName);
         builder.append(";short-name=");
-        builder.append(this.getShortName());
+        builder.append(this.shortName);
         builder.append(";color=");
-        builder.append(this.getColor().name());
+        builder.append(this.color.name());
 
-        if (this.hasPassword()) {
+        if (this.password != null) {
             builder.append(";password=");
-            builder.append(this.getPassword());
+            builder.append(this.password);
         }
 
-        if (this.hasDistance()) {
+        if (this.distance > 0) {
             builder.append(";distance=");
-            builder.append(this.getDistance());
+            builder.append(this.distance);
         }
 
         builder.append(";cross-world=");
-        builder.append(this.isCrossWorld());
+        builder.append(this.crossWorld);
 
-        if (this.isCustomFormat()) {
+        if (this.customFormat) {
             builder.append(";announce-format=");
-            builder.append(this.getAnnounceFormat());
+            builder.append(this.announceFormat);
             builder.append(";broadcast-format=");
-            builder.append(this.getBroadcastFormat());
+            builder.append(this.broadcastFormat);
             builder.append(";chat-format=");
-            builder.append(this.getChatFormat());
+            builder.append(this.chatFormat);
         }
 
         builder.append(";type=");
@@ -413,10 +427,10 @@ public class StandardChannel implements IChannel {
             return true;
         }
 
-        if (object instanceof IChannel) {
-            final IChannel other = (IChannel) object;
+        if (object instanceof StandardChannel) {
+            final StandardChannel other = (StandardChannel) object;
 
-            return this.getFullName().equals(other.getFullName()) && this.getType() == other.getType();
+            return this.fullName.equals(other.fullName) && this.getType() == other.getType();
         }
 
         return false;
@@ -427,7 +441,7 @@ public class StandardChannel implements IChannel {
         final int prime = 41;
         int result = 5;
 
-        result = prime * result + this.getFullName().hashCode();
+        result = prime * result + this.fullName.hashCode();
         result = prime * result + this.getType().hashCode();
 
         return result;
@@ -435,7 +449,7 @@ public class StandardChannel implements IChannel {
 
     @Override
     public final int compareTo(@NotNull final IChannel other) {
-        return this.getFullName().compareTo(other.getFullName());
+        return this.fullName.compareTo(other.getFullName());
     }
 
     // Channel Collection Methods:
@@ -445,59 +459,62 @@ public class StandardChannel implements IChannel {
     }
 
     @Override
-    public synchronized boolean setMember(@NotNull final IChatter chatter, final boolean member) {
-        if (member) {
-            return this.members.add(chatter);
-        } else {
-            return this.members.remove(chatter);
-        }
+    public boolean addMember(@NotNull final IChatter chatter) {
+        return this.addMember(chatter, false);
     }
 
     @Override
-    public synchronized boolean addMember(@NotNull final IChatter member) {
-        if (this.members.contains(member)) {
+    public synchronized boolean addMember(@NotNull final IChatter chatter, final boolean silent) {
+        if (this.members.contains(chatter)) {
             return false;
         }
 
-        this.performAnnounce(Messages.tl("announceJoin", this.getColor().toString(), member.getDisplayName()));
-
-        this.setMember(member, true);
-
-        if (!member.hasChannel(this) && !member.joinChannel(this)) {
-            this.setMember(member, false);
-            return false;
+        if (this.verbose && !silent) {
+            this.performAnnounce(tl("announceJoin", this.getColor().toString(), chatter.getDisplayName()));
         }
 
-        this.instance.getServer().getPluginManager().callEvent(new ChannelChatterJoinedEvent(this, member));
+        this.members.add(chatter);
+
+        if (!chatter.hasChannel(this)) {
+            chatter.joinChannel(this);
+        }
+
+        this.instance.getServer().getPluginManager().callEvent(new ChannelChatterJoinedEvent(this, chatter));
         return true;
     }
 
     @Override
-    public synchronized boolean removeMember(@NotNull final IChatter member) {
-        if (!this.members.contains(member)) {
+    public synchronized boolean removeMember(@NotNull final IChatter chatter) {
+        return this.removeMember(chatter, false);
+    }
+
+    @Override
+    public boolean removeMember(@NotNull final IChatter chatter, final boolean silent) {
+        if (!this.members.contains(chatter)) {
             return false;
         }
 
-        this.setMember(member, false);
+        this.members.remove(chatter);
 
-        if (member.hasChannel(this) && !member.leaveChannel(this)) {
-            this.setMember(member, true);
-            return false;
+        if (chatter.hasChannel(this)) {
+            chatter.leaveChannel(this, silent);
         }
 
-        this.performAnnounce(Messages.tl("announceLeave", this.getColor().toString(), member.getDisplayName()));
+        if (this.verbose && !silent) {
+            this.performAnnounce(tl("announceLeave", this.getColor().toString(), chatter.getDisplayName()));
+        }
 
-        this.instance.getServer().getPluginManager().callEvent(new ChannelChatterLeftEvent(this, member));
+        this.instance.getServer().getPluginManager().callEvent(new ChannelChatterLeftEvent(this, chatter));
         return true;
     }
 
     @Override
-    public synchronized boolean banMember(@NotNull final IChatter member) {
-        if (!this.members.contains(member) || this.bans.contains(member.getUniqueId())) {
+    public synchronized boolean banMember(@NotNull final IChatter chatter) {
+        if (!this.members.contains(chatter) || this.bans.contains(chatter.getUniqueId())) {
             return false;
         }
 
-        final ChannelChatterBanEvent event = new ChannelChatterBanEvent(this, member);
+        final ChannelChatterBanEvent event = new ChannelChatterBanEvent(this, chatter);
 
         this.instance.getServer().getPluginManager().callEvent(event);
 
@@ -505,16 +522,64 @@ public class StandardChannel implements IChannel {
             return false;
         }
 
-        this.setBanned(member.getUniqueId(), true);
-        this.setMember(member, false);
+        this.bans.add(chatter.getUniqueId());
+        this.members.remove(chatter);
 
-        member.sendMessage(Messages.tl("gotBanned", this.getColoredName()));
+        chatter.sendMessage(tl("gotBanned", this.getColoredName()));
 
-        if (member.hasChannel(this)) {
-            member.leaveChannel(this);
+        if (chatter.hasChannel(this)) {
+            chatter.leaveChannel(this);
         }
 
-        this.performAnnounce(Messages.tl("announceBanned", this.getColor().toString(), member.getDisplayName()));
+        this.performAnnounce(tl("announceBanned", this.getColor().toString(), chatter.getDisplayName()));
+        return true;
+    }
+
+    @Override
+    public synchronized boolean kickMember(@NotNull final IChatter chatter) {
+        if (!this.members.contains(chatter)) {
+            return false;
+        }
+
+        final ChannelChatterKickEvent event = new ChannelChatterKickEvent(this, chatter);
+
+        this.instance.getServer().getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        this.members.remove(chatter);
+
+        chatter.sendMessage(tl("gotKicked", this.getColoredName()));
+
+        if (chatter.hasChannel(this)) {
+            chatter.leaveChannel(this);
+        }
+
+        this.performAnnounce(tl("announceKicked", this.getColor().toString(), chatter.getDisplayName()));
+        return true;
+    }
+
+    @Override
+    public synchronized boolean muteMember(@NotNull final IChatter chatter) {
+        if (!this.members.contains(chatter) || this.mutes.contains(chatter.getUniqueId())) {
+            return false;
+        }
+
+        final ChannelChatterMuteEvent event = new ChannelChatterMuteEvent(this, chatter);
+
+        this.instance.getServer().getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        this.mutes.add(chatter.getUniqueId());
+
+        chatter.sendMessage(Messages.tl("gotMuted", this.getColoredName()));
+
+        this.performAnnounce(Messages.tl("announceMuted", this.getColor().toString(), chatter.getDisplayName()));
         return true;
     }
 
@@ -532,23 +597,26 @@ public class StandardChannel implements IChannel {
             return false;
         }
 
-        this.setBanned(chatter.getUniqueId(), false);
+        this.bans.remove(chatter.getUniqueId());
 
-        if (chatter instanceof IChatter) {
-            ((IChatter) chatter).sendMessage(Messages.tl("gotPardoned", this.getColoredName()));
+        final IChatter online = chatter instanceof IChatter ? (IChatter) chatter : null;
+
+        if (online != null) {
+            online.sendMessage(Messages.tl("gotPardoned", this.getColoredName()));
         }
 
-        this.performAnnounce(Messages.tl("announcePardoned", this.getColor().toString(), chatter.getName()));
+        this.performAnnounce(Messages.tl("announcePardoned", this.getColor().toString(), online != null
+                ? online.getDisplayName() : chatter.getName()));
         return true;
     }
 
     @Override
-    public synchronized boolean kickMember(@NotNull final IChatter member) {
-        if (!this.members.contains(member)) {
+    public synchronized boolean unmuteMember(@NotNull final IOfflineChatter chatter) {
+        if (!this.mutes.contains(chatter.getUniqueId())) {
             return false;
         }
 
-        final ChannelChatterKickEvent event = new ChannelChatterKickEvent(this, member);
+        final ChannelChatterUnmuteEvent event = new ChannelChatterUnmuteEvent(this, chatter);
 
         this.instance.getServer().getPluginManager().callEvent(event);
 
@@ -556,61 +624,16 @@ public class StandardChannel implements IChannel {
             return false;
         }
 
-        this.setMember(member, false);
+        this.mutes.remove(chatter.getUniqueId());
 
-        member.sendMessage(Messages.tl("gotKicked", this.getColoredName()));
+        final IChatter online = chatter instanceof IChatter ? (IChatter) chatter : null;
 
-        if (member.hasChannel(this)) {
-            member.leaveChannel(this);
+        if (online != null) {
+            online.sendMessage(Messages.tl("gotUnmuted", this.getColoredName()));
         }
 
-        this.performAnnounce(Messages.tl("announceKicked", this.getColor().toString(), member.getDisplayName()));
-        return true;
-    }
-
-    @Override
-    public synchronized boolean muteMember(@NotNull final IChatter member) {
-        if (!this.members.contains(member) || this.mutes.contains(member.getUniqueId())) {
-            return false;
-        }
-
-        final ChannelChatterMuteEvent event = new ChannelChatterMuteEvent(this, member);
-
-        this.instance.getServer().getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        this.setMuted(member.getUniqueId(), true);
-
-        member.sendMessage(Messages.tl("gotMuted", this.getColoredName()));
-
-        this.performAnnounce(Messages.tl("announceMuted", this.getColor().toString(), member.getDisplayName()));
-        return true;
-    }
-
-    @Override
-    public synchronized boolean unmuteMember(@NotNull final IOfflineChatter member) {
-        if (!this.mutes.contains(member.getUniqueId())) {
-            return false;
-        }
-
-        final ChannelChatterUnmuteEvent event = new ChannelChatterUnmuteEvent(this, member);
-
-        this.instance.getServer().getPluginManager().callEvent(event);
-
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        this.setMuted(member.getUniqueId(), false);
-
-        if (member instanceof IChatter) {
-            ((IChatter) member).sendMessage(Messages.tl("gotUnmuted", this.getColoredName()));
-        }
-
-        this.performAnnounce(Messages.tl("announceUnmuted", this.getColor().toString(), member.getName()));
+        this.performAnnounce(Messages.tl("announceUnmuted", this.getColor().toString(), online != null
+                ? online.getDisplayName() : chatter.getName()));
         return true;
     }
 
@@ -646,35 +669,6 @@ public class StandardChannel implements IChannel {
     @Override
     public synchronized boolean isBanned(@NotNull final UUID uniqueId) {
         return this.bans.contains(uniqueId);
-    }
-
-    @Override
-    public synchronized @NotNull Set<UUID> getModerators() {
-        return new HashSet<>(this.moderators);
-    }
-
-    @Override
-    public synchronized boolean setModerators(@NotNull final Set<UUID> moderators) {
-        if (moderators.equals(this.moderators)) {
-            return false;
-        }
-
-        this.moderators = new HashSet<>(moderators);
-        return true;
-    }
-
-    @Override
-    public synchronized boolean setModerator(@NotNull final UUID uniqueId, final boolean moderator) {
-        if (moderator) {
-            return this.moderators.add(uniqueId);
-        } else {
-            return this.moderators.remove(uniqueId);
-        }
-    }
-
-    @Override
-    public synchronized boolean isModerator(@NotNull final UUID uniqueId) {
-        return this.moderators.contains(uniqueId);
     }
 
     @Override
@@ -754,7 +748,7 @@ public class StandardChannel implements IChannel {
         final String output = this.instance.getFormatter().formatAnnounce(this, event.getFormat(),
                 event.getMessage());
 
-        Log.getChat().info(String.format("[%s] %s", this.fullName, output));
+        this.instance.getChatLogger().info(String.format("[%s] %s", this.fullName, output));
 
         this.getMembers().forEach(chatter -> chatter.sendMessage(output));
     }
@@ -773,7 +767,7 @@ public class StandardChannel implements IChannel {
         final String output = this.instance.getFormatter().formatBroadcast(this, event.getFormat(),
                 event.getMessage());
 
-        Log.getChat().info(String.format("[%s] %s", this.fullName, output));
+        this.instance.getChatLogger().info(String.format("[%s] %s", this.fullName, output));
 
         this.getMembers().forEach(chatter -> chatter.sendMessage(output));
     }
@@ -797,7 +791,7 @@ public class StandardChannel implements IChannel {
         final String output = this.instance.getFormatter().formatChat(this, event.getFormat(), sender,
                 event.getMessage());
 
-        Log.getChat().info(String.format("[%s] %s", this.fullName, output));
+        this.instance.getChatLogger().info(String.format("[%s] %s", this.fullName, output));
 
         if (this.hasDistance()) {
             final int distance = this.getDistance();

@@ -2,16 +2,17 @@ package de.g4memas0n.chats.command.chatter;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
 
 /**
  * The chat command that allows to send messages in different channels as the focused channel.
@@ -42,22 +43,22 @@ public final class ChatCommand extends ChatterCommand {
                 throw new ChannelNotExistException(input.get(CHANNEL));
             }
 
-            if (sender.hasChannel(channel)) {
-                if (sender.canSpeak(channel)) {
-                    if (channel.isMuted(sender.getUniqueId()) && !sender.hasPermission(Permission.MUTE.getChildren("bypass"))) {
-                        sender.sendMessage(Messages.tl("mutedMember", channel.getColoredName()));
-                        return true;
-                    }
-
-                    this.getInstance().runSyncTask(() -> channel.performChat(sender, input.getMessage(MESSAGE)));
-                    return true;
-                }
-
-                sender.sendMessage(Messages.tl("chatDenied", channel.getColoredName()));
+            if (!sender.hasChannel(channel)) {
+                sender.sendMessage(tl("leaveAlready", channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("leaveAlready", channel.getColoredName()));
+            if (sender.canSpeak(channel)) {
+                if (channel.isMuted(sender.getUniqueId()) && !sender.hasPermission(Permission.MUTE.getChildren("bypass"))) {
+                    sender.sendMessage(tl("mutedMember", channel.getColoredName()));
+                    return true;
+                }
+
+                this.getInstance().runSyncTask(() -> channel.performChat(sender, input.getMessage(MESSAGE)));
+                return true;
+            }
+
+            sender.sendMessage(tl("chatDenied", channel.getColoredName()));
             return true;
         }
 

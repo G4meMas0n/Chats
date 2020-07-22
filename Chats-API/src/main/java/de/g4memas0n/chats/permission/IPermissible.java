@@ -2,7 +2,6 @@ package de.g4memas0n.chats.permission;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
 import de.g4memas0n.chats.util.type.ModifyType;
@@ -11,9 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Permissible Interface that provides methods to check whether a permissible is permitted to something or not.
- *
- * <p>This Interface is used for the {@link ICommandSource} Interface, to determine whether the command source is
- * permitted to perform a command action.</p>
  *
  * @author G4meMas0n
  * @since Release 1.0.0

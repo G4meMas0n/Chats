@@ -1,17 +1,15 @@
 package de.g4memas0n.chats.chatter;
 
-import de.g4memas0n.chats.IChats;
-import de.g4memas0n.chats.storage.IStorageFile;
+import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.storage.InvalidStorageFileException;
 import de.g4memas0n.chats.storage.MissingStorageFileException;
-import de.g4memas0n.chats.util.logging.Log;
+import de.g4memas0n.chats.storage.YamlStorageFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -20,25 +18,18 @@ import java.util.stream.Collectors;
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatter> {
+public class OfflineChatter extends StorageChatter implements IOfflineChatter {
 
-    private final IStorageFile storage;
-    private final IChats instance;
     private final UUID uniqueId;
 
-    private Future<?> saveTask;
+    private String name;
 
-    protected OfflineChatter(@NotNull final IChats instance,
-                             @NotNull final IStorageFile storage,
+    protected OfflineChatter(@NotNull final Chats instance,
+                             @NotNull final YamlStorageFile storage,
                              @NotNull final UUID uniqueId) {
-        this.storage = storage;
-        this.instance = instance;
-        this.uniqueId = uniqueId;
-    }
+        super(instance, storage);
 
-    @Override
-    public @NotNull IStorageFile getStorage() {
-        return this.storage;
+        this.uniqueId = uniqueId;
     }
 
     @Override
@@ -50,10 +41,10 @@ public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatt
         try {
             this.storage.delete();
 
-            Log.getPlugin().debug(String.format("Deleted storage file '%s' of chatter with uuid: %s",
+            this.instance.getLogger().debug(String.format("Deleted storage file '%s' of chatter with uuid: %s",
                     this.storage.getFile().getName(), this.uniqueId.toString()));
         } catch (IOException ex) {
-            Log.getPlugin().warning(String.format("Unable to delete storage file '%s' of chatter with uuid '%s': %s",
+            this.instance.getLogger().warning(String.format("Unable to delete storage file '%s' of chatter with uuid '%s': %s",
                     this.storage.getFile().getName(), this.uniqueId.toString(), ex.getMessage()));
         }
     }
@@ -63,26 +54,37 @@ public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatt
         try {
             this.storage.load();
 
-            Log.getPlugin().debug(String.format("Loaded chatter with uuid '%s' from storage file: %s",
-                    this.uniqueId.toString(), this.storage.getFile().getName()));
+            this.instance.getLogger().debug(String.format("Loaded storage file '%s' of chatter with uuid: %s",
+                    this.storage.getFile().getName(), this.uniqueId.toString()));
         } catch (MissingStorageFileException ex) {
-            Log.getPlugin().warning(String.format("Unable to find storage file '%s' of chatter with uuid: %s",
+            this.instance.getLogger().warning(String.format("Unable to find storage file '%s' of chatter with uuid: %s",
                     this.storage.getFile().getName(), this.uniqueId.toString()));
 
             this.storage.clear();
         } catch (IOException | InvalidStorageFileException ex) {
-            Log.getPlugin().warning(String.format("Unable to load storage file '%s' of chatter with uuid '%s': %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString(), ex.getMessage()));
+            this.instance.getLogger().log(Level.WARNING, String.format("Unable to load storage file '%s' of chatter with uuid: %s",
+                    this.storage.getFile().getName(), this.uniqueId.toString()), ex);
 
             this.storage.clear();
         }
 
-        if (!this.uniqueId.equals(this.storage.getUniqueId("uuid"))) {
-            Log.getPlugin().warning(String.format("Detected %s unique-id in storage file '%s' of chatter with uuid: %s",
-                    this.storage.contains("uuid") ? "invalid" : "missing", this.storage.getFile().getName(), this.uniqueId.toString()));
+        final UUID uniqueId = this._getUniqueId();
 
-            this.storage.set("uuid", this.uniqueId.toString());
+        if (!this.uniqueId.equals(uniqueId)) {
+            this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter with uuid: %s",
+                    uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(), this.uniqueId.toString()));
+
+            this._setUniqueId(this.uniqueId);
             this._delayedSave();
+        }
+
+        this.name = this._getLastName();
+
+        if (this.name == null || this.name.isEmpty()) {
+            this.instance.getLogger().warning(String.format("Detected missing name in storage file '%s' of chatter with uuid: %s",
+                    this.storage.getFile().getName(), this.uniqueId.toString()));
+
+            this.name = "Unknown";
         }
     }
 
@@ -95,20 +97,17 @@ public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatt
         try {
             this.storage.save();
 
-            Log.getPlugin().debug(String.format("Saved chatter with uuid '%s' to storage file: %s",
-                    this.uniqueId.toString(), this.storage.getFile().getName()));
+            this.instance.getLogger().debug(String.format("Saved storage file '%s' of chatter with uuid: %s",
+                    this.storage.getFile().getName(), this.uniqueId.toString()));
         } catch (IOException ex) {
-            Log.getPlugin().warning(String.format("Unable to save storage file '%s' of chatter with uuid '%s': %s",
+            this.instance.getLogger().warning(String.format("Unable to save storage file '%s' of chatter with uuid '%s': %s",
                     this.storage.getFile().getName(), this.uniqueId.toString(), ex.getMessage()));
         }
     }
 
-    protected synchronized final void _delayedSave() {
-        if (this.saveTask != null && !this.saveTask.isDone() && !this.saveTask.isCancelled()) {
-            return;
-        }
-
-        this.saveTask = this.instance.scheduleStorageTask(this::save);
+    @Override
+    public final @NotNull String getName() {
+        return this.name;
     }
 
     @Override
@@ -117,24 +116,13 @@ public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatt
     }
 
     @Override
-    public final @NotNull String getName() {
-        final String name = this.storage.getString("last.name");
-
-        if (name == null || name.isEmpty()) {
-            return "Unknown";
-        }
-
-        return name;
-    }
-
-    @Override
     public final long getLastPlayed() {
-        return this.storage.getLong("last.played", -1);
+        return this._getLastPlayed();
     }
 
     @Override
     public final boolean isMuted() {
-        return this.storage.getBoolean("muted", false);
+        return this._getMuted();
     }
 
     @Override
@@ -143,29 +131,30 @@ public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatt
             return false;
         }
 
-        this.storage.set("muted", muted);
+        this._setMuted(muted);
         this._delayedSave();
         return true;
     }
 
     @Override
     public final boolean isSocialSpy() {
-        return this.storage.getBoolean("social-spy", false);
+        return this._getSocialSpy();
     }
 
+    @Override
     public final boolean setSocialSpy(final boolean enabled) {
         if (enabled == this.isSocialSpy()) {
             return false;
         }
 
-        this.storage.set("social-spy", enabled);
+        this._getSocialSpy();
         this._delayedSave();
         return true;
     }
 
     @Override
     public final @NotNull Set<UUID> getIgnores() {
-        return new HashSet<>(this.storage.getUniqueIdList("ignores"));
+        return this._getIgnores();
     }
 
     @Override
@@ -174,30 +163,9 @@ public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatt
             return false;
         }
 
-        this.storage.set("ignores", ignores.stream().map(UUID::toString).collect(Collectors.toList()));
+        this._setIgnores(ignores);
         this._delayedSave();
         return true;
-    }
-
-    @Override
-    public final String toString() {
-        final StringBuilder builder = new StringBuilder(this.getClass().getSimpleName());
-
-        builder.append("{name=");
-        builder.append(this.getName());
-        builder.append(";uniqueId=");
-        builder.append(this.getUniqueId());
-        builder.append(";muted=");
-        builder.append(this.isMuted());
-
-        final Set<UUID> ignores = this.getIgnores();
-
-        if (!ignores.isEmpty()) {
-            builder.append(";ignores=");
-            builder.append(ignores.stream().map(UUID::toString).collect(Collectors.joining(",")));
-        }
-
-        return builder.append("}").toString();
     }
 
     @Override
@@ -210,10 +178,10 @@ public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatt
             return true;
         }
 
-        if (object instanceof IOfflineChatter) {
-            final IOfflineChatter other = (IChatter) object;
+        if (object instanceof OfflineChatter) {
+            final OfflineChatter other = (OfflineChatter) object;
 
-            return this.getUniqueId().equals(other.getUniqueId());
+            return this.uniqueId.equals(other.uniqueId);
         }
 
         return false;
@@ -224,13 +192,29 @@ public class OfflineChatter implements IOfflineChatter, Comparable<IOfflineChatt
         final int prime = 59;
         int result = 3;
 
-        result = prime * result + this.getUniqueId().hashCode();
+        result = prime * result + this.uniqueId.hashCode();
 
         return result;
     }
 
     @Override
-    public final int compareTo(@NotNull final IOfflineChatter other) {
-        return this.getName().compareTo(other.getName());
+    public final String toString() {
+        final StringBuilder builder = new StringBuilder(this.getClass().getSimpleName());
+
+        builder.append("{name=");
+        builder.append(this.name);
+        builder.append(";uniqueId=");
+        builder.append(this.uniqueId.toString());
+        builder.append(";muted=");
+        builder.append(this.isMuted());
+
+        final Set<UUID> ignores = this.getIgnores();
+
+        if (!ignores.isEmpty()) {
+            builder.append(";ignores=");
+            builder.append(ignores.stream().map(UUID::toString).collect(Collectors.joining(",")));
+        }
+
+        return builder.append("}").toString();
     }
 }

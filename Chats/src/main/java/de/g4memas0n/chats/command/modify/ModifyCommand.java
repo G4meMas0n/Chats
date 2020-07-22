@@ -1,30 +1,32 @@
 package de.g4memas0n.chats.command.modify;
 
-import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
-import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.command.BasicCommand;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.InvalidArgumentException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import de.g4memas0n.chats.util.type.ModifyType;
 import org.bukkit.ChatColor;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
+import static de.g4memas0n.chats.messaging.Messages.tlState;
+import static de.g4memas0n.chats.messaging.Messages.tlType;
 
 /**
  * The modify command that allows to modify a channel.
@@ -35,26 +37,52 @@ import java.util.stream.Collectors;
 public final class ModifyCommand extends BasicCommand {
 
     private static final int CHANNEL = 0;
-    private static final int TYPE = 1;
-    private static final int MODIFIER = 2;
-    private static final int VALUE = 3;
+    private static final int MODIFIER = 1;
+    private static final int TYPE = 2;
 
     private final Set<Modifier> modifiers;
 
     public ModifyCommand() {
         super("modify", 2, -1);
 
-        this.setDescription("Modifies a channel.");
+        this.setDescription("Sets, removes and/or resets settings of a channel.");
         this.setPermission(Permission.MODIFY.getNode());
-        this.setUsage("/channel modify <channel> <type> <modifier> [<value>]");
+        this.setUsage("/channel modify <channel> (set|remove|reset) <type> [<value>]");
 
-        this.modifiers = new HashSet<>(6, 1);
+        this.modifiers = new HashSet<>(4, 1);
 
-        this.modifiers.add(new ModeratorAddModifier(this));
-        this.modifiers.add(new ModeratorRemoveModifier(this));
         this.modifiers.add(new RemoveModifier(this));
         this.modifiers.add(new ResetModifier(this));
         this.modifiers.add(new SetModifier(this));
+    }
+
+    public @Nullable Modifier getModifier(@NotNull final String identifier) {
+        for (final Modifier modifier : this.modifiers) {
+            if (modifier.getIdentifier().equalsIgnoreCase(identifier)) {
+                return modifier;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean hide(@NotNull final ICommandSource sender) {
+        if (sender instanceof IChatter) {
+            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                if (channel.isConversation()) {
+                    continue;
+                }
+
+                if (sender.canModify(channel)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -68,82 +96,31 @@ public final class ModifyCommand extends BasicCommand {
             }
 
             if (sender.canModify(channel)) {
+                final Modifier modifier = this.getModifier(input.get(MODIFIER));
+
+                if (modifier == null) {
+                    return false;
+                }
+
                 final ModifyType type = ModifyType.getType(input.get(TYPE));
 
-                if (type == null) {
+                if (type == null || !modifier.accept(type)) {
                     throw new InvalidArgumentException("invalidType", input.get(TYPE));
                 }
 
                 if (sender.canModify(channel, type)) {
-                    for (final Modifier modifier : this.modifiers) {
-                        if (!modifier.accept(type)) {
-                            continue;
-                        }
-
-                        if (modifier.getIdentifier().equalsIgnoreCase(input.get(MODIFIER))) {
-                            return modifier.execute(sender, input, channel, type);
-                        }
-                    }
-
-                    return false;
+                    return modifier.execute(sender, input, channel, type);
                 }
 
-                sender.sendMessage(Messages.tl("modifyDeniedType", Messages.tlType(type), channel.getFullName()));
+                sender.sendMessage(tl("modifyDeniedType", tlType(type), channel.getFullName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("modifyDenied", channel.getFullName()));
+            sender.sendMessage(tl("modifyDenied", channel.getFullName()));
             return true;
         }
 
         return false;
-    }
-
-    @Override
-    public @NotNull List<String> help(@NotNull final ICommandSource sender,
-                                      @NotNull final ICommandInput input) {
-        if (input.getLength() >= MODIFIER + 1) {
-            final ModifyType type = ModifyType.getType(input.get(TYPE));
-
-            if (type != null) {
-                for (final Modifier modifier : this.modifiers) {
-                    if (!modifier.accept(type)) {
-                        continue;
-                    }
-
-                    if (modifier.getIdentifier().equalsIgnoreCase(input.get(MODIFIER))) {
-                        final List<String> help = new ArrayList<>();
-
-                        help.add(Messages.tl("helpHeader", String.format("modify <channel> %s %s",
-                                type.getIdentifier(), modifier.getIdentifier())));
-                        help.add(Messages.tl("helpDescription", modifier.getDescription()));
-                        help.add(Messages.tl("helpUsage", modifier.getUsage(type)));
-
-                        return help;
-                    }
-                }
-
-                final List<String> help = new ArrayList<>();
-
-                help.add(Messages.tl("helpHeader", String.format("modify <channel> %s", type.getIdentifier())));
-                help.add(Messages.tl("helpDescription", this.getDescription()));
-                help.add(Messages.tl("helpUsage", this.getUsage(type)));
-                help.add(Messages.tlJoin("helpModifiers", this.modifiers.stream()
-                        .filter(modifier -> modifier.accept(type))
-                        .map(Modifier::getIdentifier)
-                        .collect(Collectors.toList())));
-
-                return help;
-            }
-        }
-
-        final List<String> help = super.help(sender, input);
-
-        help.add(Messages.tlJoin("helpTypes", Arrays.stream(ModifyType.values())
-                .map(ModifyType::getIdentifier)
-                .collect(Collectors.toList())));
-
-        return help;
     }
 
     @Override
@@ -169,17 +146,41 @@ public final class ModifyCommand extends BasicCommand {
             return completion;
         }
 
-        if (input.getLength() == TYPE + 1) {
-            final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
+        // input.getLength() > 1, because the given input is always >= 1
+        final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
 
-            if (channel == null || channel.isConversation()) {
+        if (channel == null || channel.isConversation()) {
+            return Collections.emptyList();
+        }
+
+        if (sender.canModify(channel)) {
+            if (input.getLength() == MODIFIER + 1) {
+                final List<String> completion = new ArrayList<>();
+
+                for (final Modifier modifier : this.modifiers) {
+                    if (StringUtil.startsWithIgnoreCase(modifier.getIdentifier(), input.get(MODIFIER))) {
+                        completion.add(modifier.getIdentifier());
+                    }
+                }
+
+                return completion;
+            }
+
+            // input.getLength() > 2
+            final Modifier modifier = this.getModifier(input.get(MODIFIER));
+
+            if (modifier == null) {
                 return Collections.emptyList();
             }
 
-            if (sender.canModify(channel)) {
+            if (input.getLength() == TYPE + 1) {
                 final List<String> completion = new ArrayList<>();
 
                 for (final ModifyType type : ModifyType.values()) {
+                    if (!modifier.accept(type)) {
+                        continue;
+                    }
+
                     if (sender.canModify(channel, type)) {
                         if (StringUtil.startsWithIgnoreCase(type.getIdentifier(), input.get(TYPE))) {
                             completion.add(type.getIdentifier());
@@ -189,73 +190,20 @@ public final class ModifyCommand extends BasicCommand {
 
                 return completion;
             }
-        }
 
-        if (input.getLength() == MODIFIER + 1) {
-            final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
+            // input.getLength() > 3
+            final ModifyType type = ModifyType.getType(input.get(TYPE));
 
-            if (channel == null || channel.isConversation()) {
+            if (type == null || !modifier.accept(type)) {
                 return Collections.emptyList();
             }
 
-            if (sender.canModify(channel)) {
-                final ModifyType type = ModifyType.getType(input.get(TYPE));
-
-                if (type == null) {
-                    return Collections.emptyList();
-                }
-
-                if (sender.canModify(channel, type)) {
-                    final List<String> completion = new ArrayList<>();
-
-                    for (final Modifier modifier : this.modifiers) {
-                        if (!modifier.accept(type)) {
-                            continue;
-                        }
-
-                        if (StringUtil.startsWithIgnoreCase(modifier.getIdentifier(), input.get(MODIFIER))) {
-                            completion.add(modifier.getIdentifier());
-                        }
-                    }
-
-                    return completion;
-                }
-            }
-        }
-
-        if (input.getLength() > MODIFIER + 1) {
-            final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(CHANNEL));
-
-            if (channel == null || channel.isConversation()) {
-                return Collections.emptyList();
-            }
-
-            if (sender.canModify(channel)) {
-                final ModifyType type = ModifyType.getType(input.get(TYPE));
-
-                if (type == null) {
-                    return Collections.emptyList();
-                }
-
-                if (sender.canModify(channel, type)) {
-                    for (final Modifier modifier : this.modifiers) {
-                        if (!modifier.accept(type)) {
-                            continue;
-                        }
-
-                        if (modifier.getIdentifier().equalsIgnoreCase(input.get(MODIFIER))) {
-                            return modifier.tabComplete(sender, input, channel, type);
-                        }
-                    }
-                }
+            if (sender.canModify(channel, type)) {
+                return modifier.tabComplete(sender, input, channel, type);
             }
         }
 
         return Collections.emptyList();
-    }
-
-    public @NotNull String getUsage(@NotNull final ModifyType type) {
-        return this.getUsage().replace("<type>", type.getIdentifier());
     }
 
     /**
@@ -272,9 +220,6 @@ public final class ModifyCommand extends BasicCommand {
         private final int minArgs;
         private final int maxArgs;
 
-        private String description;
-        private String usage;
-
         protected Modifier(@NotNull final BasicCommand command,
                            @NotNull final String identifier,
                            final int minArgs,
@@ -285,7 +230,7 @@ public final class ModifyCommand extends BasicCommand {
             this.maxArgs = maxArgs;
         }
 
-        public final @NotNull IChats getInstance() {
+        public final @NotNull Chats getInstance() {
             return this.command.getInstance();
         }
 
@@ -340,181 +285,6 @@ public final class ModifyCommand extends BasicCommand {
                                                           @NotNull final ICommandInput input,
                                                           @NotNull final IChannel channel,
                                                           @NotNull final ModifyType type);
-
-        public final @NotNull String getDescription() {
-            return this.description;
-        }
-
-        public final void setDescription(@NotNull final String description) {
-            if (description.equals(this.description)) {
-                return;
-            }
-
-            this.description = description;
-        }
-
-        public final @NotNull String getUsage(@NotNull final ModifyType type) {
-            return this.usage.replace("<type>", type.getIdentifier());
-        }
-
-        public final void setUsage(@NotNull final String usage) {
-            if (usage.equals(this.usage)) {
-                return;
-            }
-
-            this.usage = usage;
-        }
-    }
-
-    /**
-     * The moderator add modifier that allows to add moderators to a channel.
-     *
-     * @author G4meMas0n
-     * @since Release 1.0.0
-     */
-    public static final class ModeratorAddModifier extends Modifier {
-
-        protected ModeratorAddModifier(@NotNull final BasicCommand command) {
-            super(command, "add", 4, 4);
-
-            this.setDescription("Adds a moderator to a channel.");
-            this.setUsage("/channel modify <channel> moderator add <player>");
-        }
-
-        @Override
-        public boolean accept(@NotNull final ModifyType type) {
-            return type == ModifyType.MODERATOR;
-        }
-
-        @Override
-        public boolean execute(@NotNull final ICommandSource sender,
-                               @NotNull final ICommandInput input,
-                               @NotNull final IChannel channel,
-                               @NotNull final ModifyType type) throws InputException {
-            if (input.getLength() == this.getMaxArgs() && type == ModifyType.MODERATOR) {
-                final IChatter target = this.getInstance().getChatterManager().getChatter(input.get(VALUE));
-
-                if (target == null || !sender.canSee(target)) {
-                    throw new PlayerNotFoundException(input.get(VALUE));
-                }
-
-                if (channel.setModerator(target.getUniqueId(), true)) {
-                    sender.sendMessage(Messages.tl("moderatorAdd", target.getDisplayName(), channel.getFullName()));
-                    return true;
-                }
-
-                sender.sendMessage(Messages.tl("moderatorAddAlready", target.getDisplayName(), channel.getFullName()));
-                return true;
-            }
-
-            return false;
-        }
-
-        @Override
-        public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
-                                                 @NotNull final ICommandInput input,
-                                                 @NotNull final IChannel channel,
-                                                 @NotNull final ModifyType type) {
-            if (input.getLength() == VALUE + 1 && type == ModifyType.MODERATOR) {
-                final List<String> completion = new ArrayList<>();
-
-                for (final IChatter target : this.getInstance().getChatterManager().getChatters()) {
-                    if (channel.isModerator(target.getUniqueId()) || channel.isOwner(target.getUniqueId())) {
-                        continue;
-                    }
-
-                    if (sender.canSee(target)) {
-                        if (StringUtil.startsWithIgnoreCase(target.getName(), input.get(VALUE))) {
-                            completion.add(target.getName());
-                        }
-                    }
-                }
-
-                Collections.sort(completion);
-
-                return completion;
-            }
-
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * The moderator remove modifier that allows to remove moderators from a channel.
-     *
-     * @author G4meMas0n
-     * @since Release 1.0.0
-     */
-    public static final class ModeratorRemoveModifier extends Modifier {
-
-        protected ModeratorRemoveModifier(@NotNull final BasicCommand command) {
-            super(command, "remove", 4, 4);
-
-            this.setDescription("Removes a moderator from a channel.");
-            this.setUsage("/channel modify <channel> moderator remove <player>");
-        }
-
-        @Override
-        public boolean accept(@NotNull final ModifyType type) {
-            return type == ModifyType.MODERATOR;
-        }
-
-        @Override
-        public boolean execute(@NotNull final ICommandSource sender,
-                               @NotNull final ICommandInput input,
-                               @NotNull final IChannel channel,
-                               @NotNull final ModifyType type) throws InputException {
-            if (input.getLength() == this.getMaxArgs() && type == ModifyType.MODERATOR) {
-                final IOfflineChatter target = this.getInstance().getChatterManager().getOfflineChatter(input.get(VALUE));
-
-                if (target == null) {
-                    throw new PlayerNotFoundException(input.get(VALUE));
-                }
-
-                final IChatter online = target instanceof IChatter ? (IChatter) target : null;
-
-                if (channel.setModerator(target.getUniqueId(), false)) {
-                    sender.sendMessage(Messages.tl("moderatorRemove", (online != null && sender.canSee(online))
-                            ? online.getDisplayName() : target.getName(), channel.getFullName()));
-                    return true;
-                }
-
-                sender.sendMessage(Messages.tl("moderatorRemoveAlready", (online != null && sender.canSee(online))
-                        ? online.getDisplayName() : target.getName(), channel.getFullName()));
-                return true;
-            }
-
-            return false;
-        }
-
-        @Override
-        public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
-                                                 @NotNull final ICommandInput input,
-                                                 @NotNull final IChannel channel,
-                                                 @NotNull final ModifyType type) {
-            if (input.getLength() == VALUE + 1 && type == ModifyType.MODERATOR) {
-                final List<String> completion = new ArrayList<>();
-
-                for (final UUID uniqueId : channel.getModerators()) {
-                    final IOfflineChatter moderator = this.getInstance().getChatterManager().getOfflineChatter(uniqueId);
-
-                    if (moderator == null) {
-                        channel.setModerator(uniqueId, false);
-                        continue;
-                    }
-
-                    if (StringUtil.startsWithIgnoreCase(moderator.getName(), input.get(VALUE))) {
-                        completion.add(moderator.getName());
-                    }
-                }
-
-                Collections.sort(completion);
-
-                return completion;
-            }
-
-            return Collections.emptyList();
-        }
     }
 
     /**
@@ -526,81 +296,92 @@ public final class ModifyCommand extends BasicCommand {
     public static final class RemoveModifier extends Modifier {
 
         protected RemoveModifier(@NotNull final BasicCommand command) {
-            super(command, "remove", 3, 4);
-
-            this.setDescription("Removes a setting from a channel.");
-            this.setUsage("/channel modify <channel> <type> remove");
+            super(command, "remove", 3, 3);
         }
 
         @Override
         public boolean accept(@NotNull final ModifyType type) {
             return type != ModifyType.COLOR && type != ModifyType.CROSS_WORLD
-                    && type != ModifyType.CUSTOM_FORMAT && type != ModifyType.MODERATOR;
+                    && type != ModifyType.CUSTOM_FORMAT && type != ModifyType.VERBOSE;
         }
 
         @Override
         public boolean execute(@NotNull final ICommandSource sender,
                                @NotNull final ICommandInput input,
                                @NotNull final IChannel channel,
-                               @NotNull final ModifyType type) {
+                               @NotNull final ModifyType type) throws InputException {
             if (input.getLength() == this.getMinArgs()) {
                 if (type == ModifyType.ANNOUNCE_FORMAT) {
                     if (channel.setAnnounceFormat(null)) {
-                        sender.sendMessage(Messages.tl("modifyRemove", Messages.tlType(type), channel.getFullName()));
+                        sender.sendMessage(tl("modifyRemove", tlType(type), channel.getFullName()));
                         return true;
                     }
 
-                    sender.sendMessage(Messages.tl("modifyNotSet", Messages.tlType(type), channel.getFullName()));
-                    return true;
-                } else if (type == ModifyType.BROADCAST_FORMAT) {
-                    if (channel.setBroadcastFormat(null)) {
-                        sender.sendMessage(Messages.tl("modifyRemove", Messages.tlType(type), channel.getFullName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("modifyNotSet", Messages.tlType(type), channel.getFullName()));
-                    return true;
-                } else if (type == ModifyType.CHAT_FORMAT) {
-                    if (channel.setChatFormat(null)) {
-                        sender.sendMessage(Messages.tl("modifyRemove", Messages.tlType(type), channel.getFullName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("modifyNotSet", Messages.tlType(type), channel.getFullName()));
-                    return true;
-                } else if (type == ModifyType.DISTANCE) {
-                    if (channel.setDistance(-1)) {
-                        sender.sendMessage(Messages.tl("modifyRemove", Messages.tlType(type), channel.getFullName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("modifyNotSet", Messages.tlType(type), channel.getFullName()));
-                    return true;
-                } else if (type == ModifyType.OWNER) {
-                    if (channel.setOwner(null)) {
-                        sender.sendMessage(Messages.tl("modifyRemove", Messages.tlType(type), channel.getFullName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("modifyNotSet", Messages.tlType(type), channel.getFullName()));
-                    return true;
-                } else if (type == ModifyType.PASSWORD) {
-                    if (channel.setPassword(null)) {
-                        sender.sendMessage(Messages.tl("modifyRemove", Messages.tlType(type), channel.getFullName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("modifyNotSet", Messages.tlType(type), channel.getFullName()));
-                    return true;
-                } else if (type == ModifyType.SHORT_NAME) {
-                    if (channel.setShortName(null)) {
-                        sender.sendMessage(Messages.tl("modifyRemove", Messages.tlType(type), channel.getFullName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("modifyNotSet", Messages.tlType(type), channel.getFullName()));
+                    sender.sendMessage(tl("modifyRemoveAlready", tlType(type), channel.getFullName()));
                     return true;
                 }
+
+                if (type == ModifyType.BROADCAST_FORMAT) {
+                    if (channel.setBroadcastFormat(null)) {
+                        sender.sendMessage(tl("modifyRemove", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyRemoveAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                if (type == ModifyType.CHAT_FORMAT) {
+                    if (channel.setChatFormat(null)) {
+                        sender.sendMessage(tl("modifyRemove", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyRemoveAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                if (type == ModifyType.DISTANCE) {
+                    if (channel.setDistance(-1)) {
+                        sender.sendMessage(tl("modifyRemove", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyRemoveAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                if (type == ModifyType.OWNER) {
+                    if (channel.setOwner(null)) {
+                        sender.sendMessage(tl("modifyRemove", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyRemoveAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                if (type == ModifyType.PASSWORD) {
+                    if (channel.setPassword(null)) {
+                        sender.sendMessage(tl("modifyRemove", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyRemoveAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                if (type == ModifyType.SHORT_NAME) {
+                    if (channel.setShortName(null)) {
+                        sender.sendMessage(tl("modifyRemove", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyRemoveAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                throw new InvalidArgumentException("invalidType", type.getIdentifier());
             }
 
             return false;
@@ -625,47 +406,61 @@ public final class ModifyCommand extends BasicCommand {
 
         protected ResetModifier(@NotNull final BasicCommand command) {
             super(command, "reset", 3, 3);
-
-            this.setDescription("Resets a setting from a channel.");
-            this.setUsage("/channel modify <channel> <type> reset");
         }
 
         @Override
         public boolean accept(@NotNull final ModifyType type) {
-            return type == ModifyType.COLOR || type == ModifyType.CROSS_WORLD || type == ModifyType.CUSTOM_FORMAT;
+            return type == ModifyType.COLOR || type == ModifyType.CROSS_WORLD
+                    || type == ModifyType.CUSTOM_FORMAT || type == ModifyType.VERBOSE;
         }
 
         @Override
         public boolean execute(@NotNull final ICommandSource sender,
                                @NotNull final ICommandInput input,
                                @NotNull final IChannel channel,
-                               @NotNull final ModifyType type) {
+                               @NotNull final ModifyType type) throws InputException {
             if (input.getLength() == this.getMaxArgs()) {
                 if (type == ModifyType.COLOR) {
                     if (channel.setColor(null)) {
-                        sender.sendMessage(Messages.tl("modifyReset", Messages.tlType(type), channel.getFullName()));
+                        sender.sendMessage(tl("modifyReset", tlType(type), channel.getFullName()));
                         return true;
                     }
 
-                    sender.sendMessage(Messages.tl("modifyNotChanged", Messages.tlType(type), channel.getFullName()));
-                    return true;
-                } else if (type == ModifyType.CROSS_WORLD) {
-                    if (channel.setCrossWorld(true)) {
-                        sender.sendMessage(Messages.tl("modifyReset", Messages.tlType(type), channel.getFullName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("modifyNotChanged", Messages.tlType(type), channel.getFullName()));
-                    return true;
-                } else if (type == ModifyType.CUSTOM_FORMAT) {
-                    if (channel.setCustomFormat(true)) {
-                        sender.sendMessage(Messages.tl("modifyReset", Messages.tlType(type), channel.getFullName()));
-                        return true;
-                    }
-
-                    sender.sendMessage(Messages.tl("modifyNotChanged", Messages.tlType(type), channel.getFullName()));
+                    sender.sendMessage(tl("modifyResetAlready", tlType(type), channel.getFullName()));
                     return true;
                 }
+
+                if (type == ModifyType.CROSS_WORLD) {
+                    if (channel.setCrossWorld(true)) {
+                        sender.sendMessage(tl("modifyReset", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyResetAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                if (type == ModifyType.CUSTOM_FORMAT) {
+                    if (channel.setCustomFormat(false)) {
+                        sender.sendMessage(tl("modifyReset", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyResetAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                if (type == ModifyType.VERBOSE) {
+                    if (channel.setVerbose(true)) {
+                        sender.sendMessage(tl("modifyReset", tlType(type), channel.getFullName()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifyResetAlready", tlType(type), channel.getFullName()));
+                    return true;
+                }
+
+                throw new InvalidArgumentException("invalidType", type.getIdentifier());
             }
 
             return false;
@@ -688,16 +483,15 @@ public final class ModifyCommand extends BasicCommand {
      */
     public static final class SetModifier extends Modifier {
 
+        private static final int VALUE = 3;
+
         protected SetModifier(@NotNull final BasicCommand command) {
             super(command, "set", 4, -1);
-
-            this.setDescription("Sets a setting of a channel.");
-            this.setUsage("/channel modify <channel> <type> set <value>");
         }
 
         @Override
         public boolean accept(@NotNull final ModifyType type) {
-            return type != ModifyType.MODERATOR;
+            return true;
         }
 
         @Override
@@ -709,41 +503,39 @@ public final class ModifyCommand extends BasicCommand {
                 if (type == ModifyType.ANNOUNCE_FORMAT) {
                     try {
                         if (channel.setAnnounceFormat(input.getFormat(VALUE))) {
-                            sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type),
-                                    channel.getFullName(), channel.getAnnounceFormat()));
+                            sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), channel.getAnnounceFormat()));
                             return true;
                         }
 
-                        sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type),
-                                channel.getFullName(), channel.getAnnounceFormat()));
+                        sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), channel.getAnnounceFormat()));
                         return true;
                     } catch (IllegalArgumentException ex) {
-                        throw new InvalidArgumentException(ex, "invalidFormat", Messages.tl("announce"));
+                        throw new InvalidArgumentException(ex, "invalidFormat", tl("announce"));
                     }
-                } else if (type == ModifyType.BROADCAST_FORMAT) {
+                }
+
+                if (type == ModifyType.BROADCAST_FORMAT) {
                     try {
                         if (channel.setBroadcastFormat(input.getFormat(VALUE))) {
-                            sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type),
-                                    channel.getFullName(), channel.getBroadcastFormat()));
+                            sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), channel.getBroadcastFormat()));
                             return true;
                         }
 
-                        sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type),
-                                channel.getFullName(), channel.getBroadcastFormat()));
+                        sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), channel.getBroadcastFormat()));
                         return true;
                     } catch (IllegalArgumentException ex) {
-                        throw new InvalidArgumentException(ex, "invalidFormat", Messages.tl("broadcast"));
+                        throw new InvalidArgumentException(ex, "invalidFormat", tl("broadcast"));
                     }
-                } else if (type == ModifyType.CHAT_FORMAT) {
+                }
+
+                if (type == ModifyType.CHAT_FORMAT) {
                     try {
                         if (channel.setChatFormat(input.getFormat(VALUE))) {
-                            sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type),
-                                    channel.getFullName(), channel.getChatFormat()));
+                            sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), channel.getChatFormat()));
                             return true;
                         }
 
-                        sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type),
-                                channel.getFullName(), channel.getChatFormat()));
+                        sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), channel.getChatFormat()));
                         return true;
                     } catch (IllegalArgumentException ex) {
                         throw new InvalidArgumentException(ex, "invalidFormat", Messages.tl("chat"));
@@ -755,50 +547,52 @@ public final class ModifyCommand extends BasicCommand {
                 if (type == ModifyType.COLOR) {
                     try {
                         if (channel.setColor(input.getChatColor(VALUE))) {
-                            sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type), channel.getFullName(),
+                            sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(),
                                     channel.getColor() + channel.getColor().name().toLowerCase()));
                             return true;
                         }
 
-                        sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type), channel.getFullName(),
+                        sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(),
                                 channel.getColor() + channel.getColor().name().toLowerCase()));
                         return true;
                     } catch (IllegalArgumentException ex) {
                         throw new InvalidArgumentException(ex, "invalidColor", input.get(VALUE));
                     }
-                } else if (type == ModifyType.CROSS_WORLD) {
+                }
+
+                if (type == ModifyType.CROSS_WORLD) {
                     if (channel.setCrossWorld(input.getBoolean(VALUE))) {
-                        sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type), channel.getFullName(),
-                                Messages.tlState(channel.isCrossWorld())));
+                        sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), tlState(channel.isCrossWorld())));
                         return true;
                     }
 
-                    sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type), channel.getFullName(),
-                            Messages.tlState(channel.isCrossWorld())));
+                    sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), tlState(channel.isCrossWorld())));
                     return true;
-                } else if (type == ModifyType.CUSTOM_FORMAT) {
+                }
+
+                if (type == ModifyType.CUSTOM_FORMAT) {
                     if (channel.setCustomFormat(input.getBoolean(VALUE))) {
-                        sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type), channel.getFullName(),
-                                Messages.tlState(channel.isCustomFormat())));
+                        sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), tlState(channel.isCustomFormat())));
                         return true;
                     }
 
-                    sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type), channel.getFullName(),
-                            Messages.tlState(channel.isCustomFormat())));
+                    sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), tlState(channel.isCustomFormat())));
                     return true;
-                } else if (type == ModifyType.DISTANCE) {
+                }
+
+                if (type == ModifyType.DISTANCE) {
                     if (channel.setDistance(input.getInteger(VALUE))) {
-                        sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type), channel.getFullName(),
-                                channel.getDistance()));
+                        sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), channel.getDistance()));
                         return true;
                     }
 
-                    sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type), channel.getFullName(),
-                            channel.getDistance()));
+                    sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), channel.getDistance()));
                     return true;
-                } else if (type == ModifyType.OWNER) {
+                }
+
+                if (type == ModifyType.OWNER) {
                     if (channel.isPersist()) {
-                        sender.sendMessage(Messages.tlErr("modifyOwnerPersist", channel.getFullName()));
+                        sender.sendMessage(tlErr("modifyOwnerPersist", channel.getFullName()));
                         return true;
                     }
 
@@ -809,48 +603,60 @@ public final class ModifyCommand extends BasicCommand {
                     }
 
                     if (channel.setOwner(target.getUniqueId())) {
-                        sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type), channel.getFullName(),
-                                target.getName()));
+                        sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), target.getName()));
                         return true;
                     }
 
-                    sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type), channel.getFullName(),
-                            target.getName()));
+                    sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), target.getName()));
                     return true;
-                } else if (type == ModifyType.PASSWORD) {
+                }
+
+                if (type == ModifyType.PASSWORD) {
                     if (channel.isDefault()) {
-                        sender.sendMessage(Messages.tlErr("modifyPasswordDefault", channel.getFullName()));
+                        sender.sendMessage(tlErr("modifyPasswordDefault", channel.getFullName()));
                         return true;
                     }
 
                     try {
                         if (channel.setPassword(input.get(VALUE))) {
-                            sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type), channel.getFullName(),
+                            sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(),
                                     channel.getPassword() != null ? channel.getPassword() : input.get(VALUE)));
                             return true;
                         }
 
-                        sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type), channel.getFullName(),
+                        sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(),
                                 channel.getPassword() != null ? channel.getPassword() : input.get(VALUE)));
                         return true;
                     } catch (IllegalArgumentException ex) {
                         throw new InvalidArgumentException(ex, "invalidPassword", input.get(VALUE));
                     }
-                } else if (type == ModifyType.SHORT_NAME) {
+                }
+
+                if (type == ModifyType.SHORT_NAME) {
                     try {
                         if (channel.setShortName(input.get(VALUE))) {
-                            sender.sendMessage(Messages.tl("modifySet", Messages.tlType(type),
-                                    channel.getFullName(), channel.getShortName()));
+                            sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), channel.getShortName()));
                             return true;
                         }
 
-                        sender.sendMessage(Messages.tl("modifyAlready", Messages.tlType(type),
-                                channel.getFullName(), channel.getShortName()));
+                        sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), channel.getShortName()));
                         return true;
                     } catch (IllegalArgumentException ex) {
                         throw new InvalidArgumentException(ex, "invalidName", input.get(VALUE));
                     }
                 }
+
+                if (type == ModifyType.VERBOSE) {
+                    if (channel.setVerbose(input.getBoolean(VALUE))) {
+                        sender.sendMessage(tl("modifySet", tlType(type), channel.getFullName(), channel.isVerbose()));
+                        return true;
+                    }
+
+                    sender.sendMessage(tl("modifySetAlready", tlType(type), channel.getFullName(), channel.isVerbose()));
+                    return true;
+                }
+
+                throw new InvalidArgumentException("invalidType", type.getIdentifier());
             }
 
             return false;
@@ -876,7 +682,9 @@ public final class ModifyCommand extends BasicCommand {
                     }
 
                     return completion;
-                } else if (type == ModifyType.CROSS_WORLD || type == ModifyType.CUSTOM_FORMAT) {
+                }
+
+                if (type == ModifyType.CROSS_WORLD || type == ModifyType.CUSTOM_FORMAT || type == ModifyType.VERBOSE) {
                     final List<String> completion = new ArrayList<>();
 
                     if (StringUtil.startsWithIgnoreCase(Boolean.FALSE.toString(), input.get(VALUE))) {
@@ -888,7 +696,9 @@ public final class ModifyCommand extends BasicCommand {
                     }
 
                     return completion;
-                } else if (type == ModifyType.OWNER) {
+                }
+
+                if (type == ModifyType.OWNER) {
                     final List<String> completion = new ArrayList<>();
 
                     for (final IChatter target : this.getInstance().getChatterManager().getChatters()) {

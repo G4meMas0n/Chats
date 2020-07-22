@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.util.input;
+package de.g4memas0n.chats.command;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -10,9 +10,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class InputException extends Exception {
 
-    protected InputException() {
-        super();
-    }
+    protected InputException() { }
 
     protected InputException(@NotNull final Throwable cause) {
         super(cause);

@@ -1,19 +1,19 @@
 package de.g4memas0n.chats.command.info;
 
-import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.BasicPluginCommand;
-import de.g4memas0n.chats.command.chatter.ChatterCommand;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.CommandInput;
-import de.g4memas0n.chats.util.input.ICommandInput;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The help command that allows to show a list of available commands or the help of a command.
@@ -34,18 +34,25 @@ public final class HelpCommand extends BasicCommand {
     }
 
     @Override
+    public boolean hide(@NotNull final ICommandSource sender) {
+        return false;
+    }
+
+    @Override
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) {
         if (this.argsInRange(input.getLength())) {
             if (input.getLength() == this.getMaxArgs()) {
                 final BasicCommand command = this.getRegistered(input.get(COMMAND));
 
-                if (command == null || !sender.hasPermission(command.getPermission())) {
-                    sender.sendMessage(Messages.tlErr("commandNotFound", input.get(COMMAND)));
+                if (command == null || command.hide(sender) || !sender.hasPermission(command.getPermission())) {
+                    sender.sendMessage(tlErr("commandNotFound", input.get(COMMAND)));
                     return true;
                 }
 
-                sender.sendMessage(command.help(sender, new CommandInput()));
+                sender.sendMessage(tl("helpHeader", command.getName()));
+                sender.sendMessage(tl("helpDescription", command.getDescription()));
+                sender.sendMessage(tl("helpUsage", command.getUsage()));
                 return true;
             }
 
@@ -53,21 +60,21 @@ public final class HelpCommand extends BasicCommand {
 
             for (final BasicCommand command : this.getRegistered()) {
                 if (command instanceof BasicPluginCommand) {
-                    if (command instanceof ChatterCommand && !(sender instanceof IChatter)) {
+                    if (command.hide(sender)) {
                         continue;
                     }
 
                     if (sender.hasPermission(command.getPermission())) {
-                        commands.add(Messages.tl("helpCommand", command.getName(), command.getDescription()));
+                        commands.add(tl("helpCommand", command.getName(), command.getDescription()));
                     }
                 }
             }
 
             Collections.sort(commands);
 
-            sender.sendMessage(Messages.tl("helpHeader", Messages.tl("commands")));
+            sender.sendMessage(tl("helpHeader", Messages.tl("commands")));
             sender.sendMessage(commands);
-            sender.sendMessage(Messages.tl("helpFooter", this.getUsage().replaceAll("\\[(.*)]", "$1")));
+            sender.sendMessage(tl("helpFooter", this.getUsage().replaceAll("\\[(.*)]", "$1")));
             return true;
         }
 
@@ -81,7 +88,7 @@ public final class HelpCommand extends BasicCommand {
             final List<String> completion = new ArrayList<>();
 
             for (final BasicCommand command : this.getRegistered()) {
-                if (command instanceof ChatterCommand && !(sender instanceof IChatter)) {
+                if (command.hide(sender)) {
                     continue;
                 }
 

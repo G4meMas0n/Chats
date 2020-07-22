@@ -81,13 +81,17 @@ public final class Formatter implements IFormatter {
 
         if (service != null) {
             final World world = sender.getPlayer().getWorld();
+
+            formatted = formatted.replace(Placeholder.SENDER_PREFIX.toString(), service.getPlayerPrefix(sender.getPlayer()))
+                    .replace(Placeholder.SENDER_SUFFIX.toString(), service.getPlayerSuffix(sender.getPlayer()));
+
             final String group = service.getPrimaryGroup(sender.getPlayer());
 
-            formatted = formatted.replace(Placeholder.SENDER_GROUP.toString(), group)
-                    .replace(Placeholder.SENDER_GROUP_PREFIX.toString(), service.getGroupPrefix(world, group))
-                    .replace(Placeholder.SENDER_GROUP_SUFFIX.toString(), service.getGroupSuffix(world, group))
-                    .replace(Placeholder.SENDER_PREFIX.toString(), service.getPlayerPrefix(sender.getPlayer()))
-                    .replace(Placeholder.SENDER_SUFFIX.toString(), service.getPlayerSuffix(sender.getPlayer()));
+            if (group != null) {
+                formatted = formatted.replace(Placeholder.SENDER_GROUP.toString(), group)
+                        .replace(Placeholder.SENDER_GROUP_PREFIX.toString(), service.getGroupPrefix(world, group))
+                        .replace(Placeholder.SENDER_GROUP_SUFFIX.toString(), service.getGroupSuffix(world, group));
+            }
         }
 
         return Placeholder.stripPlaceholders(formatted.replace(Placeholder.MESSAGE.toString(), message));

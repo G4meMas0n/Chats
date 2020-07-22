@@ -30,13 +30,10 @@ import java.util.UUID;
 public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
 
     private final File file;
-    private String name;
 
     public YamlStorageFile(@NotNull final File parent,
                            @NotNull final String name) throws IllegalArgumentException {
         this(new File(parent, name + ".yml"));
-
-        this.name = name;
     }
 
     public YamlStorageFile(@NotNull final File file) throws IllegalArgumentException {
@@ -54,15 +51,6 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
     @Override
     public @NotNull File getFile() {
         return this.file;
-    }
-
-    @Override
-    public @NotNull String getName() {
-        if (this.name == null) {
-            this.name = this.file.getName().substring(0, this.file.getName().lastIndexOf("."));
-        }
-
-        return this.name;
     }
 
     @Override

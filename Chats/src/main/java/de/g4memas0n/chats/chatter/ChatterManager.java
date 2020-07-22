@@ -1,12 +1,13 @@
 package de.g4memas0n.chats.chatter;
 
-import de.g4memas0n.chats.IChats;
+import com.google.common.collect.MapMaker;
+import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.storage.IStorageFile;
 import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.storage.YamlStorageFile;
-import de.g4memas0n.chats.util.logging.Log;
+import de.g4memas0n.chats.storage.cache.UniqueIdCache;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 /**
@@ -28,26 +28,29 @@ import java.util.logging.Level;
  */
 public final class ChatterManager implements IChatterManager {
 
-    private static final String CACHE_NAME = "username-cache";
+    private static final String CACHE_NAME = "unique-id-cache";
     private static final String DIRECTORY_NAME = "chatters";
 
-    private final Map<UUID, IChatter> chatters;
+    private final Map<UUID, StandardChatter> chatters;
+    private final Map<UUID, OfflineChatter> offlines;
 
-    private final ChatterCache cache;
-    private final IChats instance;
+    private final UniqueIdCache cache;
+
+    private final Chats instance;
     private final File directory;
 
-    public ChatterManager(@NotNull final IChats instance) {
+    public ChatterManager(@NotNull final Chats instance) {
+        this.instance = instance;
         this.directory = new File(instance.getDataFolder(), DIRECTORY_NAME);
 
         if (this.directory.mkdirs()) {
-            Log.getPlugin().debug(String.format("Directory '%s' does not exist. Creating it...", this.directory));
+            this.instance.getLogger().debug(String.format("Directory '%s' does not exist. Creating it...", this.directory));
         }
 
-        this.instance = instance;
-        this.cache = new ChatterCache(new YamlStorageFile(this.directory, CACHE_NAME));
+        this.cache = new UniqueIdCache(new YamlStorageFile(this.directory, CACHE_NAME), instance.getLogger());
 
         this.chatters = new HashMap<>();
+        this.offlines = new MapMaker().weakValues().makeMap();
     }
 
     @Override
@@ -56,7 +59,7 @@ public final class ChatterManager implements IChatterManager {
     }
 
     @Override
-    public synchronized @Nullable IChatter getChatter(@NotNull final String name) {
+    public synchronized @Nullable StandardChatter getChatter(@NotNull final String name) {
         final Player player = this.instance.getServer().getPlayerExact(name);
 
         if (player != null && player.isOnline()) {
@@ -73,58 +76,59 @@ public final class ChatterManager implements IChatterManager {
     }
 
     @Override
-    public synchronized @Nullable IChatter getChatter(@NotNull final UUID uniqueId) {
+    public synchronized @Nullable StandardChatter getChatter(@NotNull final UUID uniqueId) {
         return this.chatters.get(uniqueId);
     }
 
     @Override
-    public synchronized @NotNull IChatter getChatter(@NotNull final Player player) {
+    public synchronized @NotNull StandardChatter getChatter(@NotNull final Player player) {
         if (this.chatters.containsKey(player.getUniqueId())) {
             return this.chatters.get(player.getUniqueId());
         }
 
-        final IChatter chatter = this.loadChatter(player);
-        final Future<?> task = this.instance.runStorageTask(chatter::load);
+        final StandardChatter chatter = this.loadChatter(player);
 
         try {
-            task.get();
+            this.instance.runStorageTask(chatter::load).get();
         } catch (ExecutionException ex) {
-            Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+            this.instance.getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception", ex);
         } catch (InterruptedException ex) {
-            Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+            this.instance.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
         }
 
         return chatter;
     }
 
     @Override
-    public synchronized @NotNull IChatter loadChatter(@NotNull final Player player) {
+    public synchronized @NotNull StandardChatter loadChatter(@NotNull final Player player) {
         if (this.chatters.containsKey(player.getUniqueId())) {
             return this.chatters.get(player.getUniqueId());
         }
 
-        final IChatter chatter = new StandardChatter(this.instance, player,
-                new YamlStorageFile(this.directory, player.getUniqueId().toString()));
+        final YamlStorageFile storage = new YamlStorageFile(this.directory, player.getUniqueId().toString());
+        final StandardChatter chatter = new StandardChatter(this.instance, storage, player);
 
         this.chatters.put(player.getUniqueId(), chatter);
-        this.instance.runStorageTask(() -> this.updateCache(chatter));
+        this.offlines.remove(player.getUniqueId());
 
-        Log.getPlugin().debug("Chatter has been added to chatter manager: " + chatter.getName());
+        this.instance.runStorageTask(() -> this.updateCache(chatter));
 
         return chatter;
     }
 
     @Override
-    public synchronized @NotNull IChatter unloadChatter(@NotNull final Player player) {
-        final IChatter chatter = this.getChatter(player);
+    public synchronized @NotNull StandardChatter unloadChatter(@NotNull final Player player) {
+        final StandardChatter chatter = this.chatters.remove(player.getUniqueId());
 
-        for (final IChannel channel : chatter.getChannels()) {
-            channel.setMember(chatter, false);
+        if (chatter == null) {
+            final YamlStorageFile storage = new YamlStorageFile(this.directory, player.getUniqueId().toString());
+
+            return new StandardChatter(this.instance, storage, player);
         }
 
-        this.chatters.remove(player.getUniqueId(), chatter);
-
-        Log.getPlugin().debug("Chatter has been removed from chatter manager: " + chatter.getName());
+        for (final IChannel channel : chatter.getChannels()) {
+            channel.removeMember(chatter, true);
+        }
 
         return chatter;
     }
@@ -136,37 +140,39 @@ public final class ChatterManager implements IChatterManager {
 
     @Override
     public synchronized @NotNull Set<IOfflineChatter> getOfflineChatters() {
-        final Set<IOfflineChatter> collection = new HashSet<>();
+        final Set<IOfflineChatter> offlines = new HashSet<>();
 
         for (final File file : this.directory.listFiles(File::isFile)) {
             try {
-                final IStorageFile storage = new YamlStorageFile(file);
-
-                if (storage.getName().equals(CACHE_NAME)) {
-                    continue;
-                }
-
-                final UUID uniqueId = UUID.fromString(storage.getName());
+                final UUID uniqueId = UUID.fromString(file.getName().substring(0, file.getName().lastIndexOf(".")));
 
                 if (this.chatters.containsKey(uniqueId)) {
                     continue;
                 }
 
-                collection.add(new OfflineChatter(this.instance, storage, uniqueId));
-            } catch (IllegalArgumentException ex) {
-                Log.getPlugin().warning(String.format("Detected invalid storage file '%s'. Ignoring it...", file.getName()));
+                if (this.offlines.containsKey(uniqueId)) {
+                    offlines.add(this.offlines.get(uniqueId));
+                }
+
+                final OfflineChatter offline = new OfflineChatter(this.instance, new YamlStorageFile(file), uniqueId);
+
+                this.offlines.put(uniqueId, offline);
+
+                offlines.add(offline);
+            } catch (IllegalArgumentException ignored) {
+                // Directory can contain invalid storage files, just ignore them.
             }
         }
 
-        return collection;
+        return offlines;
     }
 
     @Override
     public synchronized @Nullable IOfflineChatter getOfflineChatter(@NotNull final String name) {
         final Player player = this.instance.getServer().getPlayerExact(name);
 
-        if (player != null) {
-            return this.getOfflineChatter(player.getUniqueId());
+        if (player != null && player.isOnline()) {
+            return this.getChatter(player);
         }
 
         final UUID uniqueId = this.cache.get(name);
@@ -184,21 +190,26 @@ public final class ChatterManager implements IChatterManager {
             return this.chatters.get(uniqueId);
         }
 
-        final IStorageFile storage = new YamlStorageFile(this.directory, uniqueId.toString());
+        if (this.offlines.containsKey(uniqueId)) {
+            return this.offlines.get(uniqueId);
+        }
+
+        final YamlStorageFile storage = new YamlStorageFile(this.directory, uniqueId.toString());
 
         if (storage.getFile().exists()) {
             final OfflineChatter offline = new OfflineChatter(this.instance, storage, uniqueId);
-            final Future<?> task = this.instance.runStorageTask(offline::load);
+
+            this.offlines.put(uniqueId, offline);
 
             try {
-                task.get();
+                this.instance.runStorageTask(offline::load).get();
             } catch (ExecutionException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+                this.instance.getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception", ex);
             } catch (InterruptedException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+                this.instance.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
             }
 
-            return new OfflineChatter(this.instance, storage, uniqueId);
+            return offline;
         }
 
         return null;
@@ -206,96 +217,86 @@ public final class ChatterManager implements IChatterManager {
 
     @Override
     public synchronized void load() {
-        if (this.cache.getStorage().getFile().exists()) {
-            Log.getPlugin().debug("Loading username-cache...");
-
-            final Future<?> task = this.instance.runStorageTask(this.cache::load);
+        if (this.cache.exists()) {
+            this.instance.getLogger().debug("Loading unique-id cache...");
 
             try {
-                task.get();
+                this.instance.runStorageTask(this.cache::load).get();
             } catch (ExecutionException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+                this.instance.getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception", ex);
             } catch (InterruptedException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+                this.instance.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
             }
 
-            Log.getPlugin().debug("Username-cache has been loaded.");
+            this.instance.getLogger().debug("Unique-id cache has been loaded.");
 
-            if (this.cache.getKeys().size() >= this.directory.listFiles(File::isFile).length) {
-                Log.getPlugin().debug("Detected too many entries in username-cache. Cleaning it up...");
+            if (this.cache.size() >= this.directory.listFiles(File::isFile).length) {
+                this.instance.getLogger().debug("Detected too many entries in unique-id cache. Cleaning it up...");
 
-                for (final String name : this.cache.getKeys()) {
-                    final UUID uniqueId = this.cache.get(name);
+                for (final Map.Entry<String, UUID> entry : this.cache.getAll().entrySet()) {
+                    final IStorageFile storage = new YamlStorageFile(this.directory, entry.getValue().toString());
 
-                    if (uniqueId != null) {
-                        final IStorageFile storage = new YamlStorageFile(this.directory, uniqueId.toString());
-
-                        if (storage.getFile().exists()) {
-                            continue;
-                        }
+                    if (!storage.getFile().exists()) {
+                        this.cache.invalidate(entry.getKey());
                     }
-
-                    this.cache.invalidate(name);
                 }
 
-                Log.getPlugin().debug("Username-cache has been cleaned up. Saving it...");
-
+                this.instance.getLogger().debug("Unique-id cache has been cleaned up. Saving it...");
                 this.instance.runStorageTask(this.cache::save);
             }
         }
 
         if (!this.chatters.isEmpty()) {
-            Log.getPlugin().info("Loading online chatters...");
-
-            final Future<?> task = this.instance.runStorageTask(() -> this.chatters.values().forEach(IStorageHolder::load));
+            this.instance.getLogger().info("Loading online chatters...");
 
             try {
-                task.get();
+                this.instance.runStorageTask(() -> this.chatters.values().forEach(IStorageHolder::load)).get();
             } catch (ExecutionException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+                this.instance.getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception", ex);
             } catch (InterruptedException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+                this.instance.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
             }
 
-            Log.getPlugin().info("Online chatters has been loaded.");
+            this.instance.getLogger().info("Online chatters has been loaded.");
 
-            this.instance.scheduleSyncTask(() -> this.chatters.values().forEach(chatter -> chatter.sendMessage(
-                    Messages.tl("focusCurrent", chatter.getFocus().getColoredName()))),
-                    this.instance.getSettings().getInformDelay());
+            if (this.instance.getSettings().isInform()) {
+                this.instance.scheduleSyncTask(() -> this.chatters.values().forEach(chatter -> chatter.sendMessage(
+                        Messages.tl("focusCurrent", chatter.getFocus().getColoredName()))),
+                        this.instance.getSettings().getInformDelay());
+            }
         }
     }
 
     @Override
     public synchronized void save() {
         if (!this.chatters.isEmpty()) {
-            Log.getPlugin().info("Saving online chatters...");
-
-            final Future<?> task = this.instance.runStorageTask(() -> this.chatters.values().forEach(IStorageHolder::save));
+            this.instance.getLogger().info("Saving online chatters...");
 
             try {
-                task.get();
+                this.instance.runStorageTask(() -> this.chatters.values().forEach(IStorageHolder::save)).get();
             } catch (ExecutionException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception.", ex);
+                this.instance.getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception", ex);
             } catch (InterruptedException ex) {
-                Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+                this.instance.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
             }
 
-            Log.getPlugin().info("Online chatters has been saved.");
+            this.instance.getLogger().info("Online chatters has been saved.");
         }
     }
 
     private void updateCache(@NotNull final IChatter chatter) {
         final UUID cached = this.cache.get(chatter.getName());
 
-        if (cached != null) {
-            if (cached.equals(chatter.getUniqueId())) {
-                return;
-            }
-
-            this.cache.invalidate(chatter.getName());
+        if (cached != null && cached.equals(chatter.getUniqueId())) {
+            return;
         }
 
-        this.cache.invalidate(chatter.getUniqueId());
+        for (final Map.Entry<String, UUID> entry : this.cache.getAll().entrySet()) {
+            if (entry.getValue().equals(chatter.getUniqueId())) {
+                this.cache.invalidate(entry.getKey());
+            }
+        }
+
         this.cache.put(chatter.getName(), chatter.getUniqueId());
         this.cache.save();
     }

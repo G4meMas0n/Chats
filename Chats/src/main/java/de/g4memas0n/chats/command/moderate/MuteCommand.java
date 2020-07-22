@@ -2,18 +2,20 @@ package de.g4memas0n.chats.command.moderate;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The mute command that allows to mute a player in channel.
@@ -42,7 +44,7 @@ public final class MuteCommand extends ModerateCommand {
             }
 
             if (target.equals(sender)) {
-                sender.sendMessage(Messages.tlErr("muteSelf"));
+                sender.sendMessage(tlErr("muteSelf"));
                 return true;
             }
 
@@ -54,30 +56,30 @@ public final class MuteCommand extends ModerateCommand {
 
             if (sender.canModerate(channel)) {
                 if (!channel.isMember(target)) {
-                    sender.sendMessage(Messages.tl("noMember", target.getDisplayName(), channel.getColoredName()));
+                    sender.sendMessage(tl("noMember", target.getDisplayName(), channel.getColoredName()));
                     return true;
                 }
 
                 if (channel.isMuted(target.getUniqueId())) {
-                    sender.sendMessage(Messages.tl("muteAlready", target.getDisplayName(), channel.getColoredName()));
+                    sender.sendMessage(tl("muteAlready", target.getDisplayName(), channel.getColoredName()));
                     return true;
                 }
 
                 if (sender.canMute(target, channel)) {
                     if (channel.muteMember(target)) {
-                        sender.sendMessage(Messages.tl("muteMember", target.getDisplayName(), channel.getColoredName()));
+                        sender.sendMessage(tl("muteMember", target.getDisplayName(), channel.getColoredName()));
                         return true;
                     }
 
-                    sender.sendMessage(Messages.tl("muteFailed", target.getDisplayName(), channel.getColoredName()));
+                    sender.sendMessage(tl("muteFailed", target.getDisplayName(), channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("muteDenied", target.getDisplayName(), channel.getColoredName()));
+                sender.sendMessage(tl("muteDenied", target.getDisplayName(), channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("moderateDenied", channel.getColoredName()));
+            sender.sendMessage(tl("moderateDenied", channel.getColoredName()));
             return true;
         }
 

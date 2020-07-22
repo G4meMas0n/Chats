@@ -2,20 +2,21 @@ package de.g4memas0n.chats.command.moderate;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
 
 /**
  * The pardon command that allows to pardon a banned member from a channel.
@@ -54,23 +55,23 @@ public final class PardonCommand extends ModerateCommand {
                 final IChatter online = target instanceof IChatter ? (IChatter) target : null;
 
                 if (!channel.isBanned(target.getUniqueId())) {
-                    sender.sendMessage(Messages.tl("pardonAlready", (online != null && sender.canSee(online))
+                    sender.sendMessage(tl("pardonAlready", (online != null && sender.canSee(online))
                             ? online.getDisplayName() : target.getName(), channel.getColoredName()));
                     return true;
                 }
 
                 if (channel.pardonMember(target)) {
-                    sender.sendMessage(Messages.tl("pardonMember", (online != null && sender.canSee(online))
+                    sender.sendMessage(tl("pardonMember", (online != null && sender.canSee(online))
                             ? online.getDisplayName() : target.getName(), channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("pardonFailed", (online != null && sender.canSee(online))
+                sender.sendMessage(tl("pardonFailed", (online != null && sender.canSee(online))
                         ? online.getDisplayName() : target.getName(), channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("moderateDenied", channel.getColoredName()));
+            sender.sendMessage(tl("moderateDenied", channel.getColoredName()));
             return true;
         }
 

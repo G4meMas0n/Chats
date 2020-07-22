@@ -1,13 +1,11 @@
 package de.g4memas0n.chats.command.delegate;
 
 import de.g4memas0n.chats.Chats;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.BasicPluginCommand;
-import de.g4memas0n.chats.command.chatter.ChatterCommand;
-import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
 
 /**
  * Abstract delegate command representation that represent commands that only delegate to other registered commands.
@@ -103,20 +103,28 @@ public abstract class DelegateCommand extends BasicPluginCommand {
     }
 
     @Override
-    public boolean execute(@NotNull final ICommandSource sender,
-                           @NotNull final ICommandInput input) throws InputException {
+    public final boolean execute(@NotNull final ICommandSource sender,
+                                 @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
             final BasicCommand delegate = this.getCommand(input.get(DELEGATE));
 
-            if (delegate == null) {
+            if (delegate == null || delegate.hide(sender)) {
                 return false;
             }
 
             if (sender.hasPermission(delegate.getPermission())) {
-                return delegate.execute(sender, input.getInput(ARGUMENTS));
+                if (delegate.execute(sender, input.getInput(ARGUMENTS))) {
+                    return true;
+                }
+
+                // Invalid command usage. Send command help:
+                sender.sendMessage(tl("helpHeader", delegate.getName()));
+                sender.sendMessage(tl("helpDescription", delegate.getDescription()));
+                sender.sendMessage(tl("helpUsage", delegate.getUsage()));
+                return true;
             }
 
-            sender.sendMessage(Messages.tl("noPermission"));
+            sender.sendMessage(tl("noPermission"));
             return true;
         }
 
@@ -124,44 +132,18 @@ public abstract class DelegateCommand extends BasicPluginCommand {
     }
 
     @Override
-    public @NotNull List<String> help(@NotNull final ICommandSource sender,
-                                      @NotNull final ICommandInput input) {
-        if (input.getLength() >= DELEGATE + 1) {
-            final BasicCommand delegate = this.getCommand(input.get(DELEGATE));
-
-            if (delegate != null && sender.hasPermission(delegate.getPermission())) {
-                return delegate.help(sender, input.getInput(ARGUMENTS));
-            }
-        }
-
-        final List<String> help = super.help(sender, input);
-        final List<String> delegates = new ArrayList<>();
-
-        for (final BasicCommand delegate : this.commands.values()) {
-            if (delegate instanceof ChatterCommand && !sender.isChatter()) {
-                continue;
-            }
-
-            if (sender.hasPermission(delegate.getPermission())) {
-                delegates.add(delegate.getName());
-            }
-        }
-
-        Collections.sort(delegates);
-
-        help.add(Messages.tlJoin("helpCommands", delegates));
-
-        return help;
+    public final boolean hide(@NotNull final ICommandSource sender) {
+        return false;
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
-                                             @NotNull final ICommandInput input) {
+    public final @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
+                                                   @NotNull final ICommandInput input) {
         if (input.getLength() == DELEGATE + 1) {
             final List<String> completion = new ArrayList<>();
 
             for (final BasicCommand delegate : this.commands.values()) {
-                if (delegate instanceof ChatterCommand && !sender.isChatter()) {
+                if (delegate.hide(sender)) {
                     continue;
                 }
 
@@ -186,7 +168,7 @@ public abstract class DelegateCommand extends BasicPluginCommand {
         if (input.getLength() > ARGUMENTS) {
             final BasicCommand delegate = this.getCommand(input.get(DELEGATE));
 
-            if (delegate == null) {
+            if (delegate == null || delegate.hide(sender)) {
                 return Collections.emptyList();
             }
 

@@ -24,9 +24,13 @@ password: ""
 # Note: A value <= 0 removes the distance.
 distance: -1
 
-# Sets whether the channels chat is cross over multiple worlds: (Type: Boolean, Default: true)
+# Sets whether the channel chat is cross over multiple worlds: (Type: Boolean, Default: true)
 # Note: Will be ignored when the channel has a distance. (When distance > 0)
 cross-world: true
+
+# Sets whether the channel will announce channel joins and leaves: (Type: Boolean, Default: true)
+# Note: When disabled no join and leave announces will be sent event when the join and/or leave is not silent.
+verbose: true
 
 # Sets the various formats options of the channel:
 format:
@@ -53,12 +57,7 @@ format:
 # Note: Each entry must be equal to the unique-id of an existing chatter.
 bans: []
 
-# Sets the chatters that are moderators of the channel: (Type: String Array, Default: [])
-# Note: Each entry must be equal to the unique-id of an existing chatter.
-moderators:
-- "5bf0e102-29b2-4345-acf4-644a06e62f09"
-
 # Sets the chatters that are muted in this channel: (Type: String Array, Default: [])
 # Note: Each entry must be equal to the unique-id of an existing chatter.
 mutes:
-- "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+- "5bf0e102-29b2-4345-acf4-644a06e62f09"

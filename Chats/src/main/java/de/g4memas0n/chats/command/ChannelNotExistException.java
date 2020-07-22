@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.util.input;
+package de.g4memas0n.chats.command;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
  * @author G4meMason
  * @since Release 1.0.0
  */
-public class ChannelNotExistException extends InputException {
+public final class ChannelNotExistException extends InputException {
 
     private final String channel;
 

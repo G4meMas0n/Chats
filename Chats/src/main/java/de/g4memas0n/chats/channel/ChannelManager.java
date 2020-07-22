@@ -1,10 +1,9 @@
 package de.g4memas0n.chats.channel;
 
-import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.storage.YamlStorageFile;
-import de.g4memas0n.chats.util.logging.Log;
 import de.g4memas0n.chats.util.type.ChannelType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,19 +31,19 @@ public final class ChannelManager implements IChannelManager {
 
     private final Map<String, IChannel> channels;
 
-    private final IChats instance;
+    private final Chats instance;
     private final File directory;
 
     private IChannel def;
 
-    public ChannelManager(@NotNull final IChats instance) {
+    public ChannelManager(@NotNull final Chats instance) {
+        this.instance = instance;
         this.directory = new File(instance.getDataFolder(), DIRECTORY_NAME);
 
         if (this.directory.mkdirs()) {
-            Log.getPlugin().debug(String.format("Directory '%s' does not exist. Creating it...", this.directory));
+            this.instance.getLogger().debug(String.format("Directory '%s' does not exist. Creating it...", this.directory));
         }
 
-        this.instance = instance;
         this.channels = new HashMap<>();
     }
 
@@ -52,7 +51,7 @@ public final class ChannelManager implements IChannelManager {
     @Override
     public synchronized @NotNull IChannel getDefault() {
         if (this.def == null) {
-            throw new IllegalStateException(String.format("Missing default channel: %s",
+            throw new IllegalStateException(String.format("Default channel '%s' is missing.",
                     this.instance.getSettings().getDefaultChannel()));
         }
 
@@ -62,7 +61,7 @@ public final class ChannelManager implements IChannelManager {
     @Override
     public synchronized boolean setDefault(@NotNull final IChannel channel) throws IllegalArgumentException {
         if (!channel.isPersist()) {
-            throw new IllegalArgumentException(String.format("Channel is not persistent: %s", channel.getFullName()));
+            throw new IllegalArgumentException(String.format("Channel '%s' is not persistent", channel.getFullName()));
         }
 
         if (channel.equals(this.def)) {
@@ -76,8 +75,6 @@ public final class ChannelManager implements IChannelManager {
         }
 
         this.def = channel;
-
-        Log.getPlugin().debug("Default channel has been set to: " + channel.getFullName());
         return true;
     }
 
@@ -121,26 +118,20 @@ public final class ChannelManager implements IChannelManager {
 
         if (this.channels.containsKey(key)) {
             final IChannel conversation = this.channels.get(key);
-            int partners = 0;
 
-            for (final IChatter member : conversation.getMembers()) {
-                if (conversation.getFullName().contains(member.getUniqueId().toString())) {
-                    partners++;
-                }
-            }
-
-            if (partners == 2) {
+            if (conversation.getMembers().size() == 2) {
                 return conversation;
             }
         }
 
         final IChannel conversation = new ConversationChannel(this.instance, first, second);
 
-        this.addChannel(conversation);
+        this.channels.put(key, conversation);
 
         return conversation;
     }
 
+    @Override
     public synchronized @Nullable IChannel addChannel(@NotNull final String fullName,
                                                       @NotNull final ChannelType type) throws IllegalArgumentException {
         if (this.channels.containsKey(fullName.toLowerCase())) {
@@ -150,7 +141,7 @@ public final class ChannelManager implements IChannelManager {
         if (type == ChannelType.PERSIST) {
             final IChannel persist = new PersistChannel(this.instance, new YamlStorageFile(this.directory, fullName));
 
-            this.addChannel(persist);
+            this.channels.put(persist.getFullName().toLowerCase(), persist);
 
             return persist;
         }
@@ -158,7 +149,7 @@ public final class ChannelManager implements IChannelManager {
         if (type == ChannelType.STANDARD) {
             final IChannel standard = new StandardChannel(this.instance, fullName);
 
-            this.addChannel(standard);
+            this.channels.put(standard.getFullName().toLowerCase(), standard);
 
             return standard;
         }
@@ -175,15 +166,13 @@ public final class ChannelManager implements IChannelManager {
         }
 
         this.channels.put(key, channel);
-
-        Log.getPlugin().debug("Channel has been added to the channel manager: " + channel.getFullName());
         return true;
     }
 
     @Override
     public synchronized boolean removeChannel(@NotNull final IChannel channel) throws IllegalArgumentException {
         if (channel.equals(this.def)) {
-            throw new IllegalArgumentException(String.format("Default channel can not be removed: %s",
+            throw new IllegalArgumentException(String.format("Channel '%s' is default and can not be removed",
                     channel.getFullName()));
         }
 
@@ -193,12 +182,8 @@ public final class ChannelManager implements IChannelManager {
             return false;
         }
 
-        for (final IChatter current : channel.getMembers()) {
-            // The current chatter is first removed from the channel with the #setMember method and then the channel
-            // is removed from the current chatter to removing all members silently.
-            // To remove all members non silently just remove or comment the #setMember method.
-            channel.setMember(current, false);
-            current.leaveChannel(channel);
+        for (final IChatter member : channel.getMembers()) {
+            member.leaveChannel(channel, true);
         }
 
         // Check if the channel is backed by a storage. Delete it when true.
@@ -206,7 +191,6 @@ public final class ChannelManager implements IChannelManager {
             this.instance.runStorageTask(((IStorageHolder) channel)::delete);
         }
 
-        Log.getPlugin().debug("Channel has been removed from the channel manager: " + channel.getFullName());
         return true;
     }
 
@@ -222,7 +206,7 @@ public final class ChannelManager implements IChannelManager {
 
     @Override
     public synchronized void load() {
-        Log.getPlugin().info("Loading channels...");
+        this.instance.getLogger().info("Loading channels...");
 
         this.channels.clear();
         this.def = null;
@@ -243,14 +227,15 @@ public final class ChannelManager implements IChannelManager {
 
                 this.channels.put(persist.getFullName().toLowerCase(), persist);
             } catch (IllegalArgumentException ignored) {
-                // Can be ignored, because the current file can not be a valid channel storage file.
-                Log.getPlugin().warning(String.format("Detected invalid storage file '%s'. Ignoring it...", file));
+                // Directory can contain invalid storage files, just ignore them.
             }
         }
 
+        final Future<?> task = this.instance.runStorageTask(() -> loading.forEach(IStorageHolder::load));
+
         // Check if the default channel is still missing.
         if (this.def == null) {
-            Log.getPlugin().warning(String.format("Detected missing default channel '%s'. Creating it...", defName));
+            this.instance.getLogger().warning(String.format("Detected missing default channel '%s'. Creating it...", defName));
 
             final PersistChannel def = new PersistChannel(this.instance, new YamlStorageFile(this.directory, defName));
 
@@ -259,24 +244,22 @@ public final class ChannelManager implements IChannelManager {
             this.def = def;
         }
 
-        final Future<?> task = this.instance.runStorageTask(() -> loading.forEach(IStorageHolder::load));
-
         try {
             task.get();
         } catch (ExecutionException ex) {
-            Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
+            this.instance.getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception", ex);
         } catch (InterruptedException ex) {
-            Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+            this.instance.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
         }
 
-        Log.getPlugin().info("Channels have been loaded.");
+        this.instance.getLogger().info("Channels have been loaded.");
 
         //TODO: Updating online chatters to the new loaded channels.
     }
 
     @Override
     public synchronized void save() {
-        Log.getPlugin().info("Saving channels...");
+        this.instance.getLogger().info("Saving channels...");
 
         final Set<IStorageHolder> saving = new HashSet<>();
 
@@ -290,16 +273,14 @@ public final class ChannelManager implements IChannelManager {
             }
         }
 
-        final Future<?> task = this.instance.runStorageTask(() -> saving.forEach(IStorageHolder::save));
-
         try {
-            task.get();
+            this.instance.runStorageTask(() -> saving.forEach(IStorageHolder::save)).get();
         } catch (ExecutionException ex) {
-            Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
+            this.instance.getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception", ex);
         } catch (InterruptedException ex) {
-            Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+            this.instance.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
         }
 
-        Log.getPlugin().info("Channels have been saved.");
+        this.instance.getLogger().info("Channels have been saved.");
     }
 }

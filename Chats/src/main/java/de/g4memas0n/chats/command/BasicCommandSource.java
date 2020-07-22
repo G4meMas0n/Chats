@@ -1,6 +1,7 @@
-package de.g4memas0n.chats.chatter;
+package de.g4memas0n.chats.command;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
@@ -10,7 +11,6 @@ import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
@@ -19,27 +19,12 @@ import java.util.List;
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public final class CommandSource implements ICommandSource {
+public final class BasicCommandSource implements ICommandSource {
 
     private final CommandSender sender;
 
-    public CommandSource(@NotNull final CommandSender sender) {
+    public BasicCommandSource(@NotNull final CommandSender sender) {
         this.sender = sender;
-    }
-
-    @Override
-    public @Nullable IChatter getChatter() {
-        return null;
-    }
-
-    @Override
-    public boolean isChatter() {
-        return false;
-    }
-
-    @Override
-    public boolean isConsole() {
-        return this.sender instanceof ConsoleCommandSender;
     }
 
     // IMessageRecipient Implementation:
@@ -85,7 +70,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
@@ -94,7 +79,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
@@ -103,7 +88,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
@@ -137,7 +122,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
@@ -166,7 +151,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
@@ -175,7 +160,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
@@ -184,7 +169,7 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
@@ -203,22 +188,22 @@ public final class CommandSource implements ICommandSource {
             return false;
         }
 
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
     public boolean canReload(@NotNull final StorageType type) {
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
     public boolean canSave(@NotNull final StorageType type) {
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
     public boolean canSee(@NotNull final IChatter chatter) {
-        return this.isConsole();
+        return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override

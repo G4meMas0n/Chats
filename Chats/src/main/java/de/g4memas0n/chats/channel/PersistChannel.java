@@ -1,11 +1,10 @@
 package de.g4memas0n.chats.channel;
 
-import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.storage.IStorageFile;
 import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.storage.InvalidStorageFileException;
 import de.g4memas0n.chats.storage.MissingStorageFileException;
-import de.g4memas0n.chats.util.logging.Log;
 import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -30,16 +30,11 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
 
     private Future<?> saveTask;
 
-    public PersistChannel(@NotNull final IChats instance,
+    public PersistChannel(@NotNull final Chats instance,
                           @NotNull final IStorageFile storage) throws IllegalArgumentException {
-        super(instance, storage.getName());
+        super(instance, storage.getFile().getName().substring(0, storage.getFile().getName().lastIndexOf(".")));
 
         this.storage = storage;
-    }
-
-    @Override
-    public final @NotNull IStorageFile getStorage() {
-        return this.storage;
     }
 
     @Override
@@ -51,10 +46,10 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         try {
             this.storage.delete();
 
-            Log.getPlugin().debug(String.format("Deleted storage file '%s' of channel: %s",
+            this.instance.getLogger().debug(String.format("Deleted storage file '%s' of channel: %s",
                     this.storage.getFile().getName(), this.getFullName()));
         } catch (IOException ex) {
-            Log.getPlugin().warning(String.format("Unable to delete storage file '%s' of channel '%s': %s",
+            this.instance.getLogger().warning(String.format("Unable to delete storage file '%s' of channel '%s': %s",
                     this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
         }
     }
@@ -64,23 +59,24 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         try {
             this.storage.load();
 
-            Log.getPlugin().debug(String.format("Loaded channel '%s' from storage file: %s",
-                    this.getFullName(), this.storage.getFile().getName()));
+            this.instance.getLogger().debug(String.format("Loaded storage file '%s' of channel: %s",
+                    this.storage.getFile().getName(), this.getFullName()));
         } catch (MissingStorageFileException ex) {
-            Log.getPlugin().warning(String.format("Unable to find storage file '%s' of channel '%s'. Loading "
+            this.instance.getLogger().warning(String.format("Unable to find storage file '%s' of channel '%s'. Loading "
                             + "default configuration...", this.storage.getFile().getName(), this.getFullName()));
 
             this.storage.clear();
             this._delayedSave();
         } catch (IOException | InvalidStorageFileException ex) {
-            Log.getPlugin().warning(String.format("Unable to load storage file '%s' of channel '%s'. Loading "
-                            + "previous configuration...", this.storage.getFile().getName(), this.getFullName()));
-            Log.getPlugin().debug(String.format("Caused by %s: %s", ex.getClass(), ex.getMessage()));
+            this.instance.getLogger().log(Level.WARNING, String.format("Unable to load storage file '%s' of channel '%s'. " +
+                    "Loading previous configuration...", this.storage.getFile().getName(), this.getFullName()), ex);
         }
 
-        if (!this.getFullName().equals(this._getFullName())) {
-            Log.getPlugin().warning(String.format("Detected invalid full-name in storage file '%s' of channel: %s",
-                    this.storage.getFile().getName(), this.getFullName()));
+        final String fullName = this._getFullName();
+
+        if (!this.getFullName().equals(fullName)) {
+            this.instance.getLogger().warning(String.format("Detected %s full-name in storage file '%s' of channel: %s",
+                    fullName != null ? "invalid" : "missing", this.storage.getFile().getName(), this.getFullName()));
 
             this._setFullName(this.getFullName());
             this._delayedSave();
@@ -91,38 +87,38 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         try {
             super.setColor(this._getColor());
         } catch (IllegalArgumentException ex) {
-            Log.getPlugin().warning(String.format("Detected invalid color in storage file '%s' of channel '%s': %s",
+            this.instance.getLogger().warning(String.format("Detected invalid color in storage file '%s' of channel '%s': %s",
                     this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
         }
 
         super.setPassword(this._getPassword());
         super.setDistance(this._getDistance());
         super.setCrossWorld(this._getCrossWorld());
+        super.setVerbose(this._getVerbose());
         super.setCustomFormat(this._getCustomFormat());
 
         try {
             super.setAnnounceFormat(this._getAnnounceFormat());
         } catch (IllegalArgumentException ex) {
-            Log.getPlugin().warning(String.format("Detected invalid announce-format in storage file '%s' of channel '%s': %s",
+            this.instance.getLogger().warning(String.format("Detected invalid announce-format in storage file '%s' of channel '%s': %s",
                     this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
         }
 
         try {
             super.setBroadcastFormat(this._getBroadcastFormat());
         } catch (IllegalArgumentException ex) {
-            Log.getPlugin().warning(String.format("Detected invalid broadcast-format in storage file '%s' of channel '%s': %s",
+            this.instance.getLogger().warning(String.format("Detected invalid broadcast-format in storage file '%s' of channel '%s': %s",
                     this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
         }
 
         try {
             super.setChatFormat(this._getChatFormat());
         } catch (IllegalArgumentException ex) {
-            Log.getPlugin().warning(String.format("Detected invalid chat-format in storage file '%s' of channel '%s': %s",
+            this.instance.getLogger().warning(String.format("Detected invalid chat-format in storage file '%s' of channel '%s': %s",
                     this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
         }
 
         super.setBans(this._getBans());
-        super.setModerators(this._getModerators());
         super.setMutes(this._getMutes());
     }
 
@@ -139,28 +135,28 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
             this._setPassword(this.getPassword());
             this._setDistance(this.getDistance());
             this._setCrossWorld(this.isCrossWorld());
+            this._setVerbose(this.isVerbose());
             this._setCustomFormat(this.isCustomFormat());
             this._setAnnounceFormat(this.getAnnounceFormat());
             this._setBroadcastFormat(this.getBroadcastFormat());
             this._setChatFormat(this.getChatFormat());
             this._setBans(this.getBans());
-            this._setModerators(this.getModerators());
             this._setMutes(this.getMutes());
         }
 
         try {
             this.storage.save();
 
-            Log.getPlugin().debug(String.format("Saved channel '%s' to storage file: %s", this.getFullName(),
-                    this.storage.getFile().getName()));
+            this.instance.getLogger().debug(String.format("Saved storage file '%s' of channel: %s",
+                    this.storage.getFile().getName(), this.getFullName()));
         } catch (IOException ex) {
-            Log.getPlugin().warning(String.format("Unable to save channel '%s' to storage file '%s': %s",
+            this.instance.getLogger().warning(String.format("Unable to save channel '%s' to storage file '%s': %s",
                     this.getFullName(), this.storage.getFile().getName(), ex.getMessage()));
         }
     }
 
     protected synchronized final void _delayedSave() {
-        if (!this.getInstance().getSettings().isAutoSave()) {
+        if (!this.instance.getSettings().isAutoSave()) {
             return;
         }
 
@@ -168,15 +164,10 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
             return;
         }
 
-        this.saveTask = this.getInstance().scheduleStorageTask(this::save);
+        this.saveTask = this.instance.scheduleStorageTask(this::save);
     }
 
     protected @Nullable String _getFullName() {
-        if (!this.storage.contains("full-name")) {
-            this._setFullName(this.getFullName());
-            this._delayedSave();
-        }
-
         return this.storage.getString("full-name");
     }
 
@@ -291,9 +282,9 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
     }
 
     @Override
-    public boolean setCrossWorld(final boolean enabled) {
-        if (super.setCrossWorld(enabled)) {
-            this._setCrossWorld(enabled);
+    public boolean setCrossWorld(final boolean crossWorld) {
+        if (super.setCrossWorld(crossWorld)) {
+            this._setCrossWorld(crossWorld);
             this._delayedSave();
             return true;
         }
@@ -301,8 +292,32 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         return false;
     }
 
-    protected void _setCrossWorld(final boolean enabled) {
-        this.storage.set("cross-world", enabled);
+    protected void _setCrossWorld(final boolean crossWorld) {
+        this.storage.set("cross-world", crossWorld);
+    }
+
+    protected boolean _getVerbose() {
+        if (!this.storage.contains("verbose")) {
+            this._setVerbose(true);
+            this._delayedSave();
+        }
+
+        return this.storage.getBoolean("verbose", true);
+    }
+
+    @Override
+    public boolean setVerbose(final boolean verbose) {
+        if (super.setVerbose(verbose)) {
+            this._setVerbose(verbose);
+            this._delayedSave();
+            return true;
+        }
+
+        return false;
+    }
+
+    protected void _setVerbose(final boolean verbose) {
+        this.storage.set("verbose", verbose);
     }
 
     protected boolean _getCustomFormat() {
@@ -350,7 +365,7 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
     }
 
     protected void _setAnnounceFormat(@Nullable final String format) {
-        this.storage.set("format.announce", (format == null || format.equals(this.getInstance().getSettings().getAnnounceFormat())) ? "" : format);
+        this.storage.set("format.announce", (format == null || format.equals(this.instance.getSettings().getAnnounceFormat())) ? "" : format);
     }
 
     protected @Nullable String _getBroadcastFormat() {
@@ -374,7 +389,7 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
     }
 
     protected void _setBroadcastFormat(@Nullable final String format) {
-        this.storage.set("format.broadcast", (format == null || format.equals(this.getInstance().getSettings().getBroadcastFormat())) ? "" : format);
+        this.storage.set("format.broadcast", (format == null || format.equals(this.instance.getSettings().getBroadcastFormat())) ? "" : format);
     }
 
     protected @Nullable String _getChatFormat() {
@@ -398,7 +413,7 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
     }
 
     protected void _setChatFormat(@Nullable final String format) {
-        this.storage.set("format.chat", (format == null || format.equals(this.getInstance().getSettings().getChatFormat())) ? "" : format);
+        this.storage.set("format.chat", (format == null || format.equals(this.instance.getSettings().getChatFormat())) ? "" : format);
     }
 
     // Channel Type Methods:
@@ -443,41 +458,6 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         return false;
     }
 
-    protected @NotNull Set<UUID> _getModerators() {
-        if (!this.storage.contains("moderators")) {
-            this._setModerators(Collections.emptySet());
-            this._delayedSave();
-        }
-
-        return new HashSet<>(this.storage.getUniqueIdList("moderators"));
-    }
-
-    @Override
-    public boolean setModerators(@NotNull final Set<UUID> moderators) {
-        if (super.setModerators(moderators)) {
-            this._setModerators(moderators);
-            this._delayedSave();
-            return true;
-        }
-
-        return false;
-    }
-
-    protected void _setModerators(@NotNull final Set<UUID> moderators) {
-        this.storage.set("moderators", moderators.stream().map(UUID::toString).collect(Collectors.toList()));
-    }
-
-    @Override
-    public boolean setModerator(@NotNull final UUID uniqueId, final boolean moderator) {
-        if (super.setModerator(uniqueId, moderator)) {
-            this._setModerators(this.getModerators());
-            this._delayedSave();
-            return true;
-        }
-
-        return false;
-    }
-
     protected @NotNull Set<UUID> _getMutes() {
         if (!this.storage.contains("mutes")) {
             this._setMutes(Collections.emptySet());
@@ -514,22 +494,7 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
     }
 
     @Override
-    public boolean hasOwner() {
-        return false;
-    }
-
-    @Override
-    public @Nullable UUID getOwner() {
-        return null;
-    }
-
-    @Override
     public boolean setOwner(@Nullable final UUID uniqueId) {
-        return false;
-    }
-
-    @Override
-    public boolean isOwner(@NotNull final UUID uniqueId) {
         return false;
     }
 }

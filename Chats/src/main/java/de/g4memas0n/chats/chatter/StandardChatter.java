@@ -1,14 +1,14 @@
 package de.g4memas0n.chats.chatter;
 
-import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.event.chatter.ChatterFocusChangedEvent;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.storage.IStorageFile;
+import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.storage.InvalidStorageFileException;
 import de.g4memas0n.chats.storage.MissingStorageFileException;
-import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.logging.Log;
+import de.g4memas0n.chats.storage.YamlStorageFile;
 import de.g4memas0n.chats.util.type.ChannelType;
 import de.g4memas0n.chats.util.type.InfoType;
 import de.g4memas0n.chats.util.type.ModifyType;
@@ -18,12 +18,12 @@ import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -32,11 +32,9 @@ import java.util.stream.Collectors;
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public class StandardChatter implements IChatter {
+public class StandardChatter extends StorageChatter implements IChatter, ICommandSource {
 
-    private final IChats instance;
     private final Player player;
-    private final IStorageFile storage;
 
     private final Set<IChannel> channels;
 
@@ -45,27 +43,21 @@ public class StandardChatter implements IChatter {
     private IChannel focused;
     private IChannel lastFocused;
     private IChannel lastPersist;
+
     private UUID lastPartner;
 
     private boolean muted;
     private boolean socialSpy;
 
-    private Future<?> saveTask;
+    protected StandardChatter(@NotNull final Chats instance,
+                              @NotNull final YamlStorageFile storage,
+                              @NotNull final Player player) {
+        super(instance, storage);
 
-    protected StandardChatter(@NotNull final IChats instance,
-                              @NotNull final Player player,
-                              @NotNull final IStorageFile storage) {
-        this.instance = instance;
         this.player = player;
-        this.storage = storage;
 
         this.channels = new HashSet<>();
         this.ignores = new HashSet<>();
-    }
-
-    @Override
-    public @NotNull IStorageFile getStorage() {
-        return this.storage;
     }
 
     @Override
@@ -77,10 +69,10 @@ public class StandardChatter implements IChatter {
         try {
             this.storage.delete();
 
-            Log.getPlugin().debug(String.format("Deleted storage file '%s' of chatter: %s",
+            this.instance.getLogger().debug(String.format("Deleted storage file '%s' of chatter: %s",
                     this.storage.getFile().getName(), this.player.getName()));
         } catch (IOException ex) {
-            Log.getPlugin().warning(String.format("Unable to delete storage file '%s' of chatter '%s': %s",
+            this.instance.getLogger().warning(String.format("Unable to delete storage file '%s' of chatter '%s': %s",
                     this.storage.getFile().getName(), this.player.getName(), ex.getMessage()));
         }
     }
@@ -90,46 +82,72 @@ public class StandardChatter implements IChatter {
         try {
             this.storage.load();
 
-            Log.getPlugin().debug(String.format("Loaded chatter '%s' from storage file: %s",
-                    this.player.getName(), this.storage.getFile().getName()));
+            this.instance.getLogger().debug(String.format("Loaded storage file '%s' of chatter: %s",
+                    this.storage.getFile().getName(), this.player.getName()));
         } catch (MissingStorageFileException ex) {
-            Log.getPlugin().warning(String.format("Unable to find storage file '%s' of chatter '%s'. Loading "
+            this.instance.getLogger().warning(String.format("Unable to find storage file '%s' of chatter '%s'. Loading "
                             + "default configuration...", this.storage.getFile().getName(), this.player.getName()));
 
             this.storage.clear();
             this._delayedSave();
         } catch (IOException | InvalidStorageFileException ex) {
-            Log.getPlugin().warning(String.format("Unable to load storage file '%s' of chatter '%s'. Loading "
-                            + "previous configuration...", this.storage.getFile().getName(), this.player.getName()));
-            Log.getPlugin().debug(String.format("Caused by %s: %s", ex.getClass(), ex.getMessage()));
+            this.instance.getLogger().log(Level.WARNING, String.format("Unable to load storage file '%s' of chatter '%s'. "
+                    + "Loading previous configuration...", this.storage.getFile().getName(), this.player.getName()), ex);
         }
 
-        if (!this.player.getUniqueId().equals(this._getUniqueId())) {
-            Log.getPlugin().warning(String.format("Detected invalid unique-id in storage file '%s' of chatter: %s",
-                    this.storage.getFile().getName(), this.player.getName()));
+        final UUID uniqueId = this._getUniqueId();
+
+        if (!this.player.getUniqueId().equals(uniqueId)) {
+            this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter: %s",
+                    uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(), this.player.getName()));
 
             this._setUniqueId(this.player.getUniqueId());
             this._delayedSave();
         }
 
-        if (!this.player.getName().equals(this._getName())) {
-            this._setName(this.player.getName());
+        final String name = this._getLastName();
+
+        if (!this.player.getName().equals(name)) {
+            this.instance.getLogger().warning(String.format("Detected %s name in storage file '%s' of chatter: %s",
+                    name != null ? "old" : "missing", this.storage.getFile().getName(), this.player.getName()));
+
+            this._setLastName(this.player.getName());
             this._delayedSave();
         }
 
         if (!this.channels.isEmpty()) {
-            this.channels.forEach(channel -> channel.setMember(this, false));
+            this.channels.forEach(channel -> channel.removeMember(this, true));
             this.channels.clear();
         }
 
-        this.channels.addAll(this._getChannels());
-        this.channels.add(this.instance.getChannelManager().getDefault());
-
         this.focused = this._getFocus();
 
-        if (!this.channels.contains(this.focused)) {
-            this.channels.add(this.focused);
+        this.channels.addAll(this._getChannels());
+
+        if (this.channels.add(this.focused) || this.channels.add(this.instance.getChannelManager().getDefault())) {
             this._setChannels(this.channels);
+            this._delayedSave();
+        }
+
+        for (final Iterator<IChannel> iterator = this.channels.iterator(); iterator.hasNext();) {
+            final IChannel channel = iterator.next();
+
+            if (channel.isDefault()) {
+                continue;
+            }
+
+            if (!this.canJoin(channel)) {
+                iterator.remove();
+
+                this._setChannels(this.channels);
+                this._delayedSave();
+            }
+        }
+
+        if (!this.channels.contains(this.focused) || !this.canFocus(this.focused)) {
+            this.focused = this.instance.getChannelManager().getDefault();
+
+            this._setFocus(this.focused);
             this._delayedSave();
         }
 
@@ -139,9 +157,17 @@ public class StandardChatter implements IChatter {
 
         this.muted = this._getMuted();
         this.socialSpy = this._getSocialSpy();
+
+        if (this.socialSpy && !this.player.hasPermission(Permission.SOCIAL_SPY.getNode())) {
+            this.socialSpy = false;
+
+            this._setSocialSpy(false);
+            this._delayedSave();
+        }
+
         this.ignores = this._getIgnores();
 
-        this.channels.forEach(channel -> channel.setMember(this, true));
+        this.channels.forEach(channel -> channel.addMember(this, true));
     }
 
     @Override
@@ -152,7 +178,7 @@ public class StandardChatter implements IChatter {
 
         if (!this.storage.getFile().exists()) {
             this._setUniqueId(this.player.getUniqueId());
-            this._setName(this.player.getName());
+            this._setLastName(this.player.getName());
             this._setChannels(this.channels);
             this._setFocus(this.focused);
             this._setMuted(this.muted);
@@ -160,15 +186,15 @@ public class StandardChatter implements IChatter {
             this._setIgnores(this.ignores);
         }
 
-        this.storage.set("last.played", this.getLastPlayed());
+        this._setLastPlayed(System.currentTimeMillis());
 
         try {
             this.storage.save();
 
-            Log.getPlugin().debug(String.format("Saved chatter '%s' to storage file: %s",
-                    this.player.getName(), this.storage.getFile().getName()));
+            this.instance.getLogger().debug(String.format("Saved storage file '%s' of chatter: %s",
+                    this.storage.getFile().getName(), this.player.getName()));
         } catch (IOException ex) {
-            Log.getPlugin().warning(String.format("Unable to save storage file '%s' of chatter '%s': %s",
+            this.instance.getLogger().warning(String.format("Unable to save storage file '%s' of chatter '%s': %s",
                     this.storage.getFile().getName(), this.player.getName(), ex.getMessage()));
         }
     }
@@ -190,40 +216,9 @@ public class StandardChatter implements IChatter {
         return this.player;
     }
 
-    protected final @Nullable UUID _getUniqueId() {
-        if (!this.storage.contains("uuid")) {
-            this._setUniqueId(this.player.getUniqueId());
-            this._delayedSave();
-        }
-
-        return this.storage.getUniqueId("uuid");
-    }
-
-    @Override
-    public final @NotNull UUID getUniqueId() {
-        return this.player.getUniqueId();
-    }
-
-    protected final void _setUniqueId(@NotNull final UUID uniqueId) {
-        this.storage.set("uuid", uniqueId.toString());
-    }
-
-    protected final @Nullable String _getName() {
-        if (!this.storage.contains("last.name")) {
-            this._setName(this.player.getName());
-            this._delayedSave();
-        }
-
-        return this.storage.getString("last.name");
-    }
-
     @Override
     public final @NotNull String getName() {
         return this.player.getName();
-    }
-
-    protected final void _setName(@NotNull final String name) {
-        this.storage.set("last.name", name);
     }
 
     @Override
@@ -232,22 +227,18 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
+    public final @NotNull UUID getUniqueId() {
+        return this.player.getUniqueId();
+    }
+
+    @Override
     public final long getLastPlayed() {
         return System.currentTimeMillis();
     }
 
-    protected final boolean _getMuted() {
-        if (!this.storage.contains("muted")) {
-            this._setMuted(false);
-            this._delayedSave();
-        }
-
-        return this.storage.getBoolean("muted", false);
-    }
-
     @Override
     public boolean isMuted() {
-        return muted;
+        return this.muted;
     }
 
     @Override
@@ -260,28 +251,6 @@ public class StandardChatter implements IChatter {
         this._setMuted(muted);
         this._delayedSave();
         return true;
-    }
-
-    protected final void _setMuted(final boolean muted) {
-        this.storage.set("muted", muted);
-    }
-
-    protected final boolean _getSocialSpy() {
-        if (!this.storage.contains("social-spy")) {
-            this._setSocialSpy(false);
-            this._delayedSave();
-        }
-
-        if (this.storage.getBoolean("social-spy", false)) {
-            if (this.player.hasPermission(Permission.SOCIAL_SPY.getNode())) {
-                return true;
-            }
-
-            this._setSocialSpy(false);
-            this._delayedSave();
-        }
-
-        return false;
     }
 
     @Override
@@ -301,30 +270,7 @@ public class StandardChatter implements IChatter {
         return true;
     }
 
-    protected final void _setSocialSpy(final boolean enabled) {
-        this.storage.set("social-spy", enabled);
-    }
-
     // Active Channel Methods:
-    protected final @NotNull IChannel _getFocus() {
-        if (!this.storage.contains("focus")) {
-            this._setFocus(this.instance.getChannelManager().getDefault());
-            this._delayedSave();
-        }
-
-        final String name = this.storage.getString("focus");
-
-        if (name != null && !name.isEmpty()) {
-            final IChannel persist = this.instance.getChannelManager().getPersist(name);
-
-            if (persist != null) {
-                return persist;
-            }
-        }
-
-        return this.instance.getChannelManager().getDefault();
-    }
-
     @Override
     public synchronized @NotNull IChannel getFocus() {
         if (this.focused == null) {
@@ -375,10 +321,6 @@ public class StandardChatter implements IChatter {
         return true;
     }
 
-    protected final void _setFocus(@NotNull final IChannel focus) {
-        this.storage.set("focus", focus.getFullName());
-    }
-
     // Last Sources Methods:
     @Override
     public synchronized @Nullable IChannel getLastFocused() {
@@ -417,71 +359,25 @@ public class StandardChatter implements IChatter {
 
     // Channels Collection Methods:
     @Override
-    public final @NotNull Set<IChannel> getOwningChannels() {
-        final Set<IChannel> owning = new HashSet<>();
-
-        for (final IChannel channel : this.instance.getChannelManager().getChannels()) {
-            if (channel.isConversation()) {
-                continue;
-            }
-
-            if (channel.isOwner(this.player.getUniqueId())) {
-                owning.add(channel);
-            }
-        }
-
-        return owning;
-    }
-
-    protected final @NotNull Set<IChannel> _getChannels() {
-        if (!this.storage.contains("channels")) {
-            this._setChannels(Collections.emptySet());
-            this._delayedSave();
-        }
-
-        final Set<IChannel> channels = new HashSet<>();
-
-        for (final String name : this.storage.getStringList("channels")) {
-            if (name.isEmpty()) {
-                continue;
-            }
-
-            final IChannel persist = this.instance.getChannelManager().getPersist(name);
-
-            if (persist != null && !persist.isBanned(this.player.getUniqueId())) {
-                channels.add(persist);
-            }
-        }
-
-        return channels;
-    }
-
-    @Override
     public synchronized @NotNull Set<IChannel> getChannels() {
-        final Set<IChannel> channels = new HashSet<>(this.channels);
-
-        channels.add(this.instance.getChannelManager().getDefault());
-
-        return channels;
-    }
-
-    protected final void _setChannels(@NotNull final Set<IChannel> channels) {
-        this.storage.set("channels", channels.stream()
-                .filter(IChannel::isPersist)
-                .map(IChannel::getFullName)
-                .collect(Collectors.toList()));
+        return new HashSet<>(this.channels);
     }
 
     @Override
-    public synchronized boolean joinChannel(@NotNull final IChannel channel) {
-        if (this.channels.contains(channel) || channel.isBanned(this.player.getUniqueId())) {
+    public boolean joinChannel(@NotNull final IChannel channel) {
+        return this.joinChannel(channel, false);
+    }
+
+    @Override
+    public synchronized boolean joinChannel(@NotNull final IChannel channel, final boolean silent) {
+        if (this.channels.contains(channel)) {
             return false;
         }
 
         this.channels.add(channel);
 
         if (!channel.isMember(this)) {
-            channel.addMember(this);
+            channel.addMember(this, silent);
         }
 
         if (channel.isPersist()) {
@@ -493,15 +389,20 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
-    public synchronized boolean leaveChannel(@NotNull final IChannel channel) {
-        if (!this.channels.contains(channel) || channel.isDefault()) {
+    public boolean leaveChannel(@NotNull final IChannel channel) {
+        return this.leaveChannel(channel, false);
+    }
+
+    @Override
+    public synchronized boolean leaveChannel(@NotNull final IChannel channel, final boolean silent) {
+        if (!this.channels.contains(channel)) {
             return false;
         }
 
         this.channels.remove(channel);
 
         if (channel.isMember(this)) {
-            channel.removeMember(this);
+            channel.removeMember(this, silent);
         }
 
         // Check if the channel was the last focused channel. When true remove it as last focused channel.
@@ -534,15 +435,6 @@ public class StandardChatter implements IChatter {
         return this.channels.contains(channel);
     }
 
-    protected final @NotNull Set<UUID> _getIgnores() {
-        if (!this.storage.contains("ignores")) {
-            this._setIgnores(Collections.emptySet());
-            this._delayedSave();
-        }
-
-        return new HashSet<>(this.storage.getUniqueIdList("ignores"));
-    }
-
     @Override
     public synchronized @NotNull Set<UUID> getIgnores() {
         return new HashSet<>(this.ignores);
@@ -558,10 +450,6 @@ public class StandardChatter implements IChatter {
         this._setIgnores(ignores);
         this._delayedSave();
         return true;
-    }
-
-    protected final void _setIgnores(@NotNull final Set<UUID> ignores) {
-        this.storage.set("ignores", ignores.stream().map(UUID::toString).collect(Collectors.toList()));
     }
 
     @Override
@@ -599,28 +487,8 @@ public class StandardChatter implements IChatter {
     }
 
     @Override
-    public final @NotNull String toString() {
-        final StringBuilder builder = new StringBuilder(this.getClass().getSimpleName());
-
-        builder.append("{name=");
-        builder.append(this.getName());
-        builder.append(";uniqueId=");
-        builder.append(this.getUniqueId().toString());
-        builder.append(";muted=");
-        builder.append(this.isMuted());
-        builder.append(";focus=");
-        builder.append(this.getFocus().getFullName());
-        builder.append(";channels=");
-        builder.append(this.getChannels().stream()
-                .map(IChannel::getFullName)
-                .collect(Collectors.joining(",")));
-
-        if (this.isIgnore()) {
-            builder.append(";ignores=");
-            builder.append(this.getIgnores().stream().map(UUID::toString).collect(Collectors.joining(",")));
-        }
-
-        return builder.append("}").toString();
+    public final int compareTo(@NotNull final IChatter other) {
+        return this.player.getName().compareTo(other.getName());
     }
 
     @Override
@@ -633,10 +501,10 @@ public class StandardChatter implements IChatter {
             return true;
         }
 
-        if (object instanceof IChatter) {
-            final IChatter other = (IChatter) object;
+        if (object instanceof StandardChatter) {
+            final StandardChatter other = (StandardChatter) object;
 
-            return this.getPlayer().equals(other.getPlayer());
+            return this.player.equals(other.player);
         }
 
         return false;
@@ -647,14 +515,32 @@ public class StandardChatter implements IChatter {
         final int prime = 37;
         int result = 4;
 
-        result = prime * result + this.getPlayer().hashCode();
+        result = prime * result + this.player.hashCode();
 
         return result;
     }
 
     @Override
-    public final int compareTo(@NotNull final IChatter other) {
-        return this.getPlayer().getName().compareTo(other.getPlayer().getName());
+    public final @NotNull String toString() {
+        final StringBuilder builder = new StringBuilder(this.getClass().getSimpleName());
+
+        builder.append("{name=");
+        builder.append(this.player.getName());
+        builder.append(";uniqueId=");
+        builder.append(this.player.getUniqueId());
+        builder.append(";muted=");
+        builder.append(this.muted);
+        builder.append(";focus=");
+        builder.append(this.focused.getFullName());
+        builder.append(";channels=");
+        builder.append(this.channels.stream().map(IChannel::getFullName).collect(Collectors.joining(",")));
+
+        if (!this.ignores.isEmpty()) {
+            builder.append(";ignores=");
+            builder.append(this.ignores.stream().map(UUID::toString).collect(Collectors.joining(",")));
+        }
+
+        return builder.append("}").toString();
     }
 
     // IFilterable Implementation:
@@ -670,22 +556,6 @@ public class StandardChatter implements IChatter {
     @Override
     public boolean isInWorld(@NotNull final IChatter chatter) {
         return this.player.getWorld().equals(chatter.getPlayer().getWorld());
-    }
-
-    // ICommandSource Implementation:
-    @Override
-    public final @NotNull IChatter getChatter() {
-        return this;
-    }
-
-    @Override
-    public final boolean isChatter() {
-        return true;
-    }
-
-    @Override
-    public final boolean isConsole() {
-        return false;
     }
 
     // IMessageRecipient Implementation:
@@ -874,10 +744,6 @@ public class StandardChatter implements IChatter {
             if (this.player.hasPermission(Permission.MODERATE.getChildren("own"))) {
                 return true;
             }
-        }
-
-        if (channel.isModerator(this.player.getUniqueId())) {
-            return true;
         }
 
         if (channel.isPersist()) {

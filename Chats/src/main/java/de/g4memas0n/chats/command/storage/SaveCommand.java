@@ -2,16 +2,14 @@ package de.g4memas0n.chats.command.storage;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
-import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.storage.IStorageHolder;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
-import de.g4memas0n.chats.util.logging.Log;
+import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.util.type.StorageType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +19,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
+import static de.g4memas0n.chats.messaging.Messages.tlType;
 
 /**
  * The save command that saves the complete plugin or parts of the plugin.
@@ -42,10 +44,16 @@ public final class SaveCommand extends BasicCommand {
     }
 
     @Override
+    public boolean hide(@NotNull final ICommandSource sender) {
+        return false;
+    }
+
+    @Override
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
-            final StorageType type = input.getLength() == this.getMinArgs() ? StorageType.getDefault() : StorageType.getType(input.get(TYPE));
+            final StorageType type = input.getLength() == this.getMinArgs()
+                    ? StorageType.getDefault() : StorageType.getType(input.get(TYPE));
 
             if (type == null) {
                 return false;
@@ -66,21 +74,23 @@ public final class SaveCommand extends BasicCommand {
                             try {
                                 task.get();
 
-                                sender.sendMessage(Messages.tl("saveChannel", channel.getFullName()));
+                                sender.sendMessage(tl("saveChannel", channel.getFullName()));
                                 return true;
                             } catch (ExecutionException ex) {
-                                Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
+                                this.getInstance().getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
                             } catch (InterruptedException ex) {
-                                Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+                                this.getInstance().getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
                             }
 
-                            sender.sendMessage(Messages.tl("saveFailed", channel.getFullName()));
+                            sender.sendMessage(tl("saveFailed", channel.getFullName()));
                             return true;
                         }
 
-                        sender.sendMessage(Messages.tlErr("channelNotPersist", channel.getFullName()));
+                        sender.sendMessage(tlErr("channelNotPersist", channel.getFullName()));
                         return true;
-                    } else if (type.equals(StorageType.CHATTER)) {
+                    }
+
+                    if (type.equals(StorageType.CHATTER)) {
                         final IChatter chatter = this.getInstance().getChatterManager().getChatter(input.get(STORAGE));
 
                         if (chatter == null || !sender.canSee(chatter)) {
@@ -92,15 +102,15 @@ public final class SaveCommand extends BasicCommand {
                         try {
                             task.get();
 
-                            sender.sendMessage(Messages.tl("saveChatter", chatter.getDisplayName()));
+                            sender.sendMessage(tl("saveChatter", chatter.getDisplayName()));
                             return true;
                         } catch (ExecutionException ex) {
-                            Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
+                            this.getInstance().getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
                         } catch (InterruptedException ex) {
-                            Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+                            this.getInstance().getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
                         }
 
-                        sender.sendMessage(Messages.tl("saveFailed", chatter.getDisplayName()));
+                        sender.sendMessage(tl("saveFailed", chatter.getDisplayName()));
                         return true;
                     }
 
@@ -112,7 +122,7 @@ public final class SaveCommand extends BasicCommand {
                     this.getInstance().getChannelManager().save();
                     this.getInstance().getChatterManager().save();
 
-                    sender.sendMessage(Messages.tl("saveComplete", this.getInstance().getName()));
+                    sender.sendMessage(tl("saveComplete", this.getInstance().getName()));
                     return true;
                 }
 
@@ -120,28 +130,28 @@ public final class SaveCommand extends BasicCommand {
                     this.getInstance().getChannelManager().save();
                     this.getInstance().getChatterManager().save();
 
-                    sender.sendMessage(Messages.tl("saveComplete", Messages.tlType(type)));
+                    sender.sendMessage(tl("saveComplete", tlType(type)));
                     return true;
                 }
 
                 if (type.equals(StorageType.CHATTER)) {
                     this.getInstance().getChatterManager().save();
 
-                    sender.sendMessage(Messages.tl("saveComplete", Messages.tlType(type)));
+                    sender.sendMessage(tl("saveComplete", tlType(type)));
                     return true;
                 }
 
                 if (type.equals(StorageType.CONFIG)) {
                     this.getInstance().saveConfig();
 
-                    sender.sendMessage(Messages.tl("saveComplete", Messages.tlType(type)));
+                    sender.sendMessage(tl("saveComplete", tlType(type)));
                     return true;
                 }
 
                 return false;
             }
 
-            sender.sendMessage(Messages.tl("saveDenied", Messages.tlType(type)));
+            sender.sendMessage(tl("saveDenied", tlType(type)));
             return true;
         }
 

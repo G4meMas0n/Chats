@@ -1,6 +1,6 @@
 package de.g4memas0n.chats.listener;
 
-import de.g4memas0n.chats.IChats;
+import de.g4memas0n.chats.Chats;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -18,11 +18,11 @@ import java.util.List;
  */
 public abstract class BasicListener implements Listener {
 
-    private IChats instance;
+    private Chats instance;
 
     protected BasicListener() { }
 
-    public final void register(@NotNull final IChats instance) {
+    public final void register(@NotNull final Chats instance) {
         if (this.instance != null) {
             return;
         }
@@ -46,7 +46,7 @@ public abstract class BasicListener implements Listener {
         return this.getClass().getSimpleName() + "{events=" + String.join(",", this.getEvents()) + "}";
     }
 
-    protected final @NotNull IChats getInstance() {
+    protected final @NotNull Chats getInstance() {
         if (this.instance == null) {
             throw new IllegalStateException("Unregistered listener '" + this.getClass().getSimpleName()
                     + "' tried to get the plugin instance");

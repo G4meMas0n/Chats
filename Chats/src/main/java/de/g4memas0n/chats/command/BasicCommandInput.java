@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.util.input;
+package de.g4memas0n.chats.command;
 
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
@@ -10,15 +10,15 @@ import java.util.Arrays;
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public class CommandInput implements ICommandInput {
+public final class BasicCommandInput implements ICommandInput {
 
     private final String[] arguments;
 
-    public CommandInput() {
+    public BasicCommandInput() {
         this.arguments = new String[0];
     }
 
-    public CommandInput(@NotNull final String[] arguments) {
+    public BasicCommandInput(@NotNull final String[] arguments) {
         this.arguments = arguments;
     }
 
@@ -30,10 +30,10 @@ public class CommandInput implements ICommandInput {
     @Override
     public @NotNull ICommandInput getInput(final int start) {
         if (this.arguments.length <= start) {
-            return new CommandInput();
+            return new BasicCommandInput();
         }
 
-        return new CommandInput(Arrays.copyOfRange(this.arguments, start, this.arguments.length));
+        return new BasicCommandInput(Arrays.copyOfRange(this.arguments, start, this.arguments.length));
     }
 
     @Override
@@ -79,24 +79,32 @@ public class CommandInput implements ICommandInput {
 
     @Override
     public boolean getBoolean(final int index) throws InvalidArgumentException {
-        if (this.arguments[index].equalsIgnoreCase(Boolean.FALSE.toString())) {
+        final String bool = this.arguments[index];
+
+        if (bool.equalsIgnoreCase("false")) {
             return false;
-        } else if (this.arguments[index].equalsIgnoreCase(Boolean.TRUE.toString())) {
-            return true;
-        } else {
-            throw new InvalidArgumentException("invalidBoolean", this.arguments[index]);
         }
+
+        if (bool.equalsIgnoreCase("true")) {
+            return true;
+        }
+
+        throw new InvalidArgumentException("invalidBoolean", bool);
     }
 
     @Override
     public boolean getEnable(final int index) throws InvalidArgumentException {
-        if (this.arguments[index].equalsIgnoreCase(ENABLE_OFF)) {
+        final String bool = this.arguments[index];
+
+        if (bool.equalsIgnoreCase("off") || bool.equalsIgnoreCase("enable")) {
             return false;
-        } else if (this.arguments[index].equalsIgnoreCase(ENABLE_ON)) {
-            return true;
-        } else {
-            throw new InvalidArgumentException("invalidState", this.arguments[index]);
         }
+
+        if (bool.equalsIgnoreCase("on") || bool.equalsIgnoreCase("disable")) {
+            return true;
+        }
+
+        throw new InvalidArgumentException("invalidState", bool);
     }
 
     @Override
@@ -104,14 +112,14 @@ public class CommandInput implements ICommandInput {
         try {
             final double result = Double.parseDouble(this.arguments[index]);
 
-            if (Double.isNaN(result) || Double.isInfinite(result)) {
-                throw new InvalidArgumentException("invalidNumber", result);
+            if (!Double.isNaN(result) && !Double.isInfinite(result)) {
+                return result;
             }
+        } catch (NumberFormatException ignored) {
 
-            return result;
-        } catch (NumberFormatException ex) {
-            throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
         }
+
+        throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
     }
 
     @Override
@@ -119,14 +127,14 @@ public class CommandInput implements ICommandInput {
         try {
             final float result = Float.parseFloat(this.arguments[index]);
 
-            if (Float.isNaN(result) || Float.isInfinite(result)) {
-                throw new InvalidArgumentException("invalidNumber", result);
+            if (!Float.isNaN(result) && !Float.isInfinite(result)) {
+                return result;
             }
+        } catch (NumberFormatException ignored) {
 
-            return result;
-        } catch (NumberFormatException ex) {
-            throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
         }
+
+        throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
     }
 
     @Override

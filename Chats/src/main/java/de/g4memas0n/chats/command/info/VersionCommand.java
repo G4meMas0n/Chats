@@ -1,14 +1,15 @@
 package de.g4memas0n.chats.command.info;
 
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ICommandInput;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
 
 /**
  * The version command that allows to show the version of this plugin and the dependencies.
@@ -27,19 +28,24 @@ public final class VersionCommand extends BasicCommand {
     }
 
     @Override
+    public boolean hide(@NotNull final ICommandSource sender) {
+        return false;
+    }
+
+    @Override
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) {
         if (this.argsInRange(input.getLength())) {
-            sender.sendMessage(Messages.tl("versionInfo", this.getInstance().getName(),
+            sender.sendMessage(tl("versionInfo", this.getInstance().getName(),
                     this.getInstance().getDescription().getVersion()));
-            sender.sendMessage(Messages.tl("versionInfo", this.getInstance().getServer().getName(),
+            sender.sendMessage(tl("versionInfo", this.getInstance().getServer().getName(),
                     this.getInstance().getServer().getBukkitVersion()));
 
             for (final String dependency : this.getInstance().getDescription().getDepend()) {
                 final Plugin plugin = this.getInstance().getServer().getPluginManager().getPlugin(dependency);
 
                 if (plugin != null) {
-                    sender.sendMessage(Messages.tl("versionInfo", plugin.getName(), plugin.getDescription().getVersion()));
+                    sender.sendMessage(tl("versionInfo", plugin.getName(), plugin.getDescription().getVersion()));
                 }
             }
 
@@ -47,7 +53,7 @@ public final class VersionCommand extends BasicCommand {
                 final Plugin plugin = this.getInstance().getServer().getPluginManager().getPlugin(dependency);
 
                 if (plugin != null) {
-                    sender.sendMessage(Messages.tl("versionInfo", plugin.getName(), plugin.getDescription().getVersion()));
+                    sender.sendMessage(tl("versionInfo", plugin.getName(), plugin.getDescription().getVersion()));
                 }
             }
 

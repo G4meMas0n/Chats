@@ -1,6 +1,6 @@
 package de.g4memas0n.chats.messaging;
 
-import de.g4memas0n.chats.util.logging.Log;
+import de.g4memas0n.chats.util.logging.BasicLogger;
 import de.g4memas0n.chats.util.type.Type;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
@@ -29,14 +29,17 @@ public final class Messages {
 
     private static Messages instance;
 
+    private final BasicLogger logger;
     private final File directory;
-    private final ResourceBundle defaultBundle;
 
+    private final ResourceBundle defaultBundle;
     private ResourceBundle localBundle;
     private ResourceBundle customBundle;
 
-    public Messages(@NotNull final File directory) {
+    public Messages(@NotNull final File directory, @NotNull final BasicLogger logger) {
         this.directory = directory;
+        this.logger = logger;
+
         this.defaultBundle = ResourceBundle.getBundle(BUNDLE_BASE);
         this.localBundle = this.defaultBundle;
         this.customBundle = null;
@@ -59,14 +62,14 @@ public final class Messages {
             this.localBundle = ResourceBundle.getBundle(BUNDLE_BASE, locale);
 
             if (this.localBundle.getLocale().equals(locale)) {
-                Log.getPlugin().debug("Loaded resource bundle for language: " + locale);
+                this.logger.debug("Loaded resource bundle for language: " + locale);
             } else {
-                Log.getPlugin().warning("Unable to find resource bundle for language: " + locale);
-                Log.getPlugin().debug("Loaded fallback resource bundle for language: " + this.localBundle.getLocale());
+                this.logger.warning("Unable to find resource bundle for language: " + locale);
+                this.logger.debug("Loaded fallback resource bundle for language: " + this.localBundle.getLocale());
             }
         } catch (MissingResourceException ex) {
             this.localBundle = this.defaultBundle;
-            Log.getPlugin().warning("Unable to find resource bundle. Using default bundle.");
+            this.logger.warning("Unable to find resource bundle. Using default bundle.");
         }
 
         try {
@@ -75,7 +78,7 @@ public final class Messages {
                     ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES));
 
             if (this.customBundle.getLocale().equals(locale)) {
-                Log.getPlugin().debug("Detected and loaded custom resource bundle for language: " + locale);
+                this.logger.debug("Detected and loaded custom resource bundle for language: " + locale);
             } else {
                 this.customBundle = null;
             }
@@ -83,7 +86,7 @@ public final class Messages {
             this.customBundle = null;
         }
 
-        Log.getPlugin().info(String.format("Locale has been changed. Using locale %s", this.getLocale()));
+        this.logger.info(String.format("Locale has been changed. Using locale %s", this.getLocale()));
     }
 
     public synchronized @NotNull String translate(@NotNull final String key) {
@@ -92,14 +95,14 @@ public final class Messages {
                 try {
                     return this.customBundle.getString(key);
                 } catch (MissingResourceException ex) {
-                    Log.getPlugin().warning(String.format("Missing translation key '%s' in custom translation file: %s",
+                    this.logger.warning(String.format("Missing translation key '%s' in custom translation file: %s",
                             ex.getKey(), this.customBundle.getBaseBundleName()));
                 }
             }
 
             return this.localBundle.getString(key);
         } catch (MissingResourceException ex) {
-            Log.getPlugin().warning(String.format("Missing translation key '%s' in translation file %s",
+            this.logger.warning(String.format("Missing translation key '%s' in translation file %s",
                     ex.getKey(), this.getLocale()));
 
             return this.defaultBundle.getString(key);
@@ -121,7 +124,7 @@ public final class Messages {
         try {
             return MessageFormat.format(format, arguments);
         } catch (IllegalArgumentException ex) {
-            Log.getPlugin().warning("Invalid translation key '%s': " + ex.getMessage());
+            this.logger.warning("Invalid translation key '%s': " + ex.getMessage());
 
             return MessageFormat.format(format.replaceAll("\\{(\\D*?)}", "\\[$1\\]"), arguments);
         }
@@ -149,7 +152,7 @@ public final class Messages {
         try {
             return MessageFormat.format(format, joined);
         } catch (IllegalArgumentException ex) {
-            Log.getPlugin().warning("Invalid translation key '%s': " + ex.getMessage());
+            this.logger.warning("Invalid translation key '%s': " + ex.getMessage());
 
             return MessageFormat.format(format.replaceAll("\\{(\\D*?)}", "\\[$1\\]"), joined);
         }
@@ -210,6 +213,7 @@ public final class Messages {
      * Custom ClassLoader for getting resource bundles located in the plugins data folder.
      */
     private static class CustomFileClassLoader extends ClassLoader {
+
         private final File directory;
 
         private CustomFileClassLoader(@NotNull final ClassLoader loader, @NotNull final File directory) {

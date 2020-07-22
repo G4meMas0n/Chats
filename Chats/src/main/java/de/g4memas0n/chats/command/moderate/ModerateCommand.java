@@ -1,6 +1,9 @@
 package de.g4memas0n.chats.command.moderate;
 
+import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.command.BasicCommand;
+import de.g4memas0n.chats.command.ICommandSource;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -18,5 +21,24 @@ public abstract class ModerateCommand extends BasicCommand {
                               final int minArgs,
                               final int maxArgs) {
         super(name, minArgs, maxArgs);
+    }
+
+    @Override
+    public final boolean hide(@NotNull final ICommandSource sender) {
+        if (sender instanceof IChatter) {
+            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
+                if (channel.isConversation()) {
+                    continue;
+                }
+
+                if (sender.canModerate(channel)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }

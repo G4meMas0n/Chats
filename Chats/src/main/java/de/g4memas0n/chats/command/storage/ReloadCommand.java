@@ -2,16 +2,14 @@ package de.g4memas0n.chats.command.storage;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicCommand;
-import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.storage.IStorageHolder;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
-import de.g4memas0n.chats.util.logging.Log;
+import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.util.type.StorageType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +19,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
+import static de.g4memas0n.chats.messaging.Messages.tlType;
 
 /**
  * The reload command that reloads the complete plugin or parts of the plugin.
@@ -42,10 +44,16 @@ public final class ReloadCommand extends BasicCommand {
     }
 
     @Override
+    public boolean hide(@NotNull final ICommandSource sender) {
+        return false;
+    }
+
+    @Override
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
-            final StorageType type = input.getLength() == this.getMinArgs() ? StorageType.getDefault() : StorageType.getType(input.get(TYPE));
+            final StorageType type = input.getLength() == this.getMinArgs()
+                    ? StorageType.getDefault() : StorageType.getType(input.get(TYPE));
 
             if (type == null) {
                 return false;
@@ -66,21 +74,23 @@ public final class ReloadCommand extends BasicCommand {
                             try {
                                 task.get();
 
-                                sender.sendMessage(Messages.tl("reloadChannel", channel.getFullName()));
+                                sender.sendMessage(tl("reloadChannel", channel.getFullName()));
                                 return true;
                             } catch (ExecutionException ex) {
-                                Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
+                                this.getInstance().getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
                             } catch (InterruptedException ex) {
-                                Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+                                this.getInstance().getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
                             }
 
-                            sender.sendMessage(Messages.tl("reloadFailed", channel.getFullName()));
+                            sender.sendMessage(tl("reloadFailed", channel.getFullName()));
                             return true;
                         }
 
-                        sender.sendMessage(Messages.tlErr("channelNotPersist", channel.getFullName()));
+                        sender.sendMessage(tlErr("channelNotPersist", channel.getFullName()));
                         return true;
-                    } else if (type.equals(StorageType.CHATTER)) {
+                    }
+
+                    if (type.equals(StorageType.CHATTER)) {
                         final IChatter chatter = this.getInstance().getChatterManager().getChatter(input.get(STORAGE));
 
                         if (chatter == null || !sender.canSee(chatter)) {
@@ -92,15 +102,15 @@ public final class ReloadCommand extends BasicCommand {
                         try {
                             task.get();
 
-                            sender.sendMessage(Messages.tl("reloadChatter", chatter.getDisplayName()));
+                            sender.sendMessage(tl("reloadChatter", chatter.getDisplayName()));
                             return true;
                         } catch (ExecutionException ex) {
-                            Log.getPlugin().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
+                            this.getInstance().getLogger().log(Level.SEVERE, "Storage task has thrown an unexpected exception: ", ex);
                         } catch (InterruptedException ex) {
-                            Log.getPlugin().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
+                            this.getInstance().getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
                         }
 
-                        sender.sendMessage(Messages.tl("reloadFailed", chatter.getDisplayName()));
+                        sender.sendMessage(tl("reloadFailed", chatter.getDisplayName()));
                         return true;
                     }
 
@@ -112,7 +122,7 @@ public final class ReloadCommand extends BasicCommand {
                     this.getInstance().getChannelManager().load();
                     this.getInstance().getChatterManager().load();
 
-                    sender.sendMessage(Messages.tl("reloadComplete", this.getInstance().getName()));
+                    sender.sendMessage(tl("reloadComplete", this.getInstance().getName()));
                     return true;
                 }
 
@@ -120,28 +130,28 @@ public final class ReloadCommand extends BasicCommand {
                     this.getInstance().getChannelManager().load();
                     this.getInstance().getChatterManager().load();
 
-                    sender.sendMessage(Messages.tl("reloadComplete", Messages.tlType(type)));
+                    sender.sendMessage(tl("reloadComplete", tlType(type)));
                     return true;
                 }
 
                 if (type.equals(StorageType.CHATTER)) {
                     this.getInstance().getChatterManager().load();
 
-                    sender.sendMessage(Messages.tl("reloadComplete", Messages.tlType(type)));
+                    sender.sendMessage(tl("reloadComplete", tlType(type)));
                     return true;
                 }
 
                 if (type.equals(StorageType.CONFIG)) {
                     this.getInstance().reloadConfig();
 
-                    sender.sendMessage(Messages.tl("reloadComplete", Messages.tlType(type)));
+                    sender.sendMessage(tl("reloadComplete", tlType(type)));
                     return true;
                 }
 
                 return false;
             }
 
-            sender.sendMessage(Messages.tl("reloadDenied", Messages.tlType(type)));
+            sender.sendMessage(tl("reloadDenied", tlType(type)));
             return true;
         }
 

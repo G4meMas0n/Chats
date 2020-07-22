@@ -3,8 +3,11 @@ package de.g4memas0n.chats.util.logging;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.function.Supplier;
 import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -149,6 +152,29 @@ public class BasicLogger extends Logger {
             this.addHandler(this.fileHandler);
         } else {
             this.removeHandler(this.fileHandler);
+        }
+    }
+
+    /**
+     * Implements a {@link Formatter} that is used for the file handler of this logger.
+     */
+    public static final class FileFormatter extends Formatter {
+
+        private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        public FileFormatter() { }
+
+        @Override
+        public @NotNull String format(@NotNull final LogRecord record) {
+            return "[" + this.formatDate(record.getMillis()) + "]" + this.formatMessage(record.getMessage()) + "\n";
+        }
+
+        public @NotNull String formatDate(final long milliSecs) {
+            return DATE_FORMAT.format(new Date(milliSecs));
+        }
+
+        public @NotNull String formatMessage(@NotNull final String message) {
+            return ANSICode.stripColor(message);
         }
     }
 }

@@ -1,18 +1,12 @@
 package de.g4memas0n.chats.command;
 
 import de.g4memas0n.chats.Chats;
-import de.g4memas0n.chats.IChats;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.info.HelpCommand;
-import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,13 +32,13 @@ public abstract class BasicCommand {
      * the bukkit/spigot command system is used (See {@link BasicPluginCommand}). So using an extra command handler
      * would be useless, because it would only be a collection of commands (like this).</p>
      */
-    private static final Map<String, BasicCommand> registered = new LinkedHashMap<>();
+    private static final Map<String, BasicCommand> registered = new HashMap<>();
 
     private final String name;
     private final int minArgs;
     private final int maxArgs;
 
-    private IChats instance;
+    private Chats instance;
 
     private List<String> aliases;
     private String description;
@@ -85,7 +79,7 @@ public abstract class BasicCommand {
         return true;
     }
 
-    public final @NotNull IChats getInstance() {
+    public final @NotNull Chats getInstance() {
         if (this.instance == null || !registered.containsKey(this.name)) {
             throw new IllegalStateException(String.format("Unregistered command '%s' tried to get the plugin instance",
                     this.getName()));
@@ -112,6 +106,8 @@ public abstract class BasicCommand {
                 : arguments >= this.minArgs;
     }
 
+    public abstract boolean hide(@NotNull final ICommandSource sender);
+
     /**
      * Executes the command for the given sender, returning its success.
      *
@@ -123,21 +119,6 @@ public abstract class BasicCommand {
      */
     public abstract boolean execute(@NotNull final ICommandSource sender,
                                     @NotNull final ICommandInput input) throws InputException;
-
-    public @NotNull List<String> help(@NotNull final ICommandSource sender,
-                                      @NotNull final ICommandInput input) {
-        final List<String> help = new ArrayList<>();
-
-        help.add(Messages.tl("helpHeader", this.name));
-        help.add(Messages.tl("helpDescription", this.description));
-        help.add(Messages.tl("helpUsage", this.usage));
-
-        if (this.aliases != null && !this.aliases.isEmpty()) {
-            help.add(Messages.tlJoin("helpAliases", this.aliases));
-        }
-
-        return help;
-    }
 
     /**
      * Requests a list of possible completions for a command argument.
@@ -207,11 +188,11 @@ public abstract class BasicCommand {
         final StringBuilder builder = new StringBuilder(this.getClass().getSimpleName());
 
         builder.append("{name=");
-        builder.append(this.getName());
+        builder.append(this.name);
         builder.append(";min-args=");
-        builder.append(this.getMinArgs());
+        builder.append(this.minArgs);
         builder.append(";max-args=");
-        builder.append(this.getMaxArgs());
+        builder.append(this.maxArgs);
 
         if (!this.getAliases().isEmpty()) {
             builder.append(";aliases=");
@@ -249,9 +230,9 @@ public abstract class BasicCommand {
         if (object instanceof BasicCommand) {
             final BasicCommand other = (BasicCommand) object;
 
-            return this.getName().equals(other.getName())
-                    && this.getMinArgs() == other.getMinArgs()
-                    && this.getMaxArgs() == other.getMaxArgs();
+            return this.name.equals(other.name)
+                    && this.minArgs == other.minArgs
+                    && this.maxArgs == other.maxArgs;
         }
 
         return false;
@@ -262,16 +243,16 @@ public abstract class BasicCommand {
         final int prime = 69;
         int result = 2;
 
-        result = prime * result + this.getName().hashCode();
-        result = prime * result + Integer.hashCode(this.getMinArgs());
-        result = prime * result + Integer.hashCode(this.getMaxArgs());
+        result = prime * result + this.name.hashCode();
+        result = prime * result + Integer.hashCode(this.minArgs);
+        result = prime * result + Integer.hashCode(this.maxArgs);
 
         return result;
     }
 
     // Methods for accessing registered Commands:
     protected final @NotNull Set<BasicCommand> getRegistered() {
-        return new LinkedHashSet<>(registered.values());
+        return new HashSet<>(registered.values());
     }
 
     protected final @Nullable BasicCommand getRegistered(@NotNull final String name) {

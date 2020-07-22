@@ -37,11 +37,6 @@ public enum InfoType implements Type {
     FORMATS("formats"),
 
     /**
-     * Represents the moderators info of a channel.
-     */
-    MODERATORS("moderators"),
-
-    /**
      * Represents the mutes info of a channel.
      */
     MUTES("mutes"),
@@ -64,7 +59,12 @@ public enum InfoType implements Type {
     /**
      * Represents the channel type info of a channel.
      */
-    TYPE("type");
+    TYPE("type"),
+
+    /**
+     * Represents the verbose info of a channel.
+     */
+    VERBOSE("verbose");
 
     private final String identifier;
 

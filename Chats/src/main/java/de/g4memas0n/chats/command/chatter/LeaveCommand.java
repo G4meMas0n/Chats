@@ -2,16 +2,18 @@ package de.g4memas0n.chats.command.chatter;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ChannelNotExistException;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ChannelNotExistException;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The leave command that allows to leave a channel.
@@ -43,20 +45,20 @@ public final class LeaveCommand extends ChatterCommand {
 
             if (sender.canLeave(channel)) {
                 if (channel.isDefault()) {
-                    sender.sendMessage(Messages.tlErr("leaveDefault"));
+                    sender.sendMessage(tlErr("leaveDefault"));
                     return true;
                 }
 
                 if (sender.leaveChannel(channel)) {
-                    sender.sendMessage(Messages.tl("leaveChannel", channel.getColoredName()));
+                    sender.sendMessage(tl("leaveChannel", channel.getColoredName()));
                     return true;
                 }
 
-                sender.sendMessage(Messages.tl("leaveAlready", channel.getColoredName()));
+                sender.sendMessage(tl("leaveAlready", channel.getColoredName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("leaveDenied", channel.getColoredName()));
+            sender.sendMessage(tl("leaveDenied", channel.getColoredName()));
             return true;
         }
 

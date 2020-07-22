@@ -2,17 +2,19 @@ package de.g4memas0n.chats.command.chatter;
 
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
-import de.g4memas0n.chats.util.input.PlayerNotFoundException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlJoin;
 
 /**
  * The unignore command that allows to unignore a player.
@@ -51,18 +53,18 @@ public class UnignoreCommand extends ChatterCommand {
                 }
 
                 if (ignores.isEmpty()) {
-                    sender.sendMessage(Messages.tl("ignoreNobody"));
+                    sender.sendMessage(tl("ignoreNobody"));
                     return true;
                 }
 
                 Collections.sort(ignores);
 
-                sender.sendMessage(Messages.tlJoin("ignoreList", ignores));
+                sender.sendMessage(tlJoin("ignoreList", ignores));
                 return true;
             }
 
             if (!sender.isIgnore()) {
-                sender.sendMessage(Messages.tl("ignoreNobody"));
+                sender.sendMessage(tl("ignoreNobody"));
                 return true;
             }
 
@@ -75,12 +77,12 @@ public class UnignoreCommand extends ChatterCommand {
             final IChatter online = target instanceof IChatter ? (IChatter) target : null;
 
             if (sender.removeIgnore(target.getUniqueId())) {
-                sender.sendMessage(Messages.tl("unignoreChatter", online != null && sender.canSee(online)
+                sender.sendMessage(tl("unignoreChatter", online != null && sender.canSee(online)
                         ? online.getDisplayName() : target.getName()));
                 return true;
             }
 
-            sender.sendMessage(Messages.tl("unignoreAlready", online != null && sender.canSee(online)
+            sender.sendMessage(tl("unignoreAlready", online != null && sender.canSee(online)
                     ? online.getDisplayName() : target.getName()));
             return true;
         }

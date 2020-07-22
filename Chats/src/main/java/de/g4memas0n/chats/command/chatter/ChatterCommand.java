@@ -1,11 +1,11 @@
 package de.g4memas0n.chats.command.chatter;
 
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.chatter.ICommandSource;
 import de.g4memas0n.chats.command.BasicPluginCommand;
+import de.g4memas0n.chats.command.ICommandInput;
+import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.messaging.Messages;
-import de.g4memas0n.chats.util.input.ICommandInput;
-import de.g4memas0n.chats.util.input.InputException;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
@@ -25,10 +25,15 @@ public abstract class ChatterCommand extends BasicPluginCommand {
     }
 
     @Override
+    public final boolean hide(@NotNull final ICommandSource sender) {
+        return !(sender instanceof IChatter);
+    }
+
+    @Override
     public final boolean execute(@NotNull final ICommandSource sender,
                                  @NotNull final ICommandInput input) throws InputException {
-        if (sender.getChatter() != null) {
-            return this.execute(sender.getChatter(), input);
+        if (sender instanceof IChatter) {
+            return this.execute((IChatter) sender, input);
         }
 
         sender.sendMessage(Messages.tlErr("commandNotAvailable", this.getName()));
@@ -50,8 +55,8 @@ public abstract class ChatterCommand extends BasicPluginCommand {
     @Override
     public final @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                                    @NotNull final ICommandInput input) {
-        if (sender.getChatter() != null) {
-            return this.tabComplete(sender.getChatter(), input);
+        if (sender instanceof IChatter) {
+            return this.tabComplete((IChatter) sender, input);
         }
 
         return Collections.emptyList();

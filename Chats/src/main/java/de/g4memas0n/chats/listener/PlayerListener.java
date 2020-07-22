@@ -40,13 +40,13 @@ public final class PlayerListener extends BasicListener {
                 return;
             }
 
-            if (event.isAsynchronous()) {
-                // Perform Chat Action from here, because this is already executed from an asynchronous thread.
-                focus.performChat(chatter, event.getMessage());
-            } else {
+            if (!event.isAsynchronous()) {
                 this.getInstance().runSyncTask(() -> focus.performChat(chatter, event.getMessage()));
+                return;
             }
 
+            // Perform Chat Action from here, because this is already executed from an asynchronous thread.
+            focus.performChat(chatter, event.getMessage());
             return;
         }
 
