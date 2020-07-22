@@ -13,13 +13,13 @@
 
     <name>Chats</name>
     <artifactId>chats</artifactId>
-    <version>1.0.0-pre2</version>
+    <version>1.0.0-pre3</version>
 
     <dependencies>
         <dependency>
             <groupId>de.g4memas0n</groupId>
             <artifactId>chats-api</artifactId>
-            <version>1.0.0-pre2</version>
+            <version>1.0.0-pre3</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
