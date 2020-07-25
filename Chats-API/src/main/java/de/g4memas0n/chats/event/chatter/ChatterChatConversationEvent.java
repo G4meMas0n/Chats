@@ -3,6 +3,7 @@ package de.g4memas0n.chats.event.chatter;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Placeholder;
 import de.g4memas0n.chats.storage.configuration.ISettings;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +26,8 @@ public final class ChatterChatConversationEvent extends ChatterEvent implements 
     public ChatterChatConversationEvent(@NotNull final IChatter sender,
                                         @NotNull final IChatter partner,
                                         @NotNull final String format,
-                                        @NotNull final String message,
-                                        final boolean async) {
-        super(sender, async);
+                                        @NotNull final String message) {
+        super(sender, !Bukkit.isPrimaryThread());
 
         this.partner = partner;
         this.format = format;
@@ -70,11 +70,11 @@ public final class ChatterChatConversationEvent extends ChatterEvent implements 
      */
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
         if (!format.contains(Placeholder.CON_ADDRESS.toString())) {
-            throw new IllegalArgumentException("Format is missing {con-address} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {con-address} placeholder", format));
         }
 
         if (!format.contains(Placeholder.CON_PARTNER.toString())) {
-            throw new IllegalArgumentException("Format is missing {con-partner} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {con-partner} placeholder", format));
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {

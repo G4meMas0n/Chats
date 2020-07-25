@@ -96,13 +96,8 @@
                     <!-- Include bukkit api, because the external spigot javadoc is missing the package-list file -->
                     <includeDependencySources>true</includeDependencySources>
 
-                    <!-- Exclude all other dependency sources, because these are not needed -->
-                    <dependencySourceExcludes>
-                        <dependencySourceExclude>org.jetbrains:*</dependencySourceExclude>
-                    </dependencySourceExcludes>
-
                     <!-- Exclude the org.spigotmc package, because it is not necessary for the bukkit api -->
-                    <excludePackageNames>org.spigotmc,org.spigotmc.*</excludePackageNames>
+                    <excludePackageNames>org.spigotmc,org.spigotmc.*,org.jetbrains,org.jetbrains.*</excludePackageNames>
 
                     <!-- Grouping packages -->
                     <groups>

@@ -211,8 +211,8 @@ public interface IChannel extends Comparable<IChannel> {
      * Sets the custom chat format for this channel.
      * Removes it when the given format is null or empty.
      *
-     * <p>The given format must include the {@link Placeholder#MESSAGE} placeholder and one of the sender placeholders
-     * {@link Placeholder#SENDER} or {@link Placeholder#SENDER_PLAIN}, otherwise it will throw an exception.</p>
+     * <p>The given format must include the {@link Placeholder#MESSAGE} and {@link Placeholder#SENDER} placeholder,
+     * otherwise it will throw an exception.</p>
      *
      * @param format the new channel format for this channel.
      * @return true when the format was changed as result of this call, false otherwise.
@@ -378,14 +378,6 @@ public interface IChannel extends Comparable<IChannel> {
     @NotNull Set<UUID> getBans();
 
     /**
-     * Sets the banned members for this channel
-     *
-     * @param bans the uniqueIds of the banned members.
-     * @return true when the banned members has changed as result of this call, false otherwise.
-     */
-    boolean setBans(@NotNull final Set<UUID> bans);
-
-    /**
      * Sets a banned member for this channel.
      *
      * @param uniqueId the uniqueId of the member to set.
@@ -408,14 +400,6 @@ public interface IChannel extends Comparable<IChannel> {
      * @return the uniqueIds of the muted members.
      */
     @NotNull Set<UUID> getMutes();
-
-    /**
-     * Sets the muted members for this channel
-     *
-     * @param mutes the uniqueIds of the muted members.
-     * @return true when the muted members has changed as result of this call, false otherwise.
-     */
-    boolean setMutes(@NotNull final Set<UUID> mutes);
 
     /**
      * Sets a muted chatters for this channel.

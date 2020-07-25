@@ -93,8 +93,9 @@ public interface IChatter extends IOfflineChatter, IMessageRecipient, IFilterabl
      *
      * @param partner the new last conversation partner.
      * @return true when the last conversation partner was changed as result of this call, false otherwise.
+     * @throws IllegalArgumentException Thrown when the given partner equals this chatter.
      */
-    boolean setLastPartner(@NotNull final IChatter partner);
+    boolean setLastPartner(@NotNull final IChatter partner) throws IllegalArgumentException;
 
     // Channels Collection Methods:
     /**

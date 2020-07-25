@@ -4,7 +4,6 @@ import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.storage.YamlStorageFile;
-import de.g4memas0n.chats.util.type.ChannelType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
@@ -132,32 +131,6 @@ public final class ChannelManager implements IChannelManager {
     }
 
     @Override
-    public synchronized @Nullable IChannel addChannel(@NotNull final String fullName,
-                                                      @NotNull final ChannelType type) throws IllegalArgumentException {
-        if (this.channels.containsKey(fullName.toLowerCase())) {
-            return null;
-        }
-
-        if (type == ChannelType.PERSIST) {
-            final IChannel persist = new PersistChannel(this.instance, new YamlStorageFile(this.directory, fullName));
-
-            this.channels.put(persist.getFullName().toLowerCase(), persist);
-
-            return persist;
-        }
-
-        if (type == ChannelType.STANDARD) {
-            final IChannel standard = new StandardChannel(this.instance, fullName);
-
-            this.channels.put(standard.getFullName().toLowerCase(), standard);
-
-            return standard;
-        }
-
-        return null;
-    }
-
-    @Override
     public synchronized boolean addChannel(@NotNull final IChannel channel) {
         final String key = channel.getFullName().toLowerCase();
 
@@ -167,6 +140,30 @@ public final class ChannelManager implements IChannelManager {
 
         this.channels.put(key, channel);
         return true;
+    }
+
+    public synchronized @Nullable PersistChannel addPersist(@NotNull final String fullName) throws IllegalArgumentException {
+        if (this.channels.containsKey(fullName.toLowerCase())) {
+            return null;
+        }
+
+        final PersistChannel persist = new PersistChannel(this.instance, new YamlStorageFile(this.directory, fullName));
+
+        this.channels.put(persist.getFullName().toLowerCase(), persist);
+
+        return persist;
+    }
+
+    public synchronized @Nullable StandardChannel addStandard(@NotNull final String fullName) throws IllegalArgumentException {
+        if (this.channels.containsKey(fullName.toLowerCase())) {
+            return null;
+        }
+
+        final StandardChannel standard = new StandardChannel(this.instance, fullName);
+
+        this.channels.put(standard.getFullName().toLowerCase(), standard);
+
+        return standard;
     }
 
     @Override

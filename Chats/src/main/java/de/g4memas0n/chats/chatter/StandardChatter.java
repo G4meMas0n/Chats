@@ -116,8 +116,12 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
         }
 
         if (!this.channels.isEmpty()) {
-            this.channels.forEach(channel -> channel.removeMember(this, true));
-            this.channels.clear();
+            for (final Iterator<IChannel> iterator = this.channels.iterator(); iterator.hasNext();) {
+                final IChannel channel = iterator.next();
+
+                iterator.remove();
+                channel.removeMember(this, true);
+            }
         }
 
         this.focused = this._getFocus();
@@ -180,7 +184,7 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
             this._setUniqueId(this.player.getUniqueId());
             this._setLastName(this.player.getName());
             this._setChannels(this.channels);
-            this._setFocus(this.focused);
+            this._setFocus(this.focused.isPersist() ? this.focused : this.lastPersist);
             this._setMuted(this.muted);
             this._setSocialSpy(this.socialSpy);
             this._setIgnores(this.ignores);
@@ -348,7 +352,11 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
     }
 
     @Override
-    public synchronized boolean setLastPartner(@NotNull final IChatter partner) {
+    public synchronized boolean setLastPartner(@NotNull final IChatter partner) throws IllegalArgumentException {
+        if (partner.getUniqueId().equals(this.player.getUniqueId())) {
+            throw new IllegalArgumentException("Partner can not be himself");
+        }
+
         if (partner.getUniqueId().equals(this.lastPartner)) {
             return false;
         }

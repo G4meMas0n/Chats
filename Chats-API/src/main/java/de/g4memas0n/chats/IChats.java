@@ -2,9 +2,9 @@ package de.g4memas0n.chats;
 
 import de.g4memas0n.chats.channel.IChannelManager;
 import de.g4memas0n.chats.chatter.IChatterManager;
+import de.g4memas0n.chats.messaging.IChat;
 import de.g4memas0n.chats.messaging.IFormatter;
 import de.g4memas0n.chats.storage.configuration.ISettings;
-import net.milkbowl.vault.chat.Chat;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +52,7 @@ public interface IChats extends Plugin {
      *
      * @return the used chat service.
      */
-    @Nullable Chat getChatService();
+    @Nullable IChat getChatService();
 
     /**
      * Sets the chat service for this plugin.
@@ -61,5 +61,5 @@ public interface IChats extends Plugin {
      *
      * @param service the by vault registered chat service.
      */
-    void setChatService(@Nullable final Chat service);
+    void setChatService(@Nullable final IChat service);
 }

@@ -2,7 +2,6 @@ package de.g4memas0n.chats.channel;
 
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.storage.IStorageContainer;
-import de.g4memas0n.chats.util.type.ChannelType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.Set;
@@ -89,25 +88,12 @@ public interface IChannelManager extends IStorageContainer {
                                       @NotNull final IChatter second);
 
     /**
-     * Adds a new channel of the given type with the given full name to this channel manager, when it it not already
-     * contained and returns the new created channel.
-     *
-     * <p>Can be null when there is already a channel with the given full name in this channel manager.</p>
-     *
-     * @param fullName the full name for the new channel.
-     * @param type the type for the new channel
-     * @return the new created channel or null when a channel with the given name already exist.
-     * @throws IllegalArgumentException Thrown when the full name do not match the channel name regex.
-     */
-    @Nullable IChannel addChannel(@NotNull final String fullName,
-                                  @NotNull final ChannelType type) throws IllegalArgumentException;
-
-    /**
      * Adds the given channel to this channel manager, when it is not already contained.
      *
      * @param channel the channel that should be added to this manager.
      * @return true when channel was added as result of this call, false otherwise.
      */
+    @SuppressWarnings("unused")
     boolean addChannel(@NotNull final IChannel channel);
 
     /**

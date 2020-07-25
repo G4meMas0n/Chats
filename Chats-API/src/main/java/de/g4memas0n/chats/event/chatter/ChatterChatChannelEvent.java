@@ -4,6 +4,7 @@ import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Placeholder;
 import de.g4memas0n.chats.storage.configuration.ISettings;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +27,8 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
     public ChatterChatChannelEvent(@NotNull final IChatter sender,
                                    @NotNull final IChannel channel,
                                    @NotNull final String format,
-                                   @NotNull final String message,
-                                   final boolean async) {
-        super(sender, async);
+                                   @NotNull final String message) {
+        super(sender, !Bukkit.isPrimaryThread());
 
         this.channel = channel;
         this.format = format;
@@ -64,19 +64,19 @@ public final class ChatterChatChannelEvent extends ChatterEvent implements Cance
     /**
      * Sets the used chat format for this chat message.
      *
-     * <p>The given format must include the {@link Placeholder#MESSAGE} placeholder and one of the sender placeholders
-     * {@link Placeholder#SENDER} or {@link Placeholder#SENDER_PLAIN}, otherwise it will throw an exception.</p>
+     * <p>The given format must include the {@link Placeholder#MESSAGE} and {@link Placeholder#SENDER} placeholder,
+     * otherwise it will throw an exception.</p>
      *
      * @param format the new chat format.
      * @throws IllegalArgumentException Thrown when the given format does not include the required placeholders.
      */
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
-        if (!format.contains(Placeholder.SENDER.toString()) && !format.contains(Placeholder.SENDER_PLAIN.toString())) {
-            throw new IllegalArgumentException("Format is missing {sender} or {sender-plain} placeholder: " + format);
+        if (!format.contains(Placeholder.SENDER.toString())) {
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {sender} placeholder", format));
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         this.format = format;

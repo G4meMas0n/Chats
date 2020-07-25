@@ -49,7 +49,13 @@ public abstract class StorageChatter implements IStorageHolder {
     }
 
     protected final @Nullable String _getLastName() {
-        return this.storage.getString("last.name");
+        final String name = this.storage.getString("last.name");
+
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+
+        return name;
     }
 
     protected final void _setLastName(@NotNull final String name) {
@@ -104,8 +110,9 @@ public abstract class StorageChatter implements IStorageHolder {
         return this.instance.getChannelManager().getDefault();
     }
 
-    protected final void _setFocus(@NotNull final IChannel focus) {
-        this.storage.set("focus", focus.getFullName());
+    protected final void _setFocus(@Nullable final IChannel focus) {
+        this.storage.set("focus", focus != null ? focus.getFullName()
+                : this.instance.getChannelManager().getDefault().getFullName());
     }
 
     protected final @NotNull Set<IChannel> _getChannels() {

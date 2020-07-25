@@ -63,7 +63,7 @@ public final class ChannelBroadcastEvent extends ChannelEvent implements Cancell
      */
     public void setFormat(@NotNull final String format) throws IllegalArgumentException {
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         this.format = format;

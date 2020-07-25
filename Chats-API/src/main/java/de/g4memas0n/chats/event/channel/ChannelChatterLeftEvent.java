@@ -2,6 +2,7 @@ package de.g4memas0n.chats.event.channel;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +20,7 @@ public class ChannelChatterLeftEvent extends ChannelEvent {
 
     public ChannelChatterLeftEvent(@NotNull final IChannel channel,
                                    @NotNull final IChatter chatter) {
-        super(channel);
+        super(channel, !Bukkit.isPrimaryThread());
 
         this.chatter = chatter;
     }

@@ -169,7 +169,7 @@ public final class Settings implements ISettings {
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         this.formatAnnounce = format;
@@ -200,7 +200,7 @@ public final class Settings implements ISettings {
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         this.formatBroadcast = format;
@@ -230,12 +230,12 @@ public final class Settings implements ISettings {
             return;
         }
 
-        if (!format.contains(Placeholder.SENDER.toString()) && !format.contains(Placeholder.SENDER_PLAIN.toString())) {
-            throw new IllegalArgumentException("Format is missing {sender} or {sender-plain} placeholder: " + format);
+        if (!format.contains(Placeholder.SENDER.toString())) {
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {sender} placeholder", format));
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         this.formatChat = format;
@@ -266,15 +266,15 @@ public final class Settings implements ISettings {
         }
 
         if (!format.contains(Placeholder.CON_ADDRESS.toString())) {
-            throw new IllegalArgumentException("Format is missing {con-address} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {con-address} placeholder", format));
         }
 
         if (!format.contains(Placeholder.CON_PARTNER.toString())) {
-            throw new IllegalArgumentException("Format is missing {con-partner} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {con-partner} placeholder", format));
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
-            throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
         this.formatConversation = format;

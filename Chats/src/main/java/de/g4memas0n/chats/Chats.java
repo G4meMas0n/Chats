@@ -13,9 +13,11 @@ import de.g4memas0n.chats.command.delegate.ChatsCommand;
 import de.g4memas0n.chats.listener.BasicListener;
 import de.g4memas0n.chats.listener.ConnectionListener;
 import de.g4memas0n.chats.listener.PlayerListener;
-import de.g4memas0n.chats.listener.PluginListener;
+import de.g4memas0n.chats.listener.ServerListener;
 import de.g4memas0n.chats.messaging.Formatter;
+import de.g4memas0n.chats.messaging.IChat;
 import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.messaging.VaultChat;
 import de.g4memas0n.chats.storage.YamlStorageFile;
 import de.g4memas0n.chats.storage.configuration.Settings;
 import de.g4memas0n.chats.util.logging.BasicLogger;
@@ -63,7 +65,7 @@ public final class Chats extends JavaPlugin implements IChats {
     private Formatter formatter;
     private Messages messages;
     private Settings settings;
-    private Chat chatService;
+    private IChat chatService;
 
     private boolean enabled;
     private boolean loaded;
@@ -121,12 +123,12 @@ public final class Chats extends JavaPlugin implements IChats {
     }
 
     @Override
-    public @Nullable Chat getChatService() {
+    public @Nullable IChat getChatService() {
         return this.chatService;
     }
 
     @Override
-    public void setChatService(@Nullable final Chat service) {
+    public void setChatService(@Nullable final IChat service) {
         this.chatService = service;
     }
 
@@ -195,20 +197,20 @@ public final class Chats extends JavaPlugin implements IChats {
             this.getLogger().debug("Storage executor has been setup.");
         }
 
-        if (this.getServer().getPluginManager().getPlugin(PluginListener.VAULT) != null) {
-            this.getLogger().info("Detected supported plugin: 'Vault'! Setting up chat service...");
+        if (this.getServer().getPluginManager().getPlugin(ServerListener.VAULT) != null) {
+            this.getLogger().info("Detected supported plugin: Vault! Setting up chat service...");
 
             final RegisteredServiceProvider<Chat> rsp = this.getServer().getServicesManager().getRegistration(Chat.class);
 
             if (rsp != null) {
-                this.chatService = rsp.getProvider();
+                this.chatService = new VaultChat(rsp.getProvider());
 
-                this.getLogger().info("Chat service has been set up. Vault integration has been enabled.");
+                this.getLogger().info("Chat service has been setup. Vault integration has been enabled.");
             } else {
                 this.getLogger().warning("Unable to setup chat service. Vault integration has been disabled.");
             }
         } else {
-            this.getLogger().warning("Unable to detect plugin 'Vault'! Vault integration has been disabled.");
+            this.getLogger().warning("Unable to detect supported plugin: Vault! Vault integration has been disabled.");
         }
 
         this.channelManager.load();
@@ -232,7 +234,7 @@ public final class Chats extends JavaPlugin implements IChats {
         if (this.listeners.isEmpty()) {
             this.getLogger().debug("Setting up plugin listeners...");
 
-            this.listeners.add(new PluginListener());
+            this.listeners.add(new ServerListener());
             this.listeners.add(new ConnectionListener());
             this.listeners.add(new PlayerListener());
 

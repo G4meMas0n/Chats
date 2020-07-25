@@ -15,12 +15,12 @@ public abstract class ChatterEvent extends Event {
     private final IChatter chatter;
 
     protected ChatterEvent(@NotNull final IChatter chatter) {
-        super();
         this.chatter = chatter;
     }
 
     protected ChatterEvent(@NotNull final IChatter chatter, final boolean async) {
         super(async);
+
         this.chatter = chatter;
     }
 

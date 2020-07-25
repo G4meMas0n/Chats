@@ -13,17 +13,7 @@ public enum Placeholder {
     /**
      * Represents the color placeholder that will be replaced with the channels color code.
      */
-    CHANNEL_COLOR("{color}"),
-
-    /**
-     * Represents the name placeholder that will be replaced with the channels full name.
-     */
-    CHANNEL_NAME("{name}"),
-
-    /**
-     * Represents the nick placeholder that will be replaced with the channels short name.
-     */
-    CHANNEL_NICK("{nick}"),
+    COLOR("{color}"),
 
     /**
      * Represents the conversation address placeholder that will be replaced with "to" or "from".
@@ -41,35 +31,40 @@ public enum Placeholder {
     MESSAGE("{message}"),
 
     /**
-     * Represents the sender placeholder that will be replaced with the senders display name.
+     * Represents the name placeholder that will be replaced with the channels full name.
      */
-    SENDER("{sender}"),
+    NAME("{name}"),
 
     /**
-     * Represents the sender plain placeholder that will be replaced with the senders name.
+     * Represents the nick placeholder that will be replaced with the channels short name.
      */
-    SENDER_PLAIN("{sender-plain}"),
+    NICK("{nick}"),
 
     /**
      * Represents the group placeholder that will be replaced with the senders group name.
      *
      * <p><i><b>Note:</b> This only works with Vault.</i></p>
      */
-    SENDER_GROUP("{group}"),
+    GROUP("{group}"),
 
     /**
      * Represents the group prefix placeholder that will be replaced with the senders group prefix.
      *
      * <p><i><b>Note:</b> This only works with Vault.</i></p>
      */
-    SENDER_GROUP_PREFIX("{group-prefix}"),
+    GROUP_PREFIX("{group-prefix}"),
 
     /**
      * Represents the group suffix placeholder that will be replaced with the senders group suffix.
      *
      * <p><i><b>Note:</b> This only works with Vault.</i></p>
      */
-    SENDER_GROUP_SUFFIX("{group-suffix}"),
+    GROUP_SUFFIX("{group-suffix}"),
+
+    /**
+     * Represents the sender placeholder that will be replaced with the senders display name.
+     */
+    SENDER("{sender}"),
 
     /**
      * Represents the sender prefix placeholder that will be replaced with the senders prefix.
@@ -88,7 +83,7 @@ public enum Placeholder {
     /**
      * Represents the world placeholder that will be replaced with the senders world name.
      */
-    SENDER_WORLD("{world}");
+    WORLD("{world}");
 
     private final String placeholder;
 
@@ -108,7 +103,7 @@ public enum Placeholder {
      * @return the stripped input string.
      */
     public static @NotNull String stripPlaceholders(@NotNull String input) {
-        for (Placeholder current : Placeholder.values()) {
+        for (final Placeholder current : Placeholder.values()) {
             if (input.contains(current.toString())) {
                 input = input.replaceAll(current.toString(), "");
             }

@@ -432,17 +432,6 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         return new HashSet<>(this.storage.getUniqueIdList("bans"));
     }
 
-    @Override
-    public boolean setBans(@NotNull final Set<UUID> bans) {
-        if (super.setBans(bans)) {
-            this._setBans(bans);
-            this._delayedSave();
-            return true;
-        }
-
-        return false;
-    }
-
     protected void _setBans(@NotNull final Set<UUID> bans) {
         this.storage.set("bans", bans.stream().map(UUID::toString).collect(Collectors.toList()));
     }
@@ -465,17 +454,6 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         }
 
         return new HashSet<>(this.storage.getUniqueIdList("mutes"));
-    }
-
-    @Override
-    public boolean setMutes(@NotNull final Set<UUID> mutes) {
-        if (super.setMutes(mutes)) {
-            this._setMutes(mutes);
-            this._delayedSave();
-            return true;
-        }
-
-        return false;
     }
 
     protected void _setMutes(@NotNull final Set<UUID> mutes) {

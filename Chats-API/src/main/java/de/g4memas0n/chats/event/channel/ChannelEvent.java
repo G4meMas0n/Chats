@@ -15,7 +15,12 @@ public abstract class ChannelEvent extends Event {
     private final IChannel channel;
 
     protected ChannelEvent(@NotNull final IChannel channel) {
-        super();
+        this.channel = channel;
+    }
+
+    protected ChannelEvent(@NotNull final IChannel channel, final boolean async) {
+        super(async);
+
         this.channel = channel;
     }
 

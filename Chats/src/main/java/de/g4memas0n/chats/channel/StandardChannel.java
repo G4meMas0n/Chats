@@ -16,7 +16,6 @@ import de.g4memas0n.chats.event.chatter.ChatterChatChannelEvent;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.messaging.Placeholder;
 import de.g4memas0n.chats.util.type.ChannelType;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -328,8 +327,8 @@ public class StandardChannel implements IChannel {
             return true;
         }
 
-        if (!format.contains(Placeholder.SENDER.toString()) && !format.contains(Placeholder.SENDER_PLAIN.toString())) {
-            throw new IllegalArgumentException(String.format("Format '%s' is missing {sender} or {sender-plain} placeholder", format));
+        if (!format.contains(Placeholder.SENDER.toString())) {
+            throw new IllegalArgumentException(String.format("Format '%s' is missing {sender} placeholder", format));
         }
 
         if (!format.contains(Placeholder.MESSAGE.toString())) {
@@ -647,14 +646,12 @@ public class StandardChannel implements IChannel {
         return new HashSet<>(this.bans);
     }
 
-    @Override
-    public synchronized boolean setBans(@NotNull final Set<UUID> bans) {
+    protected synchronized void setBans(@NotNull final Set<UUID> bans) {
         if (bans.equals(this.bans)) {
-            return false;
+            return;
         }
 
         this.bans = new HashSet<>(bans);
-        return true;
     }
 
     @Override
@@ -676,14 +673,12 @@ public class StandardChannel implements IChannel {
         return new HashSet<>(this.mutes);
     }
 
-    @Override
-    public synchronized boolean setMutes(@NotNull final Set<UUID> mutes) {
+    protected synchronized void setMutes(@NotNull final Set<UUID> mutes) {
         if (mutes.equals(this.mutes)) {
-            return false;
+            return;
         }
 
         this.mutes = new HashSet<>(mutes);
-        return true;
     }
 
     @Override
@@ -779,8 +774,7 @@ public class StandardChannel implements IChannel {
         }
 
         final ChatterChatChannelEvent event = new ChatterChatChannelEvent(sender, this,
-                this.isCustomFormat() ? this.getChatFormat() : this.instance.getFormatter().getChatFormat(),
-                message, !Bukkit.isPrimaryThread());
+                this.isCustomFormat() ? this.getChatFormat() : this.instance.getFormatter().getChatFormat(), message);
 
         this.instance.getServer().getPluginManager().callEvent(event);
 

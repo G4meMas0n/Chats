@@ -7,12 +7,10 @@ import de.g4memas0n.chats.event.chatter.ChatterChatConversationEvent;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.util.type.ChannelType;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.text.MessageFormat;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -143,7 +141,7 @@ public final class ConversationChannel extends StandardChannel {
 
     @Override
     public synchronized boolean removeMember(@NotNull final IChatter chatter) {
-        if (this.getFullName().contains(chatter.getUniqueId().toString())) {
+        if (!this.getFullName().contains(chatter.getUniqueId().toString())) {
             return false;
         }
 
@@ -187,17 +185,7 @@ public final class ConversationChannel extends StandardChannel {
     }
 
     @Override
-    public boolean setBans(@NotNull final Set<UUID> bans) {
-        return false;
-    }
-
-    @Override
     public boolean setBanned(@NotNull final UUID uniqueId, final boolean banned) {
-        return false;
-    }
-
-    @Override
-    public boolean setMutes(@NotNull final Set<UUID> mutes) {
         return false;
     }
 
@@ -236,7 +224,7 @@ public final class ConversationChannel extends StandardChannel {
         }
 
         final ChatterChatConversationEvent event = new ChatterChatConversationEvent(sender, partner,
-                this.getChatFormat(), message, !Bukkit.isPrimaryThread());
+                this.getChatFormat(), message);
 
         this.instance.getServer().getPluginManager().callEvent(event);
 

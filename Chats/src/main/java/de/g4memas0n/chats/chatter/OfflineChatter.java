@@ -41,11 +41,11 @@ public class OfflineChatter extends StorageChatter implements IOfflineChatter {
         try {
             this.storage.delete();
 
-            this.instance.getLogger().debug(String.format("Deleted storage file '%s' of chatter with uuid: %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString()));
+            this.instance.getLogger().debug(String.format("Deleted storage file '%s' of chatter: %s",
+                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString()));
         } catch (IOException ex) {
-            this.instance.getLogger().warning(String.format("Unable to delete storage file '%s' of chatter with uuid '%s': %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString(), ex.getMessage()));
+            this.instance.getLogger().warning(String.format("Unable to delete storage file '%s' of chatter '%s': %s",
+                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString(), ex.getMessage()));
         }
     }
 
@@ -54,16 +54,18 @@ public class OfflineChatter extends StorageChatter implements IOfflineChatter {
         try {
             this.storage.load();
 
-            this.instance.getLogger().debug(String.format("Loaded storage file '%s' of chatter with uuid: %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString()));
+            this.name = this._getLastName();
+
+            this.instance.getLogger().debug(String.format("Loaded storage file '%s' of chatter: %s",
+                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString()));
         } catch (MissingStorageFileException ex) {
-            this.instance.getLogger().warning(String.format("Unable to find storage file '%s' of chatter with uuid: %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString()));
+            this.instance.getLogger().warning(String.format("Unable to find storage file '%s' of chatter: %s",
+                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString()));
 
             this.storage.clear();
         } catch (IOException | InvalidStorageFileException ex) {
-            this.instance.getLogger().log(Level.WARNING, String.format("Unable to load storage file '%s' of chatter with uuid: %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString()), ex);
+            this.instance.getLogger().log(Level.WARNING, String.format("Unable to load storage file '%s' of chatter: %s",
+                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString()), ex);
 
             this.storage.clear();
         }
@@ -71,20 +73,19 @@ public class OfflineChatter extends StorageChatter implements IOfflineChatter {
         final UUID uniqueId = this._getUniqueId();
 
         if (!this.uniqueId.equals(uniqueId)) {
-            this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter with uuid: %s",
-                    uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(), this.uniqueId.toString()));
+            this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter: %s",
+                    uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(),
+                    this.name != null ? this.name : this.uniqueId.toString()));
 
             this._setUniqueId(this.uniqueId);
             this._delayedSave();
         }
 
-        this.name = this._getLastName();
-
         if (this.name == null || this.name.isEmpty()) {
-            this.instance.getLogger().warning(String.format("Detected missing name in storage file '%s' of chatter with uuid: %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString()));
+            this.instance.getLogger().warning(String.format("Detected missing name in storage file '%s' of chatter: %s",
+                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString()));
 
-            this.name = "Unknown";
+            this.name = null;
         }
     }
 
@@ -97,16 +98,20 @@ public class OfflineChatter extends StorageChatter implements IOfflineChatter {
         try {
             this.storage.save();
 
-            this.instance.getLogger().debug(String.format("Saved storage file '%s' of chatter with uuid: %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString()));
+            this.instance.getLogger().debug(String.format("Saved storage file '%s' of chatter: %s",
+                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString()));
         } catch (IOException ex) {
-            this.instance.getLogger().warning(String.format("Unable to save storage file '%s' of chatter with uuid '%s': %s",
-                    this.storage.getFile().getName(), this.uniqueId.toString(), ex.getMessage()));
+            this.instance.getLogger().warning(String.format("Unable to save storage file '%s' of chatter '%s': %s",
+                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString(), ex.getMessage()));
         }
     }
 
     @Override
     public final @NotNull String getName() {
+        if (this.name == null) {
+            return "Unknown";
+        }
+
         return this.name;
     }
 
