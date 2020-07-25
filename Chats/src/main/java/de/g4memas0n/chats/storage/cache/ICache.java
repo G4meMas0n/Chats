@@ -11,6 +11,7 @@ import java.util.Map;
  * @author G4meMas0n
  * @param <K> the type of the keys of this cache.
  * @param <V> the type of the values of this cache.
+ * @since Release 1.0.0
  */
 public interface ICache<K, V> {
 

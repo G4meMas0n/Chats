@@ -131,13 +131,13 @@ public class UniqueIdCache implements ICache<String, UUID>, IStorageHolder {
 
     @Override
     public void put(@NotNull final String key, @NotNull final UUID value) {
-        this.storage.set(key.toLowerCase(), value);
+        this.storage.set(key.toLowerCase(), value.toString());
     }
 
     @Override
     public void putAll(@NotNull final Map<String, UUID> values) {
         for (final Map.Entry<String, UUID> entry : values.entrySet()) {
-            this.storage.set(entry.getKey().toLowerCase(), entry.getValue());
+            this.storage.set(entry.getKey().toLowerCase(), entry.getValue().toString());
         }
     }
 
