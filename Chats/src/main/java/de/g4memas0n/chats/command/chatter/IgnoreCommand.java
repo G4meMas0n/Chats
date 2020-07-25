@@ -4,6 +4,7 @@ import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.util.StringUtil;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 import static de.g4memas0n.chats.messaging.Messages.tlJoin;
 
 /**
@@ -71,8 +71,7 @@ public final class IgnoreCommand extends ChatterCommand {
             }
 
             if (target.equals(sender)) {
-                sender.sendMessage(tlErr("ignoreSelf"));
-                return true;
+                throw new InvalidArgumentException("ignoreSelf");
             }
 
             if (sender.isIgnore(target.getUniqueId())) {
@@ -80,13 +79,8 @@ public final class IgnoreCommand extends ChatterCommand {
                 return true;
             }
 
-            if (sender.canIgnore(target)) {
-                if (sender.addIgnore(target.getUniqueId())) {
-                    sender.sendMessage(tl("ignoreChatter", target.getDisplayName()));
-                    return true;
-                }
-
-                sender.sendMessage(tl("ignoreAlready", target.getDisplayName()));
+            if (sender.canIgnore(target) && sender.addIgnore(target.getUniqueId())) {
+                sender.sendMessage(tl("ignoreChatter", target.getDisplayName()));
                 return true;
             }
 

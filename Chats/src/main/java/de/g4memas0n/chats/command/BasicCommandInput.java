@@ -51,7 +51,7 @@ public final class BasicCommandInput implements ICommandInput {
         try {
             return ChatColor.valueOf(this.arguments[index].toUpperCase());
         } catch (IllegalArgumentException ex) {
-            throw new InvalidArgumentException("invalidColor", this.arguments[index]);
+            throw new InvalidArgumentException("colorNotFound", this.arguments[index]);
         }
     }
 
@@ -81,30 +81,17 @@ public final class BasicCommandInput implements ICommandInput {
     public boolean getBoolean(final int index) throws InvalidArgumentException {
         final String bool = this.arguments[index];
 
-        if (bool.equalsIgnoreCase("false")) {
+        if (bool.equalsIgnoreCase("false") || bool.equalsIgnoreCase("off")
+                || bool.equalsIgnoreCase("disable")) {
             return false;
         }
 
-        if (bool.equalsIgnoreCase("true")) {
+        if (bool.equalsIgnoreCase("true") || bool.equalsIgnoreCase("on")
+                || bool.equalsIgnoreCase("enable")) {
             return true;
         }
 
         throw new InvalidArgumentException("invalidBoolean", bool);
-    }
-
-    @Override
-    public boolean getEnable(final int index) throws InvalidArgumentException {
-        final String bool = this.arguments[index];
-
-        if (bool.equalsIgnoreCase("off") || bool.equalsIgnoreCase("enable")) {
-            return false;
-        }
-
-        if (bool.equalsIgnoreCase("on") || bool.equalsIgnoreCase("disable")) {
-            return true;
-        }
-
-        throw new InvalidArgumentException("invalidState", bool);
     }
 
     @Override
@@ -115,9 +102,7 @@ public final class BasicCommandInput implements ICommandInput {
             if (!Double.isNaN(result) && !Double.isInfinite(result)) {
                 return result;
             }
-        } catch (NumberFormatException ignored) {
-
-        }
+        } catch (NumberFormatException ignored) { }
 
         throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
     }
@@ -130,9 +115,7 @@ public final class BasicCommandInput implements ICommandInput {
             if (!Float.isNaN(result) && !Float.isInfinite(result)) {
                 return result;
             }
-        } catch (NumberFormatException ignored) {
-
-        }
+        } catch (NumberFormatException ignored) { }
 
         throw new InvalidArgumentException("invalidNumber", this.arguments[index]);
     }

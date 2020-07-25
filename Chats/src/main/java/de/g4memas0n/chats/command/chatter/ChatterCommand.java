@@ -5,7 +5,7 @@ import de.g4memas0n.chats.command.BasicPluginCommand;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
-import de.g4memas0n.chats.messaging.Messages;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
@@ -36,8 +36,7 @@ public abstract class ChatterCommand extends BasicPluginCommand {
             return this.execute((IChatter) sender, input);
         }
 
-        sender.sendMessage(Messages.tlErr("commandNotAvailable", this.getName()));
-        return true;
+        throw new InvalidArgumentException("commandNotAvailable", this.getName());
     }
 
     /**

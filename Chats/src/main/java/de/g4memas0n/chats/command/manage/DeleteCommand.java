@@ -7,6 +7,7 @@ import de.g4memas0n.chats.command.ChannelNotExistException;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +16,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The delete command that allows to delete a channel.
@@ -66,8 +66,7 @@ public final class DeleteCommand extends BasicCommand {
 
             if (sender.canDelete(channel)) {
                 if (channel.isDefault()) {
-                    sender.sendMessage(tlErr("deleteDefault"));
-                    return true;
+                    throw new InvalidArgumentException("deleteDefault");
                 }
 
                 if (this.getInstance().getChannelManager().removeChannel(channel)) {
@@ -75,8 +74,7 @@ public final class DeleteCommand extends BasicCommand {
                     return true;
                 }
 
-                sender.sendMessage(tlErr("deleteAlready", channel.getFullName()));
-                return true;
+                throw new ChannelNotExistException(input.get(CHANNEL));
             }
 
             sender.sendMessage(tl("deleteDenied", channel.getFullName()));

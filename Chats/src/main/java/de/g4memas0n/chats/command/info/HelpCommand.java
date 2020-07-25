@@ -4,6 +4,8 @@ import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.BasicPluginCommand;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
+import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.util.StringUtil;
@@ -13,7 +15,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The help command that allows to show a list of available commands or the help of a command.
@@ -40,14 +41,13 @@ public final class HelpCommand extends BasicCommand {
 
     @Override
     public boolean execute(@NotNull final ICommandSource sender,
-                           @NotNull final ICommandInput input) {
+                           @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
             if (input.getLength() == this.getMaxArgs()) {
                 final BasicCommand command = this.getRegistered(input.get(COMMAND));
 
                 if (command == null || command.hide(sender) || !sender.hasPermission(command.getPermission())) {
-                    sender.sendMessage(tlErr("commandNotFound", input.get(COMMAND)));
-                    return true;
+                    throw new InvalidArgumentException("commandNotFound", input.get(COMMAND));
                 }
 
                 sender.sendMessage(tl("helpHeader", command.getName()));

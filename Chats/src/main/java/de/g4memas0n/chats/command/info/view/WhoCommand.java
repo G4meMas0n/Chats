@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.command.moderate;
+package de.g4memas0n.chats.command.info.view;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
@@ -8,6 +8,7 @@ import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
+import de.g4memas0n.chats.util.type.InfoType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -15,25 +16,24 @@ import java.util.Collections;
 import java.util.List;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
+import static de.g4memas0n.chats.messaging.Messages.tlJoin;
 
 /**
- * The broadcast command that allows to send broadcasts to channels.
+ * The who command that allows to show the members of a channel.
  *
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public final class BroadcastCommand extends BasicCommand {
+public final class WhoCommand extends BasicCommand {
 
     private static final int CHANNEL = 0;
-    private static final int MESSAGE = 1;
 
-    public BroadcastCommand() {
-        super("broadcast", 2, -1);
+    public WhoCommand() {
+        super("who", 1 ,1);
 
-        this.setAliases(Collections.singletonList("bc"));
-        this.setDescription("Broadcasts a message to a channel.");
-        this.setPermission(Permission.BROADCAST.getNode());
-        this.setUsage("/channel (broadcast|bc) <channel> <message>");
+        this.setDescription("Shows the members of a channel.");
+        this.setPermission(Permission.VIEW_WHO.getNode());
+        this.setUsage("/channel who <channel>");
     }
 
     @Override
@@ -44,7 +44,7 @@ public final class BroadcastCommand extends BasicCommand {
                     continue;
                 }
 
-                if (sender.canModerate(channel)) {
+                if (sender.canViewWho(channel)) {
                     return false;
                 }
             }
@@ -65,12 +65,43 @@ public final class BroadcastCommand extends BasicCommand {
                 throw new ChannelNotExistException(input.get(CHANNEL));
             }
 
-            if (sender.canModerate(channel)) {
-                this.getInstance().runSyncTask(() -> channel.performBroadcast(input.getMessage(MESSAGE)));
+            if (sender.canViewWho(channel)) {
+                final List<String> members = new ArrayList<>();
+
+                final boolean viewOwn = sender.canView(channel, InfoType.OWNER);
+                final boolean viewMutes = sender.canView(channel, InfoType.MUTES);
+
+                for (final IChatter member : channel.getMembers()) {
+                    if (!sender.canSee(member)) {
+                        continue;
+                    }
+
+                    final StringBuilder displayed = new StringBuilder();
+
+                    if (channel.isOwner(member.getUniqueId()) && viewOwn) {
+                        displayed.append(tl("prefixOwner"));
+                    }
+
+                    if (channel.isMuted(member.getUniqueId()) && viewMutes) {
+                        displayed.append(tl("prefixMuted"));
+                    }
+
+                    members.add(displayed.append(member.getDisplayName()).toString());
+                }
+
+                if (members.isEmpty()) {
+                    sender.sendMessage(tl("whoNobody", channel.getColoredName()));
+                    return true;
+                }
+
+                Collections.sort(members);
+
+                sender.sendMessage(tl("whoHeader", channel.getColoredName()));
+                sender.sendMessage(tlJoin("whoList", members));
                 return true;
             }
 
-            sender.sendMessage(tl("moderateDenied", channel.getColoredName()));
+            sender.sendMessage(tl("whoDenied", channel.getColoredName()));
             return true;
         }
 
@@ -88,7 +119,7 @@ public final class BroadcastCommand extends BasicCommand {
                     continue;
                 }
 
-                if (sender.canModerate(channel)) {
+                if (sender.canViewWho(channel)) {
                     if (StringUtil.startsWithIgnoreCase(channel.getFullName(), input.get(CHANNEL))) {
                         completion.add(channel.getFullName());
                     }

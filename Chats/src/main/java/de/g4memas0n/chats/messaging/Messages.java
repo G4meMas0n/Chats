@@ -1,6 +1,8 @@
 package de.g4memas0n.chats.messaging;
 
 import de.g4memas0n.chats.util.logging.BasicLogger;
+import de.g4memas0n.chats.util.type.ModifyType;
+import de.g4memas0n.chats.util.type.StorageType;
 import de.g4memas0n.chats.util.type.Type;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
@@ -95,14 +97,14 @@ public final class Messages {
                 try {
                     return this.customBundle.getString(key);
                 } catch (MissingResourceException ex) {
-                    this.logger.warning(String.format("Missing translation key '%s' in custom translation file: %s",
+                    this.logger.warning(String.format("Missing translation key '%s' in custom translation file for language: %s",
                             ex.getKey(), this.customBundle.getBaseBundleName()));
                 }
             }
 
             return this.localBundle.getString(key);
         } catch (MissingResourceException ex) {
-            this.logger.warning(String.format("Missing translation key '%s' in translation file %s",
+            this.logger.warning(String.format("Missing translation key '%s' in translation file for language: %s",
                     ex.getKey(), this.getLocale()));
 
             return this.defaultBundle.getString(key);
@@ -111,6 +113,30 @@ public final class Messages {
 
     public synchronized @NotNull String translateError(@NotNull final String key) {
         return this.translate("prefixError") + " " + this.translate(key);
+    }
+
+    public synchronized @NotNull String translateType(@NotNull final Type type) {
+        if (type == ModifyType.ANNOUNCE_FORMAT) {
+            return this.format("format", this.translate("announce"));
+        }
+
+        if (type == ModifyType.BROADCAST_FORMAT) {
+            return this.format("format", this.translate("broadcast"));
+        }
+
+        if (type == ModifyType.CHAT_FORMAT) {
+            return this.format("format", this.translate("chat"));
+        }
+
+        if (type == StorageType.CHANNEL) {
+            return this.translate("channels");
+        }
+
+        if (type == StorageType.CHATTER) {
+            return this.translate("chatters");
+        }
+
+        return this.translate(type.getKey());
     }
 
     public synchronized @NotNull String format(@NotNull final String key,
@@ -206,7 +232,7 @@ public final class Messages {
             return "\u00a74Error: \u00a7cMessages not loaded.";
         }
 
-        return instance.translate(type.getKey());
+        return instance.translateType(type);
     }
 
     /**

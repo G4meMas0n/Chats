@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.command.view;
+package de.g4memas0n.chats.command.info.view;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
@@ -19,7 +19,6 @@ import java.util.List;
 import static de.g4memas0n.chats.messaging.Messages.tl;
 import static de.g4memas0n.chats.messaging.Messages.tlBool;
 import static de.g4memas0n.chats.messaging.Messages.tlState;
-import static de.g4memas0n.chats.messaging.Messages.tlType;
 
 /**
  * The info command that allows to show information's of a channel.
@@ -93,7 +92,7 @@ public final class InfoCommand extends BasicCommand {
                 }
 
                 if (sender.canView(channel, InfoType.TYPE)) {
-                    sender.sendMessage(tl("infoType", tlType(channel.getType())));
+                    sender.sendMessage(tl("infoType", tl(channel.getType().getIdentifier())));
                 }
 
                 if (sender.canView(channel, InfoType.VERBOSE)) {

@@ -2,13 +2,14 @@ package de.g4memas0n.chats.listener;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.jetbrains.annotations.NotNull;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
 
 /**
  * The Player Listener, listening for the async player chat event.
@@ -36,7 +37,7 @@ public final class PlayerListener extends BasicListener {
 
         if (chatter.canSpeak(focus)) {
             if (focus.isMuted(chatter.getUniqueId()) && !chatter.hasPermission(Permission.MUTE.getChildren("bypass"))) {
-                chatter.sendMessage(Messages.tl("mutedMember", focus.getColoredName()));
+                chatter.sendMessage(tl("mutedMember", focus.getColoredName()));
                 return;
             }
 
@@ -50,6 +51,6 @@ public final class PlayerListener extends BasicListener {
             return;
         }
 
-        chatter.sendMessage(Messages.tl("chatDenied", focus.getColoredName()));
+        chatter.sendMessage(tl("chatDenied", focus.getColoredName()));
     }
 }

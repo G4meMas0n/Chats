@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.command.storage;
+package de.g4memas0n.chats.command.manage.storage;
 
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.command.BasicCommand;
@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The cleanup command that cleans up old chatter storage files.
@@ -99,7 +98,7 @@ public final class CleanupCommand extends BasicCommand {
                 this.getInstance().getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage task to terminate.", ex);
             }
 
-            sender.sendMessage(tlErr("cleanupFailed"));
+            sender.sendMessage(tl("cleanupFailed"));
             return true;
         }
 

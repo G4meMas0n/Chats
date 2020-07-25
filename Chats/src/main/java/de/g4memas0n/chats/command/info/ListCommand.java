@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
 import static de.g4memas0n.chats.messaging.Messages.tlJoin;
-import static de.g4memas0n.chats.messaging.Messages.tlType;
 
 /**
  * The list command that allows to list available channels.
@@ -50,7 +49,7 @@ public final class ListCommand extends BasicCommand {
                 final ChannelType type = ChannelType.getType(input.get(TYPE));
 
                 if (type == null) {
-                    throw new InvalidArgumentException("invalidType", input.get(TYPE));
+                    throw new InvalidArgumentException("typeNotFound", input.get(TYPE));
                 }
 
                 if (sender.canList(type)) {
@@ -59,27 +58,22 @@ public final class ListCommand extends BasicCommand {
                             .map(IChannel::getColoredName).collect(Collectors.toList());
 
                     if (channels.isEmpty()) {
-                        sender.sendMessage(tl("listEmpty", tlType(type)));
+                        sender.sendMessage(tl("listEmpty", tl(type.getIdentifier())));
                         return true;
                     }
 
-                    sender.sendMessage(tl("listHeader", tlType(type)));
+                    sender.sendMessage(tl("listHeader", tl(type.getIdentifier())));
                     sender.sendMessage(tlJoin("listChannels", channels));
                     return true;
                 }
 
-                sender.sendMessage(tl("listDenied", tlType(type)));
+                sender.sendMessage(tl("listDenied", tl(type.getIdentifier())));
                 return true;
             }
 
             final List<String> channels = this.getInstance().getChannelManager().getChannels().stream()
                     .filter(channel -> sender.canList(channel) || channel.isDefault()).sorted()
                     .map(IChannel::getColoredName).collect(Collectors.toList());
-
-            // Should be always false, but is checked to ensure that the collection is not empty.
-            if (channels.isEmpty()) {
-                channels.add(this.getInstance().getChannelManager().getDefault().getColoredName());
-            }
 
             sender.sendMessage(tl("listHeader", tl("channels")));
             sender.sendMessage(tlJoin("listChannels", channels));

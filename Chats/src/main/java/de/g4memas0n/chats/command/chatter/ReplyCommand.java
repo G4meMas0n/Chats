@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The reply command that allows to start a conversation with or send a private message to the last conversation partner.
@@ -38,11 +37,6 @@ public final class ReplyCommand extends ChatterCommand {
 
             if (partner == null || !sender.canSee(partner)) {
                 sender.sendMessage(tl("noLastPartner"));
-                return true;
-            }
-
-            if (partner.equals(sender)) {
-                sender.sendMessage(tlErr("msgSelf"));
                 return true;
             }
 

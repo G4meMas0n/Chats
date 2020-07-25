@@ -5,6 +5,7 @@ import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.command.ChannelNotExistException;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The focus command that allows to focus a new channel.
@@ -63,8 +63,7 @@ public final class FocusCommand extends ChatterCommand {
                         }
 
                         if (!input.get(PASSWORD).equals(channel.getPassword())) {
-                            sender.sendMessage(tlErr("passwordInvalid"));
-                            return true;
+                            throw new InvalidArgumentException("passwordWrong");
                         }
                     } else {
                         if (input.getLength() != this.getMinArgs()) {

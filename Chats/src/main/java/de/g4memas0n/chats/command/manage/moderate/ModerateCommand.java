@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.command.moderate;
+package de.g4memas0n.chats.command.manage.moderate;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;

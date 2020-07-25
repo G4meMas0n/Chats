@@ -1,6 +1,7 @@
 package de.g4memas0n.chats.command.manage;
 
-import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.channel.PersistChannel;
+import de.g4memas0n.chats.channel.StandardChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.ICommandInput;
@@ -8,19 +9,14 @@ import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.command.InvalidArgumentException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
-import static de.g4memas0n.chats.messaging.Messages.tlType;
 
 /**
  * The create command that allows to create a new channel.
@@ -50,19 +46,11 @@ public final class CreateCommand extends BasicCommand {
     public boolean hide(@NotNull final ICommandSource sender) {
         if (sender instanceof IChatter && !sender.hasPermission(Permission.CREATE.getChildren("unlimited"))) {
             final IChatter creator = (IChatter) sender;
-            final Set<IChannel> owning = new HashSet<>();
 
-            for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-                if (channel.isConversation()) {
-                    continue;
-                }
+            final long owning = this.getInstance().getChannelManager().getChannels().stream()
+                    .filter(channel -> channel.isOwner(creator.getUniqueId())).count();
 
-                if (channel.isOwner(creator.getUniqueId())) {
-                    owning.add(channel);
-                }
-            }
-
-            return owning.size() >= LIMIT;
+            return owning >= LIMIT;
         }
 
         return false;
@@ -72,71 +60,72 @@ public final class CreateCommand extends BasicCommand {
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
-            if (this.getInstance().getChannelManager().hasChannel(input.get(NAME))) {
-                sender.sendMessage(tlErr("channelAlreadyExist", input.get(NAME)));
-                return true;
+            final String fullName = input.get(NAME);
+
+            if (!fullName.matches(StandardChannel.REGEX) || fullName.equalsIgnoreCase(StandardChannel.INVALID)) {
+                throw new InvalidArgumentException("invalidName");
+            }
+
+            if (this.getInstance().getChannelManager().hasChannel(fullName)) {
+                throw new InvalidArgumentException("channelAlreadyExist", fullName);
             }
 
             final ChannelType type = input.getLength() == this.getMaxArgs()
                     ? ChannelType.getType(input.get(TYPE)) : ChannelType.getDefault();
 
             if (type == null || type == ChannelType.CONVERSATION) {
-                throw new InvalidArgumentException("invalidType", input.get(TYPE));
+                throw new InvalidArgumentException("typeNotFound", input.get(TYPE));
             }
 
             if (sender.canCreate(type)) {
-                final IChatter creator = sender instanceof IChatter ? (IChatter) sender : null;
-
-                if (creator != null && !sender.hasPermission(Permission.CREATE.getChildren("unlimited"))) {
-                    final Set<IChannel> owning = new HashSet<>();
-
-                    for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
-                        if (channel.isConversation()) {
-                            continue;
-                        }
-
-                        if (channel.isOwner(creator.getUniqueId())) {
-                            owning.add(channel);
-                        }
-                    }
-
-                    if (owning.size() >= LIMIT) {
-                        sender.sendMessage(tl("createLimit", 1));
-                        return true;
-                    }
-                }
-
-                try {
-                    final IChannel channel = this.getInstance().getChannelManager().addChannel(input.get(NAME), type);
+                if (type == ChannelType.PERSIST) {
+                    final PersistChannel channel = this.getInstance().getChannelManager().addPersist(fullName);
 
                     if (channel == null) {
-                        sender.sendMessage(tlErr("createAlready", input.get(NAME)));
-                        return true;
+                        throw new InvalidArgumentException("channelAlreadyExist", fullName);
                     }
 
-                    if (channel.isStandard() && creator != null) {
-                        channel.setOwner(creator.getUniqueId());
-                        channel.addMember(creator);
+                    this.getInstance().runStorageTask(channel::save);
 
-                        sender.sendMessage(tl("createChannel", channel.getFullName(), tlType(type)));
-                        sender.sendMessage(tl("joinChannel", channel.getColoredName()));
-                        return true;
-                    }
-
-                    if (channel.isPersist() && channel instanceof IStorageHolder) {
-                        final IStorageHolder holder = (IStorageHolder) channel;
-
-                        this.getInstance().runStorageTask(holder::save);
-                    }
-
-                    sender.sendMessage(tl("createChannel", channel.getFullName(), tlType(type)));
+                    sender.sendMessage(tl("createChannel", channel.getFullName(), tl("persist")));
                     return true;
-                } catch (IllegalArgumentException ex) {
-                    throw new InvalidArgumentException("invalidName", input.get(NAME));
                 }
+
+                if (type == ChannelType.STANDARD) {
+                    final IChatter creator = sender instanceof IChatter ? (IChatter) sender : null;
+
+                    if (creator != null && !creator.hasPermission(Permission.CREATE.getChildren("unlimited"))) {
+                        final long owning = this.getInstance().getChannelManager().getChannels().stream()
+                                .filter(channel -> channel.isOwner(creator.getUniqueId())).count();
+
+                        if (owning >= LIMIT) {
+                            sender.sendMessage(tl("createLimit", 1));
+                            return true;
+                        }
+                    }
+
+                    final StandardChannel channel = this.getInstance().getChannelManager().addStandard(fullName);
+
+                    if (channel == null) {
+                        throw new InvalidArgumentException("channelAlreadyExist", fullName);
+                    }
+
+                    sender.sendMessage(tl("createChannel", channel.getFullName(), tl("standard")));
+
+                    if (creator != null) {
+                        channel.setOwner(creator.getUniqueId());
+                        channel.addMember(creator, true);
+
+                        sender.sendMessage(tl("joinChannel", channel.getFullName()));
+                    }
+
+                    return true;
+                }
+
+                throw new InvalidArgumentException("typeNotAvailable", tl(type.getIdentifier()));
             }
 
-            sender.sendMessage(tl("createDenied", tlType(type)));
+            sender.sendMessage(tl("createDenied", tl(type.getIdentifier())));
             return true;
         }
 

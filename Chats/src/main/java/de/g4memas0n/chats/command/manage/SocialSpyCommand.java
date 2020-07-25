@@ -52,7 +52,7 @@ public final class SocialSpyCommand extends BasicCommand {
                 }
 
                 if (!target.equals(sender)) {
-                    if (target.setSocialSpy(input.getEnable(ENABLE))) {
+                    if (target.setSocialSpy(input.getBoolean(ENABLE))) {
                         sender.sendMessage(tl("spyChangedOther", target.getDisplayName(), tlState(target.isSocialSpy())));
                         return true;
                     }
@@ -65,7 +65,7 @@ public final class SocialSpyCommand extends BasicCommand {
             if (sender instanceof IChatter) {
                 final IChatter target = (IChatter) sender;
 
-                if (target.setSocialSpy(input.getLength() == this.getMinArgs() ? !target.isSocialSpy() : input.getEnable(ENABLE))) {
+                if (target.setSocialSpy(input.getLength() == this.getMinArgs() ? !target.isSocialSpy() : input.getBoolean(ENABLE))) {
                     sender.sendMessage(tl("spyChanged", tlState(target.isSocialSpy())));
                     return true;
                 }
@@ -89,20 +89,20 @@ public final class SocialSpyCommand extends BasicCommand {
         if (input.getLength() == ENABLE + 1) {
             final List<String> completion = new ArrayList<>();
 
-            if (StringUtil.startsWithIgnoreCase("off", input.get(ENABLE))) {
-                completion.add("off");
-            }
-
-            if (StringUtil.startsWithIgnoreCase("on", input.get(ENABLE))) {
-                completion.add("on");
-            }
-
             if (StringUtil.startsWithIgnoreCase("disable", input.get(ENABLE))) {
                 completion.add("disable");
             }
 
             if (StringUtil.startsWithIgnoreCase("enable", input.get(ENABLE))) {
                 completion.add("enable");
+            }
+
+            if (StringUtil.startsWithIgnoreCase("off", input.get(ENABLE))) {
+                completion.add("off");
+            }
+
+            if (StringUtil.startsWithIgnoreCase("on", input.get(ENABLE))) {
+                completion.add("on");
             }
 
             return completion;

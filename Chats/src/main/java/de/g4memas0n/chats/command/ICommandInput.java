@@ -78,16 +78,6 @@ public interface ICommandInput {
     boolean getBoolean(final int index) throws InvalidArgumentException;
 
     /**
-     * Gets the requested enable state by the given index, throwing an exception when the argument at the given index
-     * is not a parsable enable state.
-     *
-     * @param index the index of the argument.
-     * @return the parsed enable state as boolean.
-     * @throws InvalidArgumentException Thrown when the argument at the given index is not a parsable enable state.
-     */
-    boolean getEnable(final int index) throws InvalidArgumentException;
-
-    /**
      * Gets the requested double by the given index, throwing an exception when the argument at the given index is not
      * a parsable double value.
      *

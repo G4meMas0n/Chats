@@ -1,11 +1,11 @@
 package de.g4memas0n.chats.command.delegate;
 
-import de.g4memas0n.chats.command.storage.CleanupCommand;
+import de.g4memas0n.chats.command.manage.storage.CleanupCommand;
 import de.g4memas0n.chats.command.info.HelpCommand;
-import de.g4memas0n.chats.command.storage.ReloadCommand;
+import de.g4memas0n.chats.command.manage.storage.ReloadCommand;
 import de.g4memas0n.chats.command.manage.SocialSpyCommand;
 import de.g4memas0n.chats.command.info.VersionCommand;
-import de.g4memas0n.chats.command.storage.SaveCommand;
+import de.g4memas0n.chats.command.manage.storage.SaveCommand;
 import de.g4memas0n.chats.permission.Permission;
 
 /**

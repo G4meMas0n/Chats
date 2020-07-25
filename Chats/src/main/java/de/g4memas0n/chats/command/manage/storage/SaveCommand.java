@@ -1,12 +1,14 @@
-package de.g4memas0n.chats.command.storage;
+package de.g4memas0n.chats.command.manage.storage;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.channel.PersistChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.ChannelNotExistException;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.storage.IStorageHolder;
@@ -17,11 +19,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 import static de.g4memas0n.chats.messaging.Messages.tlType;
 
 /**
@@ -61,18 +61,16 @@ public final class SaveCommand extends BasicCommand {
 
             if (sender.canSave(type)) {
                 if (input.getLength() == this.getMaxArgs()) {
-                    if (type.equals(StorageType.CHANNEL)) {
+                    if (type == StorageType.CHANNEL) {
                         final IChannel channel = this.getInstance().getChannelManager().getChannel(input.get(STORAGE));
 
                         if (channel == null || channel.isConversation()) {
                             throw new ChannelNotExistException(input.get(STORAGE));
                         }
 
-                        if (channel.isPersist() && channel instanceof IStorageHolder) {
-                            final Future<?> task = this.getInstance().runStorageTask(((IStorageHolder) channel)::save);
-
+                        if (channel instanceof PersistChannel) {
                             try {
-                                task.get();
+                                this.getInstance().runStorageTask(((PersistChannel) channel)::save).get();
 
                                 sender.sendMessage(tl("saveChannel", channel.getFullName()));
                                 return true;
@@ -86,21 +84,18 @@ public final class SaveCommand extends BasicCommand {
                             return true;
                         }
 
-                        sender.sendMessage(tlErr("channelNotPersist", channel.getFullName()));
-                        return true;
+                        throw new InvalidArgumentException("channelNotPersist", channel.getFullName());
                     }
 
-                    if (type.equals(StorageType.CHATTER)) {
+                    if (type == StorageType.CHATTER) {
                         final IChatter chatter = this.getInstance().getChatterManager().getChatter(input.get(STORAGE));
 
                         if (chatter == null || !sender.canSee(chatter)) {
                             throw new PlayerNotFoundException(input.get(STORAGE));
                         }
 
-                        final Future<?> task = this.getInstance().runStorageTask(chatter::save);
-
                         try {
-                            task.get();
+                            this.getInstance().runStorageTask(chatter::save).get();
 
                             sender.sendMessage(tl("saveChatter", chatter.getDisplayName()));
                             return true;
@@ -117,7 +112,7 @@ public final class SaveCommand extends BasicCommand {
                     return false;
                 }
 
-                if (type.equals(StorageType.ALL)) {
+                if (type == StorageType.ALL) {
                     this.getInstance().saveConfig();
                     this.getInstance().getChannelManager().save();
                     this.getInstance().getChatterManager().save();
@@ -126,25 +121,25 @@ public final class SaveCommand extends BasicCommand {
                     return true;
                 }
 
-                if (type.equals(StorageType.CHANNEL)) {
+                if (type == StorageType.CHANNEL) {
                     this.getInstance().getChannelManager().save();
                     this.getInstance().getChatterManager().save();
 
-                    sender.sendMessage(tl("saveComplete", tlType(type)));
+                    sender.sendMessage(tl("saveComplete", tl("channels")));
                     return true;
                 }
 
-                if (type.equals(StorageType.CHATTER)) {
+                if (type == StorageType.CHATTER) {
                     this.getInstance().getChatterManager().save();
 
-                    sender.sendMessage(tl("saveComplete", tlType(type)));
+                    sender.sendMessage(tl("saveComplete", tl("chatters")));
                     return true;
                 }
 
-                if (type.equals(StorageType.CONFIG)) {
+                if (type == StorageType.CONFIG) {
                     this.getInstance().saveConfig();
 
-                    sender.sendMessage(tl("saveComplete", tlType(type)));
+                    sender.sendMessage(tl("saveComplete", tl("config")));
                     return true;
                 }
 
@@ -174,14 +169,14 @@ public final class SaveCommand extends BasicCommand {
         }
 
         if (input.getLength() == STORAGE + 1) {
-            final StorageType type = StorageType.getType(input.get(STORAGE));
+            final StorageType type = StorageType.getType(input.get(TYPE));
 
             if (type == null) {
                 return Collections.emptyList();
             }
 
             if (sender.canSave(type)) {
-                if (type.equals(StorageType.CHANNEL)) {
+                if (type == StorageType.CHANNEL) {
                     final List<String> completion = new ArrayList<>();
 
                     for (final IChannel channel : this.getInstance().getChannelManager().getChannels()) {
@@ -199,7 +194,7 @@ public final class SaveCommand extends BasicCommand {
                     return completion;
                 }
 
-                if (type.equals(StorageType.CHATTER)) {
+                if (type == StorageType.CHATTER) {
                     final List<String> completion = new ArrayList<>();
 
                     for (final IChatter chatter : this.getInstance().getChatterManager().getChatters()) {

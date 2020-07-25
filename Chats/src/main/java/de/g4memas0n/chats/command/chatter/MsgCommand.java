@@ -4,6 +4,7 @@ import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import de.g4memas0n.chats.command.PlayerNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.util.StringUtil;
@@ -14,7 +15,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The msg command that allows to start a conversation with or send a private message to a player.
@@ -47,8 +47,7 @@ public final class MsgCommand extends ChatterCommand {
             }
 
             if (partner.equals(sender)) {
-                sender.sendMessage(tlErr("msgSelf"));
-                return true;
+                throw new InvalidArgumentException("msgSelf");
             }
 
             if (sender.isIgnore(partner.getUniqueId())) {

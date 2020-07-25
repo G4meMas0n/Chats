@@ -5,6 +5,7 @@ import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.command.ChannelNotExistException;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * The leave command that allows to leave a channel.
@@ -45,8 +45,7 @@ public final class LeaveCommand extends ChatterCommand {
 
             if (sender.canLeave(channel)) {
                 if (channel.isDefault()) {
-                    sender.sendMessage(tlErr("leaveDefault"));
-                    return true;
+                    throw new InvalidArgumentException("leaveDefault");
                 }
 
                 if (sender.leaveChannel(channel)) {
