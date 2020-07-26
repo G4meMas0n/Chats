@@ -13,8 +13,6 @@ public enum Permission {
     /**
      * Permissions for banning chatters from channels.
      *
-     * <p>Allows to access the "ban" command.</p>
-     *
      * <p>Available ban permissions:<br>
      * - {@code chats.ban} (Allows to access the "ban" command)<br>
      * - {@code chats.ban.bypass} (Allows to bypass channel bans)<br>
@@ -54,8 +52,6 @@ public enum Permission {
     /**
      * Permission for creating channels.
      *
-     * <p>Allows to access the "create" command and to create channels of different types.</p>
-     *
      * <p>Available create permissions:<br>
      * - {@code chats.create} (Allows to access the "create" command)<br>
      * - {@code chats.create.unlimited} (Allows to create an unlimited count of new channels)<br>
@@ -68,26 +64,22 @@ public enum Permission {
     /**
      * Permission for deleting channels.
      *
-     * <p>Allows to access the "delete" command and to delete channels of different types.</p>
-     *
      * <p>Available delete permissions:<br>
      * - {@code chats.delete} (Allows to access the "delete" command)<br>
+     * - {@code chats.delete.own} (Allows to delete owning channels)<br>
      * - {@code chats.delete.type.persist} (Allows to delete persistent channels)<br>
      * - {@code chats.delete.type.standard} (Allows to delete standard channels)<br>
-     * - {@code chats.delete.type.*} (Allows to delete all channels)<br>
-     * - {@code chats.delete.own} (Allows to delete owning channels)</p>
+     * - {@code chats.delete.type.*} (Allows to delete all channels)</p>
      */
     DELETE("delete", true),
 
     /**
      * Permission for focusing channels.
      *
-     * <p>Allows to access the "focus" command and to focus persistent channels.</p>
-     *
      * <p>Available focus permissions:<br>
      * - {@code chats.focus} (Allows to access the "focus" command)<br>
-     * - {@code chats.focus.persist.<channel>} (Allows to focus the specified persistent channel)<br>
-     * - {@code chats.focus.persist.all} (Allows to focus all persistent channels)</p>
+     * - {@code chats.focus.persist.all} (Allows to focus all persistent channels)<br>
+     * - {@code chats.focus.persist.<channel>} (Allows to focus the specified persistent channel)</p>
      */
     FOCUS("focus", true),
 
@@ -98,7 +90,7 @@ public enum Permission {
      * - {@code chats.force.exempt} (Allows to being exempt from forcing actions)<br>
      * - {@code chats.force.focus.<channel>} (Forces to focus the specified persistent channel on login)<br>
      * - {@code chats.force.join.<channel>} (Forces to join the specified persistent channel on login)<br>
-     * - {@code chats.force.leave.<channel>} (Forces to leave the specified persistent channel on login and logout)</p>
+     * - {@code chats.force.leave.<channel>} (Forces to leave the specified persistent channel on logout)</p>
      */
     FORCE("force", true),
 
@@ -112,8 +104,6 @@ public enum Permission {
     /**
      * Permission for ignoring chatters.
      *
-     * <p>Allows to access the "ignore" and the "unignore" command and to ignore and unignore other chatters.</p>
-     *
      * <p>Available ignore permissions:<br>
      * - {@code chats.ignore} (Allows to access the "ignore" and "unignore" command)<br>
      * - {@code chats.ignore.bypass} (Allows to bypass ignores)<br>
@@ -124,19 +114,15 @@ public enum Permission {
     /**
      * Permission for joining channels.
      *
-     * <p>Allows to access the "join" command and to join persistent channels.</p>
-     *
      * <p>Available join permissions:<br>
      * - {@code chats.join} (Allows to access the "join" command)<br>
-     * - {@code chats.join.persist.<channel>} (Allows to join the specified persistent channel)<br>
-     * - {@code chats.join.persist.all} (Allows to join all persistent channels)</p>
+     * - {@code chats.join.persist.all} (Allows to join all persistent channels)<br>
+     * - {@code chats.join.persist.<channel>} (Allows to join the specified persistent channel)</p>
      */
     JOIN("join", true),
 
     /**
      * Permission for kicking chatters from channels.
-     *
-     * <p>Allows to access the "kick" command.</p>
      *
      * <p>Available kick permissions:<br>
      * - {@code chats.kick} (Allows to access the "kick" command)<br>
@@ -150,8 +136,6 @@ public enum Permission {
     /**
      * Permission for leaving channels.
      *
-     * <p>Allows to access the "leave" command and to leave persistent channels.</p>
-     *
      * <p>Available leave permissions:<br>
      * - {@code chats.leave} (Allows to access the "leave" command)<br>
      * - {@code chats.leave.persist.<channel>} (Allows to leave the specified persistent channel)<br>
@@ -161,8 +145,6 @@ public enum Permission {
 
     /**
      * Permission for listing channels.
-     *
-     * <p>Allows to access the "list" command and to list channels of different types.</p>
      *
      * <p>Available list permissions:<br>
      * - {@code chats.list} (Allows to access the "list" command)<br>
@@ -176,13 +158,11 @@ public enum Permission {
     /**
      * Permission for moderating channels.
      *
-     * <p>Allows to access moderating commands and to moderate persist or standard channels.</p>
-     *
      * <p>Available moderating permissions:<br>
      * - {@code chats.moderate} (Allows to access moderating commands)<br>
      * - {@code chats.moderate.own} (Allows to moderate owning channels)<br>
-     * - {@code chats.moderate.persist.<channel>} (Allows to moderate the specified persistent channel)<br>
      * - {@code chats.moderate.persist.all} (Allows to moderate all persistent channels)<br>
+     * - {@code chats.moderate.persist.<channel>} (Allows to moderate the specified persistent channel)<br>
      * - {@code chats.moderate.standard.all} (Allows to moderate all standard channels)</p>
      */
     MODERATE("moderate", true),
@@ -190,11 +170,12 @@ public enum Permission {
     /**
      * Permission for modifying channels.
      *
-     * <p>Allows to access the "modify" command and to modify channels.</p>
-     *
      * <p>Available modify permissions:<br>
      * - {@code chats.modify} (Allows to access the "modify" command)<br>
      * - {@code chats.modify.own} (Allows to modify owning channels)<br>
+     * - {@code chats.modify.persist.<channel>} (Allows to modify the specified persistent channel)<br>
+     * - {@code chats.modify.persist.all} (Allows to modify all persistent channels)<br>
+     * - {@code chats.modify.standard.all} (Allows to modify all standard channels)<br>
      * - {@code chats.modify.type.announce-format} (Allows to modify the announce format)<br>
      * - {@code chats.modify.type.broadcast-format} (Allows to modify the broadcast format)<br>
      * - {@code chats.modify.type.chat-format} (Allows to modify the chat format)<br>
@@ -202,14 +183,11 @@ public enum Permission {
      * - {@code chats.modify.type.cross-world} (Allows to modify the cross world option)<br>
      * - {@code chats.modify.type.custom-format} (Allows to modify the custom format option)<br>
      * - {@code chats.modify.type.distance} (Allows to modify the distance)<br>
-     * - {@code chats.modify.type.moderator} (Allows to modify the moderators)<br>
      * - {@code chats.modify.type.owner} (Allows to modify the owner)<br>
      * - {@code chats.modify.type.password} (Allows to modify the password)<br>
      * - {@code chats.modify.type.short-name} (Allows to modify the short name)<br>
-     * - {@code chats.modify.type.*} (Allows to modify all types)<br>
-     * - {@code chats.modify.persist.<channel>} (Allows to modify the specified persistent channel)<br>
-     * - {@code chats.modify.persist.all} (Allows to modify all persistent channels)<br>
-     * - {@code chats.modify.standard.all} (Allows to modify all standard channels)</p>
+     * - {@code chats.modify.type.verbose} (Allows to modify the verbose option)<br>
+     * - {@code chats.modify.type.*} (Allows to modify all types)</p>
      *
      * <p><i><b>Note:</b> For owning channels all types, except the owner, can be modified. So modify type permissions
      * are not required for modify owning channels.</i></p>
@@ -218,8 +196,6 @@ public enum Permission {
 
     /**
      * Permission for chatting with chatters.
-     *
-     * <p>Allows to access the "msg" and "reply" command and to chat with other chatters.</p>
      *
      * <p>Available msg permissions:<br>
      * - {@code chats.msg} (Allows to access the "msg" and "reply" command)<br>
@@ -230,8 +206,6 @@ public enum Permission {
 
     /**
      * Permission for muting chatters in channels.
-     *
-     * <p>Allows to access the "mute" command.</p>
      *
      * <p>Available mute permissions:<br>
      * - {@code chats.mute} (Allows to access the "mute" command)<br>
@@ -256,8 +230,6 @@ public enum Permission {
     /**
      * Permission for reloading the plugin.
      *
-     * <p>Allows to access the "reload" command and to reload parts of the plugin.</p>
-     *
      * <p>Available reload permissions:<br>
      * - {@code chats.reload} (Allows to access the "reload" command)<br>
      * - {@code chats.reload.type.all} (Allows to reload all sections of the plugin)<br>
@@ -270,8 +242,6 @@ public enum Permission {
 
     /**
      * Permission for saving the plugin.
-     *
-     * <p>Allows to access the "save" command and to save parts of the plugin.</p>
      *
      * <p>Available save permissions:<br>
      * - {@code chats.save} (Allows to access the "save" command)<br>
@@ -286,8 +256,6 @@ public enum Permission {
     /**
      * Permission for social spying.
      *
-     * <p>Allows to access the "social-spy" command and to enabled/disabled social spying.</p>
-     *
      * <p>Available social-spy permissions:<br>
      * - {@code chats.social-spy} (Allows to access the "social-spy" command)<br>
      * - {@code chats.social-spy.exempt} (Allows to being exempt from social-spies)</p>
@@ -296,8 +264,6 @@ public enum Permission {
 
     /**
      * Permission for speaking in channels.
-     *
-     * <p>Allows to access the "chat" command and to speak in persistent channels.</p>
      *
      * <p>Available speak permissions:<br>
      * - {@code chats.speak} (Allows to access the "chat" command)<br>
@@ -325,19 +291,17 @@ public enum Permission {
     /**
      * Permission for viewing channel information's.
      *
-     * <p>Allows to view information's of channels.</p>
-     *
      * <p>Available view permissions:<br>
      * - {@code chats.view.type.color} (Allows to view the color)<br>
      * - {@code chats.view.type.cross-world} (Allows to view the cross-world option)<br>
      * - {@code chats.view.type.distance} (Allows to view the distance)<br>
      * - {@code chats.view.type.formats} (Allows to view the formats)<br>
-     * - {@code chats.view.type.moderators} (Allows to view the moderators)<br>
      * - {@code chats.view.type.mutes} (Allows to view the mutes)<br>
      * - {@code chats.view.type.owner} (Allows to view the owner)<br>
      * - {@code chats.view.type.password} (Allows to view the password)<br>
      * - {@code chats.view.type.short-name} (Allows to view the short-name)<br>
      * - {@code chats.view.type.type} (Allows to view the channel type)<br>
+     * - {@code chats.view.type.verbose} (Allows to view the verbose option)<br>
      * - {@code chats.view.type.*} (Allows to view all types)<br>
      * - {@link Permission#VIEW_INFO}<br>
      * - {@link Permission#VIEW_WHO}</p>
@@ -346,8 +310,6 @@ public enum Permission {
 
     /**
      * Permission for viewing information's of channels.
-     *
-     * <p>Allows to access the "info" command.</p>
      *
      * <p>Available info permissions:<br>
      * - {@code chats.view.info} (Allows to access the "info" command)<br>
@@ -360,8 +322,6 @@ public enum Permission {
 
     /**
      * Permission for viewing members of channels.
-     *
-     * <p>Allows to access the "who" command.</p>
      *
      * <p>Available who permissions:<br>
      * - {@code chats.view.who} (Allows to access the the "who" command)<br>
