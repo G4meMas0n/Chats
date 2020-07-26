@@ -7,7 +7,9 @@ import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
 import de.g4memas0n.chats.storage.IStorageHolder;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +26,8 @@ import static de.g4memas0n.chats.messaging.Messages.tl;
  * @since Release 1.0.0
  */
 public final class CleanupCommand extends BasicCommand {
+
+    private static final String[] COMMON_DAYS = new String[]{"7", "30", "90", "180", "365"};
 
     private static final int DAYS = 0;
 
@@ -108,6 +112,18 @@ public final class CleanupCommand extends BasicCommand {
     @Override
     public @NotNull List<String> tabComplete(@NotNull final ICommandSource sender,
                                              @NotNull final ICommandInput input) {
+        if (input.getLength() == DAYS + 1) {
+            final List<String> completion = new ArrayList<>();
+
+            for (final String days : COMMON_DAYS) {
+                if (StringUtil.startsWithIgnoreCase(days, input.get(DAYS))) {
+                    completion.add(days);
+                }
+            }
+
+            return completion;
+        }
+
         return Collections.emptyList();
     }
 }
