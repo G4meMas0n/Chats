@@ -72,6 +72,7 @@ public interface ICache<K, V> {
      * @param key the key of the entry to add.
      * @param value the value of the entry to add.
      */
+    @SuppressWarnings("unused")
     void put(@NotNull final K key, @NotNull final V value);
 
     /**

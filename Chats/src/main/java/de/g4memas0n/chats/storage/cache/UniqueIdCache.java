@@ -19,7 +19,7 @@ import java.util.UUID;
  * @author G4meMason
  * @since Release 1.0.0
  */
-public class UniqueIdCache implements ICache<String, UUID>, IStorageHolder {
+public final class UniqueIdCache implements ICache<String, UUID>, IStorageHolder {
 
     private final YamlStorageFile storage;
     private final BasicLogger logger;
@@ -138,6 +138,23 @@ public class UniqueIdCache implements ICache<String, UUID>, IStorageHolder {
     public void putAll(@NotNull final Map<String, UUID> values) {
         for (final Map.Entry<String, UUID> entry : values.entrySet()) {
             this.storage.set(entry.getKey().toLowerCase(), entry.getValue().toString());
+        }
+    }
+
+    public void update(@NotNull final String key, @NotNull final UUID value) {
+        final UUID cached = this.storage.getUniqueId(key.toLowerCase());
+
+        if (cached == null || !cached.equals(value)) {
+            for (final String name : this.storage.getKeys(false)) {
+                final UUID uniqueId = this.storage.getUniqueId(name);
+
+                if (uniqueId == null || uniqueId.equals(value)) {
+                    this.storage.set(name, null);
+                }
+            }
+
+            this.storage.set(key.toLowerCase(), value.toString());
+            this.save();
         }
     }
 

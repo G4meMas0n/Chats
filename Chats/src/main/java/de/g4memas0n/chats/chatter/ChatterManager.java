@@ -111,7 +111,7 @@ public final class ChatterManager implements IChatterManager {
         this.chatters.put(player.getUniqueId(), chatter);
         this.offlines.remove(player.getUniqueId());
 
-        this.instance.runStorageTask(() -> this.updateCache(chatter));
+        this.instance.runStorageTask(() -> this.cache.update(player.getName(), player.getUniqueId()));
 
         return chatter;
     }
@@ -282,22 +282,5 @@ public final class ChatterManager implements IChatterManager {
 
             this.instance.getLogger().info("Online chatters has been saved.");
         }
-    }
-
-    private void updateCache(@NotNull final IChatter chatter) {
-        final UUID cached = this.cache.get(chatter.getName());
-
-        if (cached != null && cached.equals(chatter.getUniqueId())) {
-            return;
-        }
-
-        for (final Map.Entry<String, UUID> entry : this.cache.getAll().entrySet()) {
-            if (entry.getValue().equals(chatter.getUniqueId())) {
-                this.cache.invalidate(entry.getKey());
-            }
-        }
-
-        this.cache.put(chatter.getName(), chatter.getUniqueId());
-        this.cache.save();
     }
 }
