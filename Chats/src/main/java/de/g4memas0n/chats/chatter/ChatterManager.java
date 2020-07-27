@@ -127,7 +127,7 @@ public final class ChatterManager implements IChatterManager {
         }
 
         for (final IChannel channel : chatter.getChannels()) {
-            channel.removeMember(chatter, true);
+            channel.setMember(chatter, false);
         }
 
         return chatter;

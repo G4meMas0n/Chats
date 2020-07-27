@@ -126,6 +126,15 @@ public final class ConversationChannel extends StandardChannel {
     }
 
     @Override
+    public synchronized boolean setMember(@NotNull final IChatter chatter, final boolean member) {
+        if (!this.getFullName().contains(chatter.getUniqueId().toString())) {
+            return false;
+        }
+
+        return super.setMember(chatter, member);
+    }
+
+    @Override
     public synchronized boolean addMember(@NotNull final IChatter chatter) {
         if (!this.getFullName().contains(chatter.getUniqueId().toString())) {
             return false;

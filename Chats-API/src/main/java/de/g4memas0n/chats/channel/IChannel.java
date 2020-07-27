@@ -266,6 +266,32 @@ public interface IChannel extends Comparable<IChannel> {
     @NotNull Set<IChatter> getMembers();
 
     /**
+     * Sets a member for this channel.
+     *
+     * <p><b>Please do not use this method unless you know exactly what you are doing.</b></p>
+     *
+     * <p>This method will only add/remove the given chatter to/from this channel, without adding/removing this channel
+     * to/from the given chatter and without announcing the join/leave.</p>
+     *
+     * <p>For correctly adding/removing chatters to/from a channel, use following channel methods:<br>
+     *  - {@link IChannel#addMember(IChatter) addMember(IChatter chatter)} or
+     * {@link IChannel#addMember(IChatter, boolean) addMember(IChatter chatter, boolean silent)}<br>
+     *  - {@link IChannel#removeMember(IChatter) removeMember(IChatter chatter)} or
+     * {@link IChannel#removeMember(IChatter, boolean) removeMember(IChatter chatter, boolean silent)}</p>
+     *
+     * <p>Otherwise the following chatter methods can also be used:<br>
+     *  - {@link IChatter#joinChannel(IChannel) joinChannel(IChannel channel)} or
+     * {@link IChatter#joinChannel(IChannel, boolean) joinChannel(IChannel channel, boolean silent)}<br>
+     *  - {@link IChatter#leaveChannel(IChannel) leaveChannel(IChannel channel)} or
+     * {@link IChatter#leaveChannel(IChannel, boolean) leaveChannel(IChannel channel, boolean silent)}</p>
+     *
+     * @param chatter the chatter to set.
+     * @param member true to add the chatter, false to remove the chatter.
+     * @return true when the chatter was added or remove as result of this call, false otherwise.
+     */
+    boolean setMember(@NotNull final IChatter chatter, final boolean member);
+
+    /**
      * Adds a new member to this channel.
      *
      * <p>This method will add this channel to the given chatter when it is not already added.</p>

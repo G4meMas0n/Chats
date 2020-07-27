@@ -458,6 +458,11 @@ public class StandardChannel implements IChannel {
     }
 
     @Override
+    public synchronized boolean setMember(@NotNull final IChatter chatter, final boolean member) {
+        return member ? this.members.add(chatter) : this.members.remove(chatter);
+    }
+
+    @Override
     public boolean addMember(@NotNull final IChatter chatter) {
         return this.addMember(chatter, false);
     }

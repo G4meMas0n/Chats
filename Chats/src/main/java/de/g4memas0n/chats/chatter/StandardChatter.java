@@ -116,12 +116,8 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
         }
 
         if (!this.channels.isEmpty()) {
-            for (final Iterator<IChannel> iterator = this.channels.iterator(); iterator.hasNext();) {
-                final IChannel channel = iterator.next();
-
-                iterator.remove();
-                channel.removeMember(this, true);
-            }
+            this.channels.forEach(channel -> channel.setMember(this, false));
+            this.channels.clear();
         }
 
         this.focused = this._getFocus();
@@ -171,7 +167,7 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
 
         this.ignores = this._getIgnores();
 
-        this.channels.forEach(channel -> channel.addMember(this, true));
+        this.channels.forEach(channel -> channel.setMember(this, true));
     }
 
     @Override

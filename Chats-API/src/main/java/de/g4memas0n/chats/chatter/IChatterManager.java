@@ -67,6 +67,8 @@ public interface IChatterManager extends IStorageContainer {
     /**
      * Unloads the chatter that represents the given player, removes it from this manager and returns it.
      *
+     * <p><i><b>Note:</b> An unloaded chatter can no longer chat unless he gets loaded again.</i></p>
+     *
      * @param player the player of the chatter to unload.
      * @return the unloaded chatter that represents the given player.
      */
