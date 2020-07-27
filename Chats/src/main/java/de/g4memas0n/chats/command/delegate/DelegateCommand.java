@@ -103,6 +103,11 @@ public abstract class DelegateCommand extends BasicPluginCommand {
     }
 
     @Override
+    public final boolean hide(@NotNull final ICommandSource sender) {
+        return false;
+    }
+
+    @Override
     public final boolean execute(@NotNull final ICommandSource sender,
                                  @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
@@ -128,11 +133,6 @@ public abstract class DelegateCommand extends BasicPluginCommand {
             return true;
         }
 
-        return false;
-    }
-
-    @Override
-    public final boolean hide(@NotNull final ICommandSource sender) {
         return false;
     }
 

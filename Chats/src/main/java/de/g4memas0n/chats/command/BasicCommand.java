@@ -106,6 +106,12 @@ public abstract class BasicCommand {
                 : arguments >= this.minArgs;
     }
 
+    /**
+     * Returns whether this command is hidden from the the given command sender.
+     *
+     * @param sender the sender to check if this command is hidden.
+     * @return true when this command is hidden from the sender, false otherwise.
+     */
     public abstract boolean hide(@NotNull final ICommandSource sender);
 
     /**
