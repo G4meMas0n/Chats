@@ -13,7 +13,7 @@
 
     <name>Chats-API</name>
     <artifactId>chats-api</artifactId>
-    <version>1.0.0-pre3</version>
+    <version>1.0.0-pre4</version>
 
     <build>
         <directory>target</directory>
