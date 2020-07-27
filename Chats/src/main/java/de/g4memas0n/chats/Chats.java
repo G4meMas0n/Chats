@@ -288,8 +288,8 @@ public final class Chats extends JavaPlugin implements IChats {
             this.getLogger().log(Level.SEVERE, "Thread got interrupted while waiting for storage executor to terminate.", ex);
         }
 
-        if (this.pluginLogger.getFileHandler() != null) {
-            this.pluginLogger.getFileHandler().close();
+        if (this.chatLogger.getFileHandler() != null) {
+            this.chatLogger.getFileHandler().close();
         }
 
         this.channelManager = null;
