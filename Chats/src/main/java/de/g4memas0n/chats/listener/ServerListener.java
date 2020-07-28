@@ -44,13 +44,18 @@ public final class ServerListener extends BasicListener {
             final Plugin owner = event.getProvider().getPlugin();
 
             if (owner.getName().equalsIgnoreCase(VAULT)) {
-                this.getInstance().getLogger().info("Detected service registration of supported plugin: Vault! Setting up chat service...");
+                this.getInstance().getLogger().info("Detected chat service registration! Setting up chat service...");
             } else {
-                this.getInstance().getLogger().info("Detected custom service registration of supported plugin: Vault! Setting up chat service...");
+                this.getInstance().getLogger().info("Detected custom chat service registration! Setting up custom chat service...");
             }
 
             this.getInstance().setChatService(new VaultChat((Chat) event.getProvider().getProvider()));
-            this.getInstance().getLogger().info("Chat service has been setup. Vault integration has been enabled.");
+
+            if (owner.getName().equalsIgnoreCase(VAULT)) {
+                this.getInstance().getLogger().info("Chat service has been setup. Vault integration has been enabled.");
+            } else {
+                this.getInstance().getLogger().info("Custom chat service has been setup.");
+            }
         }
     }
 
@@ -64,9 +69,9 @@ public final class ServerListener extends BasicListener {
             this.getInstance().setChatService(null);
 
             if (owner.getName().equalsIgnoreCase(VAULT)) {
-                this.getInstance().getLogger().warning("Detected service unregistration of supported plugin: Vault! Vault integration has been disabled.");
+                this.getInstance().getLogger().warning("Detected chat service unregistration! Vault integration has been disabled.");
             } else {
-                this.getInstance().getLogger().warning("Detected custom service unregistration of supported plugin: Vault! Vault integration has been disabled.");
+                this.getInstance().getLogger().warning("Detected custom chat service unregistration! Custom chat service has been disabled.");
             }
         }
     }

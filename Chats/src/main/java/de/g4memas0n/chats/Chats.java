@@ -219,26 +219,18 @@ public final class Chats extends JavaPlugin implements IChats {
         this.messages.enable();
 
         if (this.commands.isEmpty()) {
-            this.getLogger().debug("Setting up plugin commands...");
-
             this.commands.add(new ChannelCommand());
             this.commands.add(new ChatsCommand());
             this.commands.add(new IgnoreCommand());
             this.commands.add(new MsgCommand());
             this.commands.add(new ReplyCommand());
             this.commands.add(new UnignoreCommand());
-
-            this.getLogger().debug("All plugin commands has been setup.");
         }
 
         if (this.listeners.isEmpty()) {
-            this.getLogger().debug("Setting up plugin listeners...");
-
             this.listeners.add(new ServerListener());
             this.listeners.add(new ConnectionListener());
             this.listeners.add(new PlayerListener());
-
-            this.getLogger().debug("All plugin listeners has been setup.");
         }
 
         this.getLogger().debug("Register all plugin commands and listeners...");
