@@ -35,7 +35,7 @@ public final class ReplyCommand extends ChatterCommand {
         if (this.argsInRange(input.getLength())) {
             final IChatter partner = sender.getLastPartner();
 
-            if (partner == null || !sender.canSee(partner)) {
+            if (partner == null /* || !sender.canSee(partner) */) {
                 sender.sendMessage(tl("noLastPartner"));
                 return true;
             }

@@ -73,19 +73,19 @@ public class OfflineChatter extends StorageChatter implements IOfflineChatter {
         final UUID uniqueId = this._getUniqueId();
 
         if (!this.uniqueId.equals(uniqueId)) {
-            this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter: %s",
-                    uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(),
-                    this.name != null ? this.name : this.uniqueId.toString()));
+            if (this.storage.getFile().exists()) {
+                this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter: %s",
+                        uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(),
+                        this.name != null ? this.name : this.uniqueId.toString()));
+            }
 
             this._setUniqueId(this.uniqueId);
             this._delayedSave();
         }
 
-        if (this.name == null || this.name.isEmpty()) {
+        if (this.name == null && this.storage.getFile().exists()) {
             this.instance.getLogger().warning(String.format("Detected missing name in storage file '%s' of chatter: %s",
                     this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString()));
-
-            this.name = null;
         }
     }
 
@@ -104,6 +104,15 @@ public class OfflineChatter extends StorageChatter implements IOfflineChatter {
             this.instance.getLogger().warning(String.format("Unable to save storage file '%s' of chatter '%s': %s",
                     this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString(), ex.getMessage()));
         }
+    }
+
+    @Override
+    protected synchronized void _delayedSave() {
+        if (this.saveTask != null && !this.saveTask.isDone() && !this.saveTask.isCancelled()) {
+            return;
+        }
+
+        this.saveTask = this.instance.scheduleStorageTask(this::save);
     }
 
     @Override

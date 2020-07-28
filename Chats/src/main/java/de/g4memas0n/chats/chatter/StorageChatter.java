@@ -32,13 +32,7 @@ public abstract class StorageChatter implements IStorageHolder {
         this.storage = storage;
     }
 
-    protected synchronized void _delayedSave() {
-        if (this.saveTask != null && !this.saveTask.isDone() && !this.saveTask.isCancelled()) {
-            return;
-        }
-
-        this.saveTask = this.instance.scheduleStorageTask(this::save);
-    }
+    protected abstract void _delayedSave();
 
     protected final @Nullable UUID _getUniqueId() {
         return this.storage.getUniqueId("uuid");
@@ -97,6 +91,11 @@ public abstract class StorageChatter implements IStorageHolder {
     }
 
     protected final @NotNull IChannel _getFocus() {
+        if (!this.storage.contains("focus")) {
+            this._setFocus(this.instance.getChannelManager().getDefault());
+            this._delayedSave();
+        }
+
         final String name = this.storage.getString("focus");
 
         if (name != null && !name.isEmpty()) {

@@ -18,6 +18,7 @@ import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -44,7 +45,7 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
     private IChannel lastFocused;
     private IChannel lastPersist;
 
-    private UUID lastPartner;
+    private WeakReference<IChatter> lastPartner;
 
     private boolean muted;
     private boolean socialSpy;
@@ -98,8 +99,10 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
         final UUID uniqueId = this._getUniqueId();
 
         if (!this.player.getUniqueId().equals(uniqueId)) {
-            this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter: %s",
-                    uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(), this.player.getName()));
+            if (this.storage.getFile().exists()) {
+                this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter: %s",
+                        uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(), this.player.getName()));
+            }
 
             this._setUniqueId(this.player.getUniqueId());
             this._delayedSave();
@@ -108,16 +111,23 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
         final String name = this._getLastName();
 
         if (!this.player.getName().equals(name)) {
-            this.instance.getLogger().warning(String.format("Detected %s name in storage file '%s' of chatter: %s",
-                    name != null ? "old" : "missing", this.storage.getFile().getName(), this.player.getName()));
+            if (this.storage.getFile().exists()) {
+                this.instance.getLogger().warning(String.format("Detected %s name in storage file '%s' of chatter: %s",
+                        name != null ? "old" : "missing", this.storage.getFile().getName(), this.player.getName()));
+            }
 
             this._setLastName(this.player.getName());
             this._delayedSave();
         }
 
         if (!this.channels.isEmpty()) {
-            this.channels.forEach(channel -> channel.setMember(this, false));
-            this.channels.clear();
+            for (final Iterator<IChannel> iterator = this.channels.iterator(); iterator.hasNext();) {
+                final IChannel channel = iterator.next();
+
+                iterator.remove();
+
+                channel.setMember(this, false);
+            }
         }
 
         this.focused = this._getFocus();
@@ -179,8 +189,8 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
         if (!this.storage.getFile().exists()) {
             this._setUniqueId(this.player.getUniqueId());
             this._setLastName(this.player.getName());
-            this._setChannels(this.channels);
             this._setFocus(this.focused.isPersist() ? this.focused : this.lastPersist);
+            this._setChannels(this.channels);
             this._setMuted(this.muted);
             this._setSocialSpy(this.socialSpy);
             this._setIgnores(this.ignores);
@@ -199,6 +209,7 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
         }
     }
 
+    @Override
     protected synchronized final void _delayedSave() {
         if (!this.instance.getSettings().isAutoSave()) {
             return;
@@ -334,17 +345,15 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
 
     @Override
     public synchronized @Nullable IChatter getLastPartner() {
-        if (this.lastPartner != null) {
-            final IChatter partner = this.instance.getChatterManager().getChatter(this.lastPartner);
+        final IChatter partner = this.lastPartner != null ? this.lastPartner.get() : null;
 
-            if (partner != null) {
-                return partner;
-            }
-
+        if (partner == null || !partner.equals(this.instance.getChatterManager().getChatter(partner.getUniqueId()))) {
             this.lastPartner = null;
+
+            return null;
         }
 
-        return null;
+        return partner;
     }
 
     @Override
@@ -353,11 +362,11 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
             throw new IllegalArgumentException("Partner can not be himself");
         }
 
-        if (partner.getUniqueId().equals(this.lastPartner)) {
+        if (partner.equals(this.lastPartner != null ? this.lastPartner.get() : null)) {
             return false;
         }
 
-        this.lastPartner = partner.getUniqueId();
+        this.lastPartner = new WeakReference<>(partner);
         return true;
     }
 
