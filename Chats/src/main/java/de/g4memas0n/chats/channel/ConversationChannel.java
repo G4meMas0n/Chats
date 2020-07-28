@@ -30,8 +30,8 @@ public final class ConversationChannel extends StandardChannel {
         super.setColor(ChatColor.LIGHT_PURPLE);
         super.setVerbose(false);
 
-        this.addMember(first);
-        this.addMember(second);
+        this.addMember(first, true);
+        this.addMember(second, true);
     }
 
     // Channel Properties Methods:
@@ -131,7 +131,13 @@ public final class ConversationChannel extends StandardChannel {
             return false;
         }
 
-        return super.setMember(chatter, member);
+        final boolean success = super.setMember(chatter, member);
+
+        if (success && !member) {
+            this.instance.runSyncTask(() -> this.instance.getChannelManager().removeChannel(this));
+        }
+
+        return success;
     }
 
     @Override
@@ -156,7 +162,6 @@ public final class ConversationChannel extends StandardChannel {
 
         if (super.removeMember(chatter, true)) {
             this.instance.runSyncTask(() -> this.instance.getChannelManager().removeChannel(this));
-
             return true;
         }
 
