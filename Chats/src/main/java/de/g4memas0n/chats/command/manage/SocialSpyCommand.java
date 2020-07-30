@@ -30,9 +30,7 @@ public final class SocialSpyCommand extends BasicCommand {
     public SocialSpyCommand() {
         super("social-spy", 0, 2);
 
-        this.setDescription("Enables or disables social spying.");
         this.setPermission(Permission.SOCIAL_SPY.getNode());
-        this.setUsage("/chats social-spy [(on|off) [<player>]]");
     }
 
     @Override

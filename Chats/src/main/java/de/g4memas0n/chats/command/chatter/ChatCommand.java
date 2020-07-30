@@ -28,9 +28,7 @@ public final class ChatCommand extends ChatterCommand {
     public ChatCommand() {
         super("chat", 2, -1);
 
-        this.setDescription("Sends a message in a channel without changing the focused channel.");
         this.setPermission(Permission.SPEAK.getNode());
-        this.setUsage("/chat <channel> <message>");
     }
 
     @Override

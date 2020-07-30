@@ -31,9 +31,7 @@ public final class ListCommand extends BasicCommand {
     public ListCommand() {
         super("list", 0, 1);
 
-        this.setDescription("Lists all available channels.");
         this.setPermission(Permission.LIST.getNode());
-        this.setUsage("/channel list [<type>]");
     }
 
     @Override

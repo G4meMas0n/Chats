@@ -3,8 +3,12 @@ package de.g4memas0n.chats;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import de.g4memas0n.chats.channel.ChannelManager;
 import de.g4memas0n.chats.chatter.ChatterManager;
-import de.g4memas0n.chats.command.BasicCommand;
+import de.g4memas0n.chats.command.BasicPluginCommand;
+import de.g4memas0n.chats.command.chatter.ChatCommand;
+import de.g4memas0n.chats.command.chatter.FocusCommand;
 import de.g4memas0n.chats.command.chatter.IgnoreCommand;
+import de.g4memas0n.chats.command.chatter.JoinCommand;
+import de.g4memas0n.chats.command.chatter.LeaveCommand;
 import de.g4memas0n.chats.command.chatter.MsgCommand;
 import de.g4memas0n.chats.command.chatter.ReplyCommand;
 import de.g4memas0n.chats.command.chatter.UnignoreCommand;
@@ -51,7 +55,7 @@ public final class Chats extends JavaPlugin implements IChats {
 
     private static final String DIRECTORY_LOGS = "logs";
 
-    private final Set<BasicCommand> commands;
+    private final Set<BasicPluginCommand> commands;
     private final Set<BasicListener> listeners;
 
     private final BasicLogger pluginLogger;
@@ -71,7 +75,7 @@ public final class Chats extends JavaPlugin implements IChats {
     private boolean loaded;
 
     public Chats() {
-        this.commands = new HashSet<>(7, 1);
+        this.commands = new HashSet<>(11, 1);
         this.listeners = new HashSet<>(4, 1);
 
         this.pluginLogger = new BasicLogger(super.getLogger(), "Plugin", this.getName());
@@ -220,8 +224,12 @@ public final class Chats extends JavaPlugin implements IChats {
 
         if (this.commands.isEmpty()) {
             this.commands.add(new ChannelCommand());
+            this.commands.add(new ChatCommand());
             this.commands.add(new ChatsCommand());
+            this.commands.add(new FocusCommand());
             this.commands.add(new IgnoreCommand());
+            this.commands.add(new JoinCommand());
+            this.commands.add(new LeaveCommand());
             this.commands.add(new MsgCommand());
             this.commands.add(new ReplyCommand());
             this.commands.add(new UnignoreCommand());
@@ -253,7 +261,7 @@ public final class Chats extends JavaPlugin implements IChats {
         this.getLogger().debug("Unregister all plugin listeners and commands...");
 
         this.listeners.forEach(BasicListener::unregister);
-        this.commands.forEach(BasicCommand::unregister);
+        this.commands.forEach(BasicPluginCommand::unregister);
 
         this.getLogger().debug("All plugin listeners and commands has been unregistered.");
 
@@ -320,11 +328,15 @@ public final class Chats extends JavaPlugin implements IChats {
         this.chatLogger.setUseFileHandler(this.settings.isLogToFile());
 
         this.messages.setLocale(this.settings.getLocale());
+
+        for (final BasicPluginCommand command : this.commands) {
+            command.getCommand().setPermissionMessage(this.messages.translate("noPermission"));
+        }
     }
 
     @Override
     public void saveConfig() {
-        this.settings.save();
+        // Disabled, because it is not intended to save the config file, as this breaks the comments.
     }
 
     public @NotNull Future<?> runStorageTask(@NotNull final Runnable task) {

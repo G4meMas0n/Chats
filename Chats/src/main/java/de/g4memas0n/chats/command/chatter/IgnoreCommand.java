@@ -30,9 +30,7 @@ public final class IgnoreCommand extends ChatterCommand {
     public IgnoreCommand() {
         super("ignore", 0, 1);
 
-        this.setDescription("Ignores a player or list all ignored players.");
         this.setPermission(Permission.IGNORE.getNode());
-        this.setUsage("/ignore [<player>]");
     }
 
     @Override

@@ -28,9 +28,7 @@ public final class BanCommand extends ModerateCommand {
     public BanCommand() {
         super("ban", 2, 2);
 
-        this.setDescription("Bans a player from a channel.");
         this.setPermission(Permission.BAN.getNode());
-        this.setUsage("/channel ban <player> <channel>");
     }
 
     @Override

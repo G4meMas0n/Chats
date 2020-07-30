@@ -29,9 +29,7 @@ public final class JoinCommand extends ChatterCommand {
     public JoinCommand() {
         super("join", 1, 2);
 
-        this.setDescription("Joins a new channel.");
         this.setPermission(Permission.JOIN.getNode());
-        this.setUsage("/join <channel> [<password>]");
     }
 
     @Override

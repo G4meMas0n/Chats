@@ -29,9 +29,7 @@ public final class FocusCommand extends ChatterCommand {
     public FocusCommand() {
         super("focus", 1, 2);
 
-        this.setDescription("Focuses a channel.");
         this.setPermission(Permission.FOCUS.getNode());
-        this.setUsage("/focus <channel> [<password>]");
     }
 
     @Override

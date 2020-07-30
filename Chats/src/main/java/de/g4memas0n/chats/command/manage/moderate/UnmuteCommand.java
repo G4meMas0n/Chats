@@ -29,9 +29,7 @@ public final class UnmuteCommand extends ModerateCommand {
     public UnmuteCommand() {
         super("unmute", 2 , 2);
 
-        this.setDescription("Unmutes a player in a channel.");
         this.setPermission(Permission.MUTE.getNode());
-        this.setUsage("/channel unmute <player> <channel>");
     }
 
     @Override

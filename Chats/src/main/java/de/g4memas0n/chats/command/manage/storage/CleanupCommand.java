@@ -34,9 +34,7 @@ public final class CleanupCommand extends BasicCommand {
     public CleanupCommand() {
         super("cleanup", 1, 1);
 
-        this.setDescription("Cleans up old chatter storage files.");
         this.setPermission(Permission.CLEANUP.getNode());
-        this.setUsage("/chats cleanup <days>");
     }
 
     @Override

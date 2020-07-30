@@ -28,9 +28,7 @@ public final class MuteCommand extends ModerateCommand {
     public MuteCommand() {
         super("mute", 2 , 2);
 
-        this.setDescription("Mutes a player in a channel.");
         this.setPermission(Permission.MUTE.getNode());
-        this.setUsage("/channel mute <player> <channel>");
     }
 
     @Override

@@ -29,9 +29,7 @@ public class UnignoreCommand extends ChatterCommand {
     public UnignoreCommand() {
         super("unignore", 0 , 1);
 
-        this.setDescription("Unignores a player or lists all ignored players.");
         this.setPermission(Permission.IGNORE.getNode());
-        this.setUsage("/unignore [<player>]");
     }
 
     @Override

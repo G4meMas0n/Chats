@@ -38,9 +38,7 @@ public final class SaveCommand extends BasicCommand {
     public SaveCommand() {
         super("save", 0, 2);
 
-        this.setDescription("Saves this plugin.");
         this.setPermission(Permission.RELOAD.getNode());
-        this.setUsage("/chats save [(all|channel [<channel>]| chatter [<player>]|config)]");
     }
 
     @Override

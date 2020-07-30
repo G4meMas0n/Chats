@@ -37,9 +37,7 @@ public final class CreateCommand extends BasicCommand {
     public CreateCommand() {
         super("create", 1, 2);
 
-        this.setDescription("Creates a new channel.");
         this.setPermission(Permission.CREATE.getNode());
-        this.setUsage("/channel create <full-name> [<type>]");
     }
 
     @Override

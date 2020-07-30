@@ -29,9 +29,7 @@ public final class HelpCommand extends BasicCommand {
     public HelpCommand() {
         super("help", 0, 1);
 
-        this.setDescription("Shows a list of available commands or the help of a command.");
         this.setPermission(Permission.HELP.getNode());
-        this.setUsage("/chats help [<command>]");
     }
 
     @Override

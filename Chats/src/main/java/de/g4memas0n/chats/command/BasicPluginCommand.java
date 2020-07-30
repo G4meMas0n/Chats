@@ -47,6 +47,7 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
         if (super.register(instance)) {
             this.command.setExecutor(this);
             this.command.setTabCompleter(this);
+            this.command.setPermissionMessage(tl("noPermission"));
             return true;
         }
 
@@ -68,6 +69,15 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
         return false;
     }
 
+    public final @NotNull PluginCommand getCommand() {
+        if (this.command == null) {
+            throw new IllegalStateException(String.format("Unregistered command '%s' tried to get the plugin command",
+                    this.getName()));
+        }
+
+        return this.command;
+    }
+
     @Override
     public final @NotNull List<String> getAliases() {
         if (this.command != null) {
@@ -87,24 +97,6 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
     }
 
     @Override
-    public final @NotNull String getDescription() {
-        if (this.command != null && !this.command.getDescription().isEmpty()) {
-            return this.command.getDescription();
-        }
-
-        return super.getDescription();
-    }
-
-    @Override
-    public final void setDescription(@NotNull final String description) {
-        if (this.command != null) {
-            this.command.setDescription(description);
-        }
-
-        super.setDescription(description);
-    }
-
-    @Override
     public final @NotNull String getPermission() {
         if (this.command != null && this.command.getPermission() != null) {
             return this.command.getPermission();
@@ -120,24 +112,6 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
         }
 
         super.setPermission(permission);
-    }
-
-    @Override
-    public final @NotNull String getUsage() {
-        if (this.command != null && !this.command.getUsage().isEmpty()) {
-            return this.command.getUsage();
-        }
-
-        return super.getUsage();
-    }
-
-    @Override
-    public final void setUsage(@NotNull final String usage) {
-        if (this.command != null) {
-            this.command.setUsage(usage);
-        }
-
-        super.setUsage(usage);
     }
 
     @Override

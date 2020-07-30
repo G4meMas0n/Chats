@@ -31,9 +31,7 @@ public final class MsgCommand extends ChatterCommand {
         super("msg", 1, -1);
 
         this.setAliases(Arrays.asList("pm", "tell", "whisper", "w"));
-        this.setDescription("Starts a conversation with or sends a private message to a player.");
         this.setPermission(Permission.MSG.getNode());
-        this.setUsage("/msg <player> [<message>]");
     }
 
     @Override
