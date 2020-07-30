@@ -38,9 +38,7 @@ public final class ReloadCommand extends BasicCommand {
     public ReloadCommand() {
         super("reload", 0, 2);
 
-        this.setDescription("Reloads this plugin.");
         this.setPermission(Permission.RELOAD.getNode());
-        this.setUsage("/chats reload [(all|channel [<channel>]| chatter [<player>]|config)]");
     }
 
     @Override

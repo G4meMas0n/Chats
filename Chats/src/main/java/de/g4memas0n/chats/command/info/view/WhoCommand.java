@@ -31,9 +31,7 @@ public final class WhoCommand extends BasicCommand {
     public WhoCommand() {
         super("who", 1 ,1);
 
-        this.setDescription("Shows the members of a channel.");
         this.setPermission(Permission.VIEW_WHO.getNode());
-        this.setUsage("/channel who <channel>");
     }
 
     @Override

@@ -30,9 +30,7 @@ public final class PardonCommand extends ModerateCommand {
         super("pardon", 2, 2);
 
         this.setAliases(Collections.singletonList("unban"));
-        this.setDescription("Pardons a player from a channel.");
         this.setPermission(Permission.PARDON.getNode());
-        this.setUsage("/channel (pardon|unban) <player> <channel>");
     }
 
     @Override

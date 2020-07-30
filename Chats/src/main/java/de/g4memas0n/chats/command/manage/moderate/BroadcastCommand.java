@@ -28,9 +28,7 @@ public final class BroadcastCommand extends ModerateCommand {
         super("broadcast", 2, -1);
 
         this.setAliases(Collections.singletonList("bc"));
-        this.setDescription("Broadcasts a message to a channel.");
         this.setPermission(Permission.BROADCAST.getNode());
-        this.setUsage("/channel (broadcast|bc) <channel> <message>");
     }
 
     @Override

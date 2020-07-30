@@ -28,9 +28,7 @@ public final class LeaveCommand extends ChatterCommand {
     public LeaveCommand() {
         super("leave", 1, 1);
 
-        this.setDescription("Leaves a channel.");
         this.setPermission(Permission.LEAVE.getNode());
-        this.setUsage("/leave <channel>");
     }
 
     @Override

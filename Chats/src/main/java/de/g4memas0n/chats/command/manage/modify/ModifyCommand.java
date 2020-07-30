@@ -44,9 +44,7 @@ public final class ModifyCommand extends BasicCommand {
     public ModifyCommand() {
         super("modify", 2, -1);
 
-        this.setDescription("Sets, removes and/or resets settings of a channel.");
         this.setPermission(Permission.MODIFY.getNode());
-        this.setUsage("/channel modify <channel> (set|remove|reset) <type> [<value>]");
 
         this.modifiers = new HashSet<>(4, 1);
 

@@ -30,11 +30,9 @@ public final class CreateCommand extends BasicCommand {
     private static final int TYPE = 1;
 
     public CreateCommand() {
-        super("create", 1, 2);
+        super("create", 2, 2);
 
-        this.setDescription("Creates a new channel.");
         this.setPermission(Permission.CREATE.getNode());
-        this.setUsage("/channel create <full-name> [<type>]");
     }
 
     @Override
@@ -65,8 +63,7 @@ public final class CreateCommand extends BasicCommand {
                 throw new InvalidArgumentException("channelAlreadyExist", fullName);
             }
 
-            final ChannelType type = input.getLength() == this.getMaxArgs()
-                    ? ChannelType.getType(input.get(TYPE)) : ChannelType.getDefault();
+            final ChannelType type = ChannelType.getType(input.get(TYPE));
 
             if (type == null || type == ChannelType.CONVERSATION) {
                 throw new InvalidArgumentException("typeNotFound", input.get(TYPE));

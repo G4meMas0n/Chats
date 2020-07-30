@@ -24,9 +24,7 @@ public final class ReplyCommand extends ChatterCommand {
         super("reply", 0, -1);
 
         this.setAliases(Collections.singletonList("r"));
-        this.setDescription("Starts a conversation with or sends a private message to your last conversation partner.");
         this.setPermission(Permission.MSG.getNode());
-        this.setUsage("/reply [<message>]");
     }
 
     @Override

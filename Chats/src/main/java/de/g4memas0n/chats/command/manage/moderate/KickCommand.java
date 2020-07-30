@@ -28,9 +28,7 @@ public final class KickCommand extends ModerateCommand {
     public KickCommand() {
         super("kick", 2, 2);
 
-        this.setDescription("Kicks a player from a channel.");
         this.setPermission(Permission.KICK.getNode());
-        this.setUsage("/channel kick <player> <channel>");
     }
 
     @Override

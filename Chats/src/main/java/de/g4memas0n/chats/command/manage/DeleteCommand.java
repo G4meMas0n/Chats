@@ -30,9 +30,7 @@ public final class DeleteCommand extends BasicCommand {
     public DeleteCommand() {
         super("delete", 1, 1);
 
-        this.setDescription("Deletes a channel.");
         this.setPermission(Permission.DELETE.getNode());
-        this.setUsage("/channel delete <channel>");
     }
 
     @Override

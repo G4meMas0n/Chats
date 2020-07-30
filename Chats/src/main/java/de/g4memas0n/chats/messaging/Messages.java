@@ -97,14 +97,14 @@ public final class Messages {
                 try {
                     return this.customBundle.getString(key);
                 } catch (MissingResourceException ex) {
-                    this.logger.warning(String.format("Missing translation key '%s' in custom translation file for language: %s",
+                    this.logger.debug(String.format("Missing translation key '%s' in custom translation file for language: %s",
                             ex.getKey(), this.customBundle.getBaseBundleName()));
                 }
             }
 
             return this.localBundle.getString(key);
         } catch (MissingResourceException ex) {
-            this.logger.warning(String.format("Missing translation key '%s' in translation file for language: %s",
+            this.logger.debug(String.format("Missing translation key '%s' in translation file for language: %s",
                     ex.getKey(), this.getLocale()));
 
             return this.defaultBundle.getString(key);

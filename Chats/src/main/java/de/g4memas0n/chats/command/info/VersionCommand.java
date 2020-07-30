@@ -22,9 +22,7 @@ public final class VersionCommand extends BasicCommand {
     public VersionCommand() {
         super("version", 0, 0);
 
-        this.setDescription("Shows the version of this plugin.");
         this.setPermission(Permission.VERSION.getNode());
-        this.setUsage("/chats version");
     }
 
     @Override

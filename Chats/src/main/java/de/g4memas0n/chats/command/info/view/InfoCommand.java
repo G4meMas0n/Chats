@@ -33,9 +33,7 @@ public final class InfoCommand extends BasicCommand {
     public InfoCommand() {
         super("info", 1, 1);
 
-        this.setDescription("Shows information's of a channel.");
         this.setPermission(Permission.VIEW_INFO.getNode());
-        this.setUsage("/channel info <channel>");
     }
 
     @Override

@@ -2,6 +2,7 @@ package de.g4memas0n.chats.command;
 
 import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.command.info.HelpCommand;
+import de.g4memas0n.chats.messaging.Messages;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
@@ -35,15 +36,14 @@ public abstract class BasicCommand {
     private static final Map<String, BasicCommand> registered = new HashMap<>();
 
     private final String name;
+    private final String prefix;
     private final int minArgs;
     private final int maxArgs;
 
     private Chats instance;
 
     private List<String> aliases;
-    private String description;
     private String permission;
-    private String usage;
 
     protected BasicCommand(@NotNull final String name,
                            final int minArgs,
@@ -51,10 +51,17 @@ public abstract class BasicCommand {
         this.name = name;
         this.minArgs = minArgs;
         this.maxArgs = maxArgs;
-
-        this.description = "";
         this.permission = "";
-        this.usage = "";
+
+        final int index = name.indexOf("-");
+
+        if (index < 0) {
+            this.prefix = name;
+        } else if (index + 1 == name.length()) {
+            this.prefix = name.substring(0, index);
+        } else {
+            this.prefix = name.substring(0, index) + name.substring(index + 1, index + 2).toUpperCase() + name.substring(index + 2);
+        }
     }
 
     public boolean register(@NotNull final Chats instance) {
@@ -153,18 +160,6 @@ public abstract class BasicCommand {
         this.aliases = Collections.unmodifiableList(aliases);
     }
 
-    public @NotNull String getDescription() {
-        return this.description;
-    }
-
-    public void setDescription(@NotNull final String description) {
-        if (description.equals(this.description)) {
-            return;
-        }
-
-        this.description = description;
-    }
-
     public @NotNull String getPermission() {
         return this.permission;
     }
@@ -177,16 +172,12 @@ public abstract class BasicCommand {
         this.permission = permission;
     }
 
-    public @NotNull String getUsage() {
-        return this.usage;
+    public final @NotNull String getDescription() {
+        return Messages.tl(this.prefix.concat("CommandDescription"));
     }
 
-    public void setUsage(@NotNull final String usage) {
-        if (usage.equals(this.usage)) {
-            return;
-        }
-
-        this.usage = usage;
+    public final @NotNull String getUsage() {
+        return Messages.tl(this.prefix.concat("CommandUsage"));
     }
 
     @Override
@@ -205,19 +196,9 @@ public abstract class BasicCommand {
             builder.append(String.join(",", this.getAliases()));
         }
 
-        if (!this.getDescription().isEmpty()) {
-            builder.append(";description=");
-            builder.append(this.getDescription());
-        }
-
         if (!this.getPermission().isEmpty()) {
             builder.append(";permission=");
             builder.append(this.getPermission());
-        }
-
-        if (!this.getUsage().isEmpty()) {
-            builder.append(";usage=");
-            builder.append(this.getUsage());
         }
 
         return builder.append("}").toString();

@@ -26,8 +26,6 @@ public final class ChatsCommand extends DelegateCommand {
         this.addCommand(new SocialSpyCommand());
         this.addCommand(new VersionCommand());
 
-        this.setDescription("The main plugin command.");
         this.setPermission(Permission.USE.getNode());
-        this.setUsage("/chats <command> [<arguments>]");
     }
 }
