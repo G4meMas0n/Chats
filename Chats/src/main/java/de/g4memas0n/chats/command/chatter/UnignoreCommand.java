@@ -22,7 +22,7 @@ import static de.g4memas0n.chats.messaging.Messages.tlJoin;
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public class UnignoreCommand extends ChatterCommand {
+public final class UnignoreCommand extends ChatterCommand {
 
     private static final int TARGET = 0;
 
