@@ -26,11 +26,6 @@ import static de.g4memas0n.chats.messaging.Messages.tl;
  */
 public final class CreateCommand extends BasicCommand {
 
-    /**
-     * Might be replaced with a configurable limit in the future.
-     */
-    private static final int LIMIT = 1;
-
     private static final int NAME = 0;
     private static final int TYPE = 1;
 
@@ -50,7 +45,7 @@ public final class CreateCommand extends BasicCommand {
             final long owning = this.getInstance().getChannelManager().getChannels().stream()
                     .filter(channel -> channel.isOwner(creator.getUniqueId())).count();
 
-            return owning >= LIMIT;
+            return owning >= this.getInstance().getSettings().getCreateLimit();
         }
 
         return false;
@@ -98,8 +93,8 @@ public final class CreateCommand extends BasicCommand {
                         final long owning = this.getInstance().getChannelManager().getChannels().stream()
                                 .filter(channel -> channel.isOwner(creator.getUniqueId())).count();
 
-                        if (owning >= LIMIT) {
-                            sender.sendMessage(tl("createLimit", 1));
+                        if (owning >= this.getInstance().getSettings().getCreateLimit()) {
+                            sender.sendMessage(tl("createLimit", this.getInstance().getSettings().getCreateLimit()));
                             return true;
                         }
                     }

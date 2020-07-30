@@ -193,4 +193,19 @@ public interface ISettings extends IStorageHolder {
      * @see ISettings#INFORM_DELAY
      */
     long getInformDelay();
+
+    /**
+     * The default value of the create limit setting.
+     */
+    int CREATE_LIMIT = 1;
+
+    /**
+     * Returns the configured create limit from the config file.
+     *
+     * <p><i><b>Note:</b> This option is currently a hidden option in the configuration file.</i></p>
+     *
+     * @return the creation limit.
+     * @see ISettings#CREATE_LIMIT
+     */
+    int getCreateLimit();
 }

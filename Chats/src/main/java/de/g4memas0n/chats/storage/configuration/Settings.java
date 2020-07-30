@@ -35,6 +35,8 @@ public final class Settings implements ISettings {
     private long informDelay;
     private long saveDelay;
 
+    private int createLimit;
+
     public Settings(@NotNull final Chats instance) {
         this.instance = instance;
         this.storage = new YamlStorageFile(instance.getDataFolder(), FILE_CONFIG);
@@ -129,10 +131,15 @@ public final class Settings implements ISettings {
 
         this.informDelay = this._getInformDelay();
         this.saveDelay = this._getSaveDelay();
+
+        this.createLimit = this._getCreateLimit();
     }
 
     @Override
     public void save() {
+        /*
+        Disabled, because it is not intended to save the config file, as this breaks the comments.
+
         try {
             this.storage.save();
 
@@ -141,6 +148,7 @@ public final class Settings implements ISettings {
             this.instance.getLogger().warning(String.format("Unable to save config file '%s': %s",
                     this.storage.getFile().getName(), ex.getMessage()));
         }
+         */
     }
 
     // Format Settings:
@@ -387,5 +395,14 @@ public final class Settings implements ISettings {
     @Override
     public long getInformDelay() {
         return this.informDelay;
+    }
+
+    protected int _getCreateLimit() {
+        return this.storage.getInt("create-limit", CREATE_LIMIT);
+    }
+
+    @Override
+    public int getCreateLimit() {
+        return this.createLimit;
     }
 }
