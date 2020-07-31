@@ -5,7 +5,6 @@ import de.g4memas0n.chats.storage.IStorageFile;
 import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.storage.InvalidStorageFileException;
 import de.g4memas0n.chats.storage.MissingStorageFileException;
-import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -418,8 +417,8 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
 
     // Channel Type Methods:
     @Override
-    public final @NotNull ChannelType getType() {
-        return ChannelType.PERSIST;
+    public final @NotNull IChannel.Type getType() {
+        return IChannel.Type.PERSIST;
     }
 
     // Channel Collection Methods:

@@ -1,6 +1,7 @@
 package de.g4memas0n.chats.command.info.view;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.channel.IChannel.Information;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.command.BasicCommand;
@@ -9,7 +10,6 @@ import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.type.InfoType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -69,41 +69,41 @@ public final class InfoCommand extends BasicCommand {
                 sender.sendMessage(tl("infoHeader", channel.getColoredName()));
                 sender.sendMessage(tl("infoFullName", channel.getFullName()));
 
-                if (sender.canView(channel, InfoType.SHORT_NAME)) {
+                if (sender.canView(channel, Information.SHORT_NAME)) {
                     sender.sendMessage(tl("infoShortName", channel.getShortName()));
                 }
 
-                if (sender.canView(channel, InfoType.COLOR)) {
+                if (sender.canView(channel, Information.COLOR)) {
                     sender.sendMessage(tl("infoColor", channel.getColor() + channel.getColor().name().toLowerCase()));
                 }
 
-                if (channel.getPassword() != null && sender.canView(channel, InfoType.PASSWORD)) {
+                if (sender.canView(channel, Information.PASSWORD) && channel.getPassword() != null) {
                     sender.sendMessage(tl("infoPassword", channel.getPassword()));
                 }
 
-                if (sender.canView(channel, InfoType.CROSS_WORLD)) {
+                if (sender.canView(channel, Information.CROSS_WORLD)) {
                     sender.sendMessage(tl("infoCrossWorld", tlState(channel.isCrossWorld())));
                 }
 
-                if (sender.canView(channel, InfoType.DISTANCE)) {
+                if (sender.canView(channel, Information.DISTANCE)) {
                     sender.sendMessage(tl("infoDistance", channel.getDistance()));
                 }
 
-                if (sender.canView(channel, InfoType.TYPE)) {
+                if (sender.canView(channel, Information.TYPE)) {
                     sender.sendMessage(tl("infoType", tl(channel.getType().getIdentifier())));
                 }
 
-                if (sender.canView(channel, InfoType.VERBOSE)) {
+                if (sender.canView(channel, Information.VERBOSE)) {
                     sender.sendMessage(tl("infoVerbose", tlState(channel.isVerbose())));
                 }
 
-                if (channel.getOwner() != null && sender.canView(channel, InfoType.OWNER)) {
+                if (sender.canView(channel, Information.OWNER) && channel.getOwner() != null) {
                     final IOfflineChatter owner = this.getInstance().getChatterManager().getOfflineChatter(channel.getOwner());
 
                     sender.sendMessage(tl("infoOwner", owner != null ? owner.getName() : channel.getOwner()));
                 }
 
-                if (sender.canView(channel, InfoType.FORMATS)) {
+                if (sender.canView(channel, Information.FORMATS)) {
                     sender.sendMessage(tl("infoCustomFormat", tlState(channel.isCustomFormat())));
 
                     String format = channel.getAnnounceFormat();

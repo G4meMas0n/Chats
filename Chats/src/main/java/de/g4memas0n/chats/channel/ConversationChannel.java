@@ -4,14 +4,14 @@ import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.event.chatter.ChatterChatConversationEvent;
-import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.text.MessageFormat;
 import java.util.UUID;
+
+import static de.g4memas0n.chats.messaging.Messages.tl;
 
 /**
  * Implementation of a conversation channel that handles conversation actions between chatters (players).
@@ -106,8 +106,8 @@ public final class ConversationChannel extends StandardChannel {
 
     // Channel Type Methods:
     @Override
-    public final @NotNull ChannelType getType() {
-        return ChannelType.CONVERSATION;
+    public final @NotNull Type getType() {
+        return Type.CONVERSATION;
     }
 
     // Channel Collection Methods:
@@ -223,17 +223,17 @@ public final class ConversationChannel extends StandardChannel {
         final IChatter partner = this.getPartner(sender);
 
         if (partner == null) {
-            sender.sendMessage(Messages.tlErr("partnerNotFound"));
+            sender.sendMessage(tl("prefixError") + " " + tl("partnerNotFound"));
             return;
         }
 
         if (sender.isIgnore(partner.getUniqueId())) {
-            sender.sendMessage(Messages.tl("ignoredPartner", partner.getDisplayName()));
+            sender.sendMessage(tl("ignoredPartner", partner.getDisplayName()));
             return;
         }
 
         if (partner.isIgnore(sender.getUniqueId()) && !sender.hasPermission(Permission.IGNORE.getChildren("bypass"))) {
-            sender.sendMessage(Messages.tl("ignoredSender", partner.getDisplayName()));
+            sender.sendMessage(tl("ignoredSender", partner.getDisplayName()));
             return;
         }
 
@@ -248,14 +248,14 @@ public final class ConversationChannel extends StandardChannel {
 
         final String format = this.instance.getFormatter().formatConversation(this, event.getFormat(), event.getMessage());
 
-        sender.sendMessage(MessageFormat.format(format, Messages.tl("to"), partner.getDisplayName()));
+        sender.sendMessage(MessageFormat.format(format, tl("to"), partner.getDisplayName()));
         sender.setLastPartner(partner);
 
-        partner.sendMessage(MessageFormat.format(format, Messages.tl("from"), sender.getDisplayName()));
+        partner.sendMessage(MessageFormat.format(format, tl("from"), sender.getDisplayName()));
         partner.setLastPartner(sender);
 
         if (!sender.hasPermission(Permission.SOCIAL_SPY.getChildren("exempt"))) {
-            final String spy = Messages.tl("spyFormat", sender.getDisplayName(), partner.getDisplayName(), event.getMessage());
+            final String spy = tl("spyFormat", sender.getDisplayName(), partner.getDisplayName(), event.getMessage());
 
             for (final IChatter chatter : this.instance.getChatterManager().getChatters()) {
                 if (chatter.equals(sender) || chatter.equals(partner)) {

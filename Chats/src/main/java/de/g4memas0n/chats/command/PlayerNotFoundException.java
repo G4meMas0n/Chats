@@ -8,22 +8,14 @@ import org.jetbrains.annotations.NotNull;
  * @author G4meMason
  * @since Release 1.0.0
  */
-public final class PlayerNotFoundException extends InputException {
-
-    private final String player;
+public final class PlayerNotFoundException extends InvalidArgumentException {
 
     public PlayerNotFoundException(@NotNull final String player) {
-        this.player = player;
+        super("playerNotFound", player);
     }
 
     public PlayerNotFoundException(@NotNull final Throwable cause,
                                    @NotNull final String player) {
-        super(cause);
-
-        this.player = player;
-    }
-
-    public @NotNull String getPlayer() {
-        return this.player;
+        super(cause, "playerNotFound", player);
     }
 }

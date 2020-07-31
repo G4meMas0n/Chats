@@ -1,9 +1,6 @@
 package de.g4memas0n.chats.messaging;
 
 import de.g4memas0n.chats.util.logging.BasicLogger;
-import de.g4memas0n.chats.util.type.ModifyType;
-import de.g4memas0n.chats.util.type.StorageType;
-import de.g4memas0n.chats.util.type.Type;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,34 +108,6 @@ public final class Messages {
         }
     }
 
-    public synchronized @NotNull String translateError(@NotNull final String key) {
-        return this.translate("prefixError") + " " + this.translate(key);
-    }
-
-    public synchronized @NotNull String translateType(@NotNull final Type type) {
-        if (type == ModifyType.ANNOUNCE_FORMAT) {
-            return this.format("format", this.translate("announce"));
-        }
-
-        if (type == ModifyType.BROADCAST_FORMAT) {
-            return this.format("format", this.translate("broadcast"));
-        }
-
-        if (type == ModifyType.CHAT_FORMAT) {
-            return this.format("format", this.translate("chat"));
-        }
-
-        if (type == StorageType.CHANNEL) {
-            return this.translate("channels");
-        }
-
-        if (type == StorageType.CHATTER) {
-            return this.translate("chatters");
-        }
-
-        return this.translate(type.getKey());
-    }
-
     public synchronized @NotNull String format(@NotNull final String key,
                                                @NotNull final Object... arguments) {
         if (arguments.length == 0) {
@@ -154,15 +123,6 @@ public final class Messages {
 
             return MessageFormat.format(format.replaceAll("\\{(\\D*?)}", "\\[$1\\]"), arguments);
         }
-    }
-
-    public synchronized @NotNull String formatError(@NotNull final String key,
-                                                    @NotNull final Object... arguments) {
-        if (arguments.length == 0) {
-            return this.translateError(key);
-        }
-
-        return this.translate("prefixError") + " " + this.format(key, arguments);
     }
 
     public synchronized @NotNull String formatJoining(@NotNull final String key,
@@ -201,15 +161,6 @@ public final class Messages {
         return instance.translate(Boolean.valueOf(bool).toString());
     }
 
-    public static @NotNull String tlErr(@NotNull final String key,
-                                        @NotNull final Object... arguments) {
-        if (instance == null) {
-            return "\u00a74Error: \u00a7cMessages not loaded.";
-        }
-
-        return instance.formatError(key, arguments);
-    }
-
     public static @NotNull String tlJoin(@NotNull final String key,
                                          @NotNull final Collection<String> collection) {
         if (instance == null) {
@@ -225,14 +176,6 @@ public final class Messages {
         }
 
         return instance.translate(state ? "enabled" : "disabled");
-    }
-
-    public static @NotNull String tlType(@NotNull final Type type) {
-        if (instance == null) {
-            return "\u00a74Error: \u00a7cMessages not loaded.";
-        }
-
-        return instance.translateType(type);
     }
 
     /**

@@ -3,7 +3,7 @@ package de.g4memas0n.chats.channel;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.messaging.Placeholder;
-import de.g4memas0n.chats.util.type.ChannelType;
+import de.g4memas0n.chats.util.IType;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -227,7 +227,7 @@ public interface IChannel extends Comparable<IChannel> {
      *
      * @return the type.
      */
-    @NotNull ChannelType getType();
+    @NotNull Type getType();
 
     /**
      * Returns whether this channel represents a conversion channel or not.
@@ -511,4 +511,291 @@ public interface IChannel extends Comparable<IChannel> {
      * @param message the chat message from the sender.
      */
     void performChat(@NotNull final IChatter sender, @NotNull final String message);
+
+    /**
+     * Information Enum for all information types of a channel.
+     *
+     * @author G4meMas0n
+     * @since Release 1.0.0
+     */
+    enum Information implements IType {
+
+        /*
+         * Represents the bans info of a channel
+         */
+        //BANS("bans"),
+
+        /**
+         * Represents the color info of a channel.
+         */
+        COLOR("color"),
+
+        /**
+         * Represents the cross-world info of a channel.
+         */
+        CROSS_WORLD("cross-world"),
+
+        /**
+         * Represents the distance info of a channel.
+         */
+        DISTANCE("distance"),
+
+        /**
+         * Represents the formats info of a channel.
+         */
+        FORMATS("formats"),
+
+        /**
+         * Represents the mutes info of a channel.
+         */
+        MUTES("mutes"),
+
+        /**
+         * Represents the owner info of a channel.
+         */
+        OWNER("owner"),
+
+        /**
+         * Represents the password info of a channel.
+         */
+        PASSWORD("password"),
+
+        /**
+         * Represents the short-name info of a channel.
+         */
+        SHORT_NAME("short-name"),
+
+        /**
+         * Represents the channel type info of a channel.
+         */
+        TYPE("type"),
+
+        /**
+         * Represents the verbose info of a channel.
+         */
+        VERBOSE("verbose");
+
+        private final String identifier;
+
+        Information(@NotNull final String identifier) {
+            this.identifier = identifier;
+        }
+
+        @Override
+        public @NotNull String getIdentifier() {
+            return this.identifier;
+        }
+
+        @Override
+        public @NotNull String getKey() {
+            final int index = this.identifier.indexOf("-");
+
+            if (index < 0) {
+                return this.identifier;
+            }
+
+            if (index + 1 == this.identifier.length()) {
+                return this.identifier.substring(0, index);
+            }
+
+            return this.identifier.substring(0, index)
+                    + this.identifier.substring(index + 1, index + 2).toUpperCase()
+                    + this.identifier.substring(index + 2);
+        }
+
+        @Override
+        public final @NotNull String toString() {
+            return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.getKey() + "}";
+        }
+    }
+
+    /**
+     * Modification Enum for all options of a channel that can be modified.
+     *
+     * @author G4meMas0n
+     * @since Release 1.0.0
+     */
+    enum Modification implements IType {
+
+        /**
+         * Represents the announce format modify option of a channel.
+         */
+        ANNOUNCE_FORMAT("announce-format", "formatAnnounce"),
+
+        /**
+         * Represents the broadcast-format modify option of a channel.
+         */
+        BROADCAST_FORMAT("broadcast-format", "formatBroadcast"),
+
+        /**
+         * Represents the chat-format modify option of a channel.
+         */
+        CHAT_FORMAT("chat-format", "formatChat"),
+
+        /**
+         * Represents the color modify option of a channel.
+         */
+        COLOR("color"),
+
+        /**
+         * Represents the cross-world modify option of a channel.
+         */
+        CROSS_WORLD("cross-world"),
+
+        /**
+         * Represents the custom-format modify option of a channel.
+         */
+        CUSTOM_FORMAT("custom-format"),
+
+        /**
+         * Represents the distance modify option of a channel.
+         */
+        DISTANCE("distance"),
+
+        /**
+         * Represents the owner modify option of a channel.
+         */
+        OWNER("owner"),
+
+        /**
+         * Represents the password modify option of a channel.
+         */
+        PASSWORD("password"),
+
+        /**
+         * Represents the short-name modify option of a channel.
+         */
+        SHORT_NAME("short-name"),
+
+        /**
+         * Represents the verbose modify option of a channel.
+         */
+        VERBOSE("verbose");
+
+        private final String identifier;
+        private final String key;
+
+        Modification(@NotNull final String identifier) {
+            this.identifier = identifier;
+            this.key = null;
+        }
+
+        Modification(@NotNull final String identifier,
+                     @NotNull final String key) {
+            this.identifier = identifier;
+            this.key = key;
+        }
+
+        @Override
+        public @NotNull String getIdentifier() {
+            return this.identifier;
+        }
+
+        @Override
+        public @NotNull String getKey() {
+            if (this.key == null) {
+                final int index = this.identifier.indexOf("-");
+
+                if (index < 0) {
+                    return this.identifier;
+                }
+
+                if (index + 1 == this.identifier.length()) {
+                    return this.identifier.substring(0, index);
+                }
+
+                return this.identifier.substring(0, index)
+                        + this.identifier.substring(index + 1, index + 2).toUpperCase()
+                        + this.identifier.substring(index + 2);
+            }
+
+            return this.key;
+        }
+
+        @Override
+        public final @NotNull String toString() {
+            return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.getKey() + "}";
+        }
+
+        /**
+         * Returns the modification type with the given identifier.
+         *
+         * <p>Can be null when there is no modification type with the given identifier.</p>
+         *
+         * @param identifier the identifier to search for the type.
+         * @return the modification type with the given identifier or null if there is no with the given identifier.
+         */
+        public static @Nullable Modification getType(@NotNull final String identifier) {
+            for (final Modification modification : Modification.values()) {
+                if (modification.getIdentifier().equalsIgnoreCase(identifier)) {
+                    return modification;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    /**
+     * Type Enum for all types of channels.
+     *
+     * @author G4meMas0n
+     * @since Release 1.0.0
+     */
+    enum Type implements IType {
+
+        /**
+         * Represents a conversation channel.
+         */
+        CONVERSATION("conversation"),
+
+        /**
+         * Represents a persistent channel.
+         */
+        PERSIST("persist"),
+
+        /**
+         * Represents a standard not persistent channel.
+         */
+        STANDARD("standard");
+
+        private final String identifier;
+
+        Type(@NotNull final String identifier) {
+            this.identifier = identifier;
+        }
+
+        @Override
+        public @NotNull String getIdentifier() {
+            return this.identifier;
+        }
+
+        @Override
+        public @NotNull String getKey() {
+            return this.identifier;
+        }
+
+        @Override
+        public @NotNull String toString() {
+            return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.identifier + "}";
+        }
+
+        /**
+         * Returns the channel type with the given identifier.
+         *
+         * <p>Can be null when there is no channel type with the given identifier.</p>
+         *
+         * @param identifier the identifier to search for the type.
+         * @return the channel type with the given identifier or null if there is no with the given identifier.
+         */
+        public static @Nullable Type getType(@NotNull final String identifier) {
+            for (final Type type : Type.values()) {
+                if (type.getIdentifier().equalsIgnoreCase(identifier)) {
+                    return type;
+                }
+            }
+
+            return null;
+        }
+    }
 }

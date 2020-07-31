@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
  * @author G4meMason
  * @since Release 1.0.0
  */
-public final class InvalidArgumentException extends InputException {
+public class InvalidArgumentException extends InputException {
 
     private final String key;
     private final Object[] arguments;

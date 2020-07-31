@@ -1,12 +1,11 @@
 package de.g4memas0n.chats.command;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.channel.IChannel.Information;
+import de.g4memas0n.chats.channel.IChannel.Modification;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.type.ChannelType;
-import de.g4memas0n.chats.util.type.InfoType;
-import de.g4memas0n.chats.util.type.ModifyType;
-import de.g4memas0n.chats.util.type.StorageType;
+import de.g4memas0n.chats.storage.IStorageHolder;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -74,8 +73,8 @@ public final class BasicCommandSource implements ICommandSource {
     }
 
     @Override
-    public boolean canCreate(@NotNull final ChannelType type) {
-        if (type == ChannelType.CONVERSATION) {
+    public boolean canCreate(@NotNull final IChannel.Type type) {
+        if (type == IChannel.Type.CONVERSATION) {
             return false;
         }
 
@@ -131,7 +130,7 @@ public final class BasicCommandSource implements ICommandSource {
     }
 
     @Override
-    public boolean canList(@NotNull final ChannelType type) {
+    public boolean canList(@NotNull final IChannel.Type type) {
         return true;
     }
 
@@ -164,7 +163,7 @@ public final class BasicCommandSource implements ICommandSource {
     }
 
     @Override
-    public boolean canModify(@NotNull final IChannel channel, @NotNull final ModifyType type) {
+    public boolean canModify(@NotNull final IChannel channel, @NotNull final Modification modification) {
         if (channel.isConversation()) {
             return false;
         }
@@ -192,12 +191,12 @@ public final class BasicCommandSource implements ICommandSource {
     }
 
     @Override
-    public boolean canReload(@NotNull final StorageType type) {
+    public boolean canReload(@NotNull final IStorageHolder.Type type) {
         return this.sender instanceof ConsoleCommandSender;
     }
 
     @Override
-    public boolean canSave(@NotNull final StorageType type) {
+    public boolean canSave(@NotNull final IStorageHolder.Type type) {
         return this.sender instanceof ConsoleCommandSender;
     }
 
@@ -212,7 +211,7 @@ public final class BasicCommandSource implements ICommandSource {
     }
 
     @Override
-    public boolean canView(@NotNull final IChannel channel, @NotNull final InfoType type) {
+    public boolean canView(@NotNull final IChannel channel, @NotNull final Information information) {
         return !channel.isConversation();
     }
 

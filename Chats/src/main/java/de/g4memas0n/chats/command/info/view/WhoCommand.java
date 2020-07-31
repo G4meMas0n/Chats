@@ -1,6 +1,7 @@
 package de.g4memas0n.chats.command.info.view;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.channel.IChannel.Information;
 import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.ChannelNotExistException;
@@ -8,12 +9,12 @@ import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.type.InfoType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
 import static de.g4memas0n.chats.messaging.Messages.tlJoin;
@@ -66,10 +67,10 @@ public final class WhoCommand extends BasicCommand {
             if (sender.canViewWho(channel)) {
                 final List<String> members = new ArrayList<>();
 
-                final boolean viewOwn = sender.canView(channel, InfoType.OWNER);
-                final boolean viewMutes = sender.canView(channel, InfoType.MUTES);
+                final boolean viewOwn = sender.canView(channel, Information.OWNER);
+                final boolean viewMutes = sender.canView(channel, Information.MUTES);
 
-                for (final IChatter member : channel.getMembers()) {
+                for (final IChatter member : channel.getMembers().stream().sorted().collect(Collectors.toList())) {
                     if (!sender.canSee(member)) {
                         continue;
                     }
@@ -91,8 +92,6 @@ public final class WhoCommand extends BasicCommand {
                     sender.sendMessage(tl("whoNobody", channel.getColoredName()));
                     return true;
                 }
-
-                Collections.sort(members);
 
                 sender.sendMessage(tl("whoHeader", channel.getColoredName()));
                 sender.sendMessage(tlJoin("whoList", members));

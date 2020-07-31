@@ -2,17 +2,16 @@ package de.g4memas0n.chats.chatter;
 
 import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.channel.IChannel.Information;
+import de.g4memas0n.chats.channel.IChannel.Modification;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.event.chatter.ChatterFocusChangedEvent;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.permission.Permission;
+import de.g4memas0n.chats.storage.IStorageHolder;
 import de.g4memas0n.chats.storage.InvalidStorageFileException;
 import de.g4memas0n.chats.storage.MissingStorageFileException;
 import de.g4memas0n.chats.storage.YamlStorageFile;
-import de.g4memas0n.chats.util.type.ChannelType;
-import de.g4memas0n.chats.util.type.InfoType;
-import de.g4memas0n.chats.util.type.ModifyType;
-import de.g4memas0n.chats.util.type.StorageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.NotNull;
@@ -622,8 +621,8 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
     }
 
     @Override
-    public boolean canCreate(@NotNull final ChannelType type) {
-        if (type == ChannelType.CONVERSATION) {
+    public boolean canCreate(@NotNull final IChannel.Type type) {
+        if (type == IChannel.Type.CONVERSATION) {
             return false;
         }
 
@@ -721,7 +720,7 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
     }
 
     @Override
-    public boolean canList(@NotNull final ChannelType type) {
+    public boolean canList(@NotNull final IChannel.Type type) {
         return this.player.hasPermission(Permission.LIST.getChildren("type", type.getIdentifier()));
     }
 
@@ -794,28 +793,28 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
     }
 
     @Override
-    public boolean canModify(@NotNull final IChannel channel, @NotNull final ModifyType type) {
+    public boolean canModify(@NotNull final IChannel channel, @NotNull final Modification modification) {
         if (channel.isConversation()) {
             return false;
         }
 
         if (channel.isOwner(this.player.getUniqueId())) {
             if (this.player.hasPermission(Permission.MODIFY.getChildren("own"))) {
-                return type != ModifyType.OWNER;
+                return modification != Modification.OWNER;
             }
         }
 
         if (channel.isPersist()) {
             if (this.player.hasPermission(Permission.MODIFY.getChildren("persist", channel.getFullName()))
                     || this.player.hasPermission(Permission.MODIFY.getChildren("persist", "all"))) {
-                return this.player.hasPermission(Permission.MODIFY.getChildren("type", type.getIdentifier()));
+                return this.player.hasPermission(Permission.MODIFY.getChildren("type", modification.getIdentifier()));
             }
 
             return false;
         }
 
         if (this.player.hasPermission(Permission.MODIFY.getChildren("standard", "all"))) {
-            return this.player.hasPermission(Permission.MODIFY.getChildren("type", type.getIdentifier()));
+            return this.player.hasPermission(Permission.MODIFY.getChildren("type", modification.getIdentifier()));
         }
 
         return false;
@@ -841,12 +840,12 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
     }
 
     @Override
-    public boolean canReload(@NotNull final StorageType type) {
+    public boolean canReload(@NotNull final IStorageHolder.Type type) {
         return this.player.hasPermission(Permission.RELOAD.getChildren("type", type.getIdentifier()));
     }
 
     @Override
-    public boolean canSave(@NotNull final StorageType type) {
+    public boolean canSave(@NotNull final IStorageHolder.Type type) {
         return this.player.hasPermission(Permission.SAVE.getChildren("type", type.getIdentifier()));
     }
 
@@ -873,7 +872,7 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
     }
 
     @Override
-    public boolean canView(@NotNull final IChannel channel, @NotNull final InfoType type) {
+    public boolean canView(@NotNull final IChannel channel, @NotNull final Information information) {
         if (channel.isConversation()) {
             return false;
         }
@@ -882,7 +881,7 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
             return true;
         }
 
-        return this.player.hasPermission(Permission.VIEW.getChildren("type", type.getIdentifier()));
+        return this.player.hasPermission(Permission.VIEW.getChildren("type", information.getIdentifier()));
     }
 
     @Override

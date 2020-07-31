@@ -1,4 +1,4 @@
-package de.g4memas0n.chats.util.type;
+package de.g4memas0n.chats.util;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
  * @author G4meMas0n
  * @since Release 1.0.0
  */
-public interface Type {
+public interface IType {
 
     /**
      * Returns the identifier of this type.

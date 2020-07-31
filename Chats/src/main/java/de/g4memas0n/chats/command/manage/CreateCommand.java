@@ -1,5 +1,6 @@
 package de.g4memas0n.chats.command.manage;
 
+import de.g4memas0n.chats.channel.IChannel.Type;
 import de.g4memas0n.chats.channel.PersistChannel;
 import de.g4memas0n.chats.channel.StandardChannel;
 import de.g4memas0n.chats.chatter.IChatter;
@@ -8,8 +9,9 @@ import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
 import de.g4memas0n.chats.command.InvalidArgumentException;
+import de.g4memas0n.chats.command.TypeNotAvailableException;
+import de.g4memas0n.chats.command.TypeNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -63,14 +65,14 @@ public final class CreateCommand extends BasicCommand {
                 throw new InvalidArgumentException("channelAlreadyExist", fullName);
             }
 
-            final ChannelType type = ChannelType.getType(input.get(TYPE));
+            final Type type = Type.getType(input.get(TYPE));
 
-            if (type == null || type == ChannelType.CONVERSATION) {
-                throw new InvalidArgumentException("typeNotFound", input.get(TYPE));
+            if (type == null || type == Type.CONVERSATION) {
+                throw new TypeNotFoundException(input.get(TYPE));
             }
 
             if (sender.canCreate(type)) {
-                if (type == ChannelType.PERSIST) {
+                if (type == Type.PERSIST) {
                     final PersistChannel channel = this.getInstance().getChannelManager().addPersist(fullName);
 
                     if (channel == null) {
@@ -83,7 +85,7 @@ public final class CreateCommand extends BasicCommand {
                     return true;
                 }
 
-                if (type == ChannelType.STANDARD) {
+                if (type == Type.STANDARD) {
                     final IChatter creator = sender instanceof IChatter ? (IChatter) sender : null;
 
                     if (creator != null && !creator.hasPermission(Permission.CREATE.getChildren("unlimited"))) {
@@ -102,22 +104,19 @@ public final class CreateCommand extends BasicCommand {
                         throw new InvalidArgumentException("channelAlreadyExist", fullName);
                     }
 
-                    sender.sendMessage(tl("createChannel", channel.getFullName(), tl("standard")));
-
                     if (creator != null) {
                         channel.setOwner(creator.getUniqueId());
                         channel.addMember(creator, true);
-
-                        sender.sendMessage(tl("joinChannel", channel.getFullName()));
                     }
 
+                    sender.sendMessage(tl("createChannel", channel.getFullName(), tl("standard")));
                     return true;
                 }
 
-                throw new InvalidArgumentException("typeNotAvailable", tl(type.getIdentifier()));
+                throw new TypeNotAvailableException(type);
             }
 
-            sender.sendMessage(tl("createDenied", tl(type.getIdentifier())));
+            sender.sendMessage(tl("createDenied", tl(type.getKey())));
             return true;
         }
 
@@ -130,8 +129,8 @@ public final class CreateCommand extends BasicCommand {
         if (input.getLength() == TYPE + 1) {
             final List<String> completion = new ArrayList<>();
 
-            for (final ChannelType type : ChannelType.values()) {
-                if (type == ChannelType.CONVERSATION) {
+            for (final Type type : Type.values()) {
+                if (type == Type.CONVERSATION) {
                     continue;
                 }
 

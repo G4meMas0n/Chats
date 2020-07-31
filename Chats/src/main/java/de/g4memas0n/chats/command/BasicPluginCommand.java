@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
-import static de.g4memas0n.chats.messaging.Messages.tlErr;
 
 /**
  * Abstract Plugin Command Representation that represent commands that are registered to bukkit/spigot.
@@ -137,12 +136,8 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
                 source.sendMessage(tl("helpHeader", this.getName()));
                 source.sendMessage(tl("helpDescription", this.getDescription()));
                 source.sendMessage(tl("helpUsage", this.getUsage()));
-            } catch (ChannelNotExistException ex) {
-                source.sendMessage(tlErr("channelNotExist", ex.getChannel()));
-            } catch (PlayerNotFoundException ex) {
-                source.sendMessage(tlErr("playerNotFound", ex.getPlayer()));
             } catch (InvalidArgumentException ex) {
-                source.sendMessage(tlErr(ex.getKey(), ex.getArguments()));
+                source.sendMessage(tl("prefixError") + " " + tl(ex.getKey(), ex.getArguments()));
             } catch (InputException ex) {
                 this.getInstance().getLogger().log(Level.SEVERE, String.format("Command execution of '%s' has thrown "
                         + "an unexpected input exception: ", this.getName()), ex);

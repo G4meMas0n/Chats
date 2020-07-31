@@ -15,7 +15,6 @@ import de.g4memas0n.chats.event.channel.ChannelChatterUnmuteEvent;
 import de.g4memas0n.chats.event.chatter.ChatterChatChannelEvent;
 import de.g4memas0n.chats.messaging.Messages;
 import de.g4memas0n.chats.messaging.Placeholder;
-import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -345,23 +344,23 @@ public class StandardChannel implements IChannel {
 
     // Channel Type Methods:
     @Override
-    public @NotNull ChannelType getType() {
-        return ChannelType.STANDARD;
+    public @NotNull Type getType() {
+        return Type.STANDARD;
     }
 
     @Override
     public final boolean isConversation() {
-        return this.getType() == ChannelType.CONVERSATION;
+        return this.getType() == Type.CONVERSATION;
     }
 
     @Override
     public final boolean isPersist() {
-        return this.getType() == ChannelType.PERSIST;
+        return this.getType() == Type.PERSIST;
     }
 
     @Override
     public final boolean isStandard() {
-        return this.getType() == ChannelType.STANDARD;
+        return this.getType() == Type.STANDARD;
     }
 
     @Override

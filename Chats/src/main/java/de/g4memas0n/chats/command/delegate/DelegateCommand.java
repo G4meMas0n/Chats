@@ -113,7 +113,7 @@ public abstract class DelegateCommand extends BasicPluginCommand {
         if (this.argsInRange(input.getLength())) {
             final BasicCommand delegate = this.getCommand(input.get(DELEGATE));
 
-            if (delegate == null || delegate.hide(sender)) {
+            if (delegate == null) {
                 return false;
             }
 

@@ -8,22 +8,14 @@ import org.jetbrains.annotations.NotNull;
  * @author G4meMason
  * @since Release 1.0.0
  */
-public final class ChannelNotExistException extends InputException {
-
-    private final String channel;
+public final class ChannelNotExistException extends InvalidArgumentException {
 
     public ChannelNotExistException(@NotNull final String channel) {
-        this.channel = channel;
+        super("channelNotExist", channel);
     }
 
     public ChannelNotExistException(@NotNull final Throwable cause,
                                     @NotNull final String channel) {
-        super(cause);
-
-        this.channel = channel;
-    }
-
-    public @NotNull String getChannel() {
-        return this.channel;
+        super(cause, "channelNotExist", channel);
     }
 }

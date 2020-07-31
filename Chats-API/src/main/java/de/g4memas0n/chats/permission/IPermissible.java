@@ -2,10 +2,7 @@ package de.g4memas0n.chats.permission;
 
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.chatter.IChatter;
-import de.g4memas0n.chats.util.type.ChannelType;
-import de.g4memas0n.chats.util.type.InfoType;
-import de.g4memas0n.chats.util.type.ModifyType;
-import de.g4memas0n.chats.util.type.StorageType;
+import de.g4memas0n.chats.storage.IStorageHolder;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -39,7 +36,7 @@ public interface IPermissible {
      * @param type the channel type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canCreate(@NotNull final ChannelType type);
+    boolean canCreate(@NotNull final IChannel.Type type);
 
     /**
      * Returns whether this permissible is permitted to delete the given channel.
@@ -96,7 +93,7 @@ public interface IPermissible {
      * @param type the channel type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canList(@NotNull final ChannelType type);
+    boolean canList(@NotNull final IChannel.Type type);
 
     /**
      * Returns whether this permissible is permitted to list the given channel.
@@ -136,10 +133,10 @@ public interface IPermissible {
      * Returns whether this permissible is permitted to modify the given type of the given channel.
      *
      * @param channel the channel to check the permission.
-     * @param type the modify type to check the permission.
+     * @param modification the modification type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canModify(@NotNull final IChannel channel, @NotNull final ModifyType type);
+    boolean canModify(@NotNull final IChannel channel, @NotNull final IChannel.Modification modification);
 
     /**
      * Returns whether this permissible is permitted to mute the given chatter in the given channel.
@@ -151,20 +148,20 @@ public interface IPermissible {
     boolean canMute(@NotNull final IChatter chatter, @NotNull final IChannel channel);
 
     /**
-     * Returns whether this permissible is permitted to reload the given storage type.
+     * Returns whether this permissible is permitted to reload the given storage-holder type.
      *
      * @param type the reload type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canReload(@NotNull final StorageType type);
+    boolean canReload(@NotNull final IStorageHolder.Type type);
 
     /**
-     * Returns whether this permissible is permitted to save the given storage type.
+     * Returns whether this permissible is permitted to save the given storage-holder type.
      *
      * @param type the type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canSave(@NotNull final StorageType type);
+    boolean canSave(@NotNull final IStorageHolder.Type type);
 
     /**
      * Returns whether this permissible can see the given chatter.
@@ -186,10 +183,10 @@ public interface IPermissible {
      * Returns whether this permissible is permitted to view the given info type of the given channel.
      *
      * @param channel the channel to check the permission.
-     * @param type the info type to check the permission.
+     * @param information the information type to check the permission.
      * @return true when this permissible is permitted, false otherwise.
      */
-    boolean canView(@NotNull final IChannel channel, @NotNull final InfoType type);
+    boolean canView(@NotNull final IChannel channel, @NotNull final IChannel.Information information);
 
     /**
      * Returns whether this permissible is permitted to view the information's of the given channel.

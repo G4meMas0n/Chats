@@ -1,13 +1,13 @@
 package de.g4memas0n.chats.command.info;
 
 import de.g4memas0n.chats.channel.IChannel;
+import de.g4memas0n.chats.channel.IChannel.Type;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
-import de.g4memas0n.chats.command.InvalidArgumentException;
+import de.g4memas0n.chats.command.TypeNotFoundException;
 import de.g4memas0n.chats.permission.Permission;
-import de.g4memas0n.chats.util.type.ChannelType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -44,10 +44,10 @@ public final class ListCommand extends BasicCommand {
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
             if (input.getLength() == this.getMaxArgs()) {
-                final ChannelType type = ChannelType.getType(input.get(TYPE));
+                final Type type = Type.getType(input.get(TYPE));
 
                 if (type == null) {
-                    throw new InvalidArgumentException("typeNotFound", input.get(TYPE));
+                    throw new TypeNotFoundException(input.get(TYPE));
                 }
 
                 if (sender.canList(type)) {
@@ -56,16 +56,16 @@ public final class ListCommand extends BasicCommand {
                             .map(IChannel::getColoredName).collect(Collectors.toList());
 
                     if (channels.isEmpty()) {
-                        sender.sendMessage(tl("listEmpty", tl(type.getIdentifier())));
+                        sender.sendMessage(tl("listEmpty", tl(type.getKey())));
                         return true;
                     }
 
-                    sender.sendMessage(tl("listHeader", tl(type.getIdentifier())));
+                    sender.sendMessage(tl("listHeader", tl(type.getKey())));
                     sender.sendMessage(tlJoin("listChannels", channels));
                     return true;
                 }
 
-                sender.sendMessage(tl("listDenied", tl(type.getIdentifier())));
+                sender.sendMessage(tl("listDenied", tl(type.getKey())));
                 return true;
             }
 
@@ -87,10 +87,10 @@ public final class ListCommand extends BasicCommand {
         if (input.getLength() == TYPE + 1) {
             final List<String> completion = new ArrayList<>();
 
-            for (final ChannelType current : ChannelType.values()) {
-                if (sender.canList(current)) {
-                    if (StringUtil.startsWithIgnoreCase(current.getIdentifier(), input.get(TYPE))) {
-                        completion.add(current.getIdentifier());
+            for (final Type type : Type.values()) {
+                if (sender.canList(type)) {
+                    if (StringUtil.startsWithIgnoreCase(type.getIdentifier(), input.get(TYPE))) {
+                        completion.add(type.getIdentifier());
                     }
                 }
             }
