@@ -1,6 +1,5 @@
 package de.g4memas0n.chats.chatter;
 
-import com.google.common.collect.MapMaker;
 import de.g4memas0n.chats.Chats;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.messaging.Messages;
@@ -32,7 +31,6 @@ public final class ChatterManager implements IChatterManager {
     private static final String DIRECTORY_NAME = "chatters";
 
     private final Map<UUID, StandardChatter> chatters;
-    private final Map<UUID, OfflineChatter> offlines;
 
     private final UniqueIdCache cache;
 
@@ -48,9 +46,7 @@ public final class ChatterManager implements IChatterManager {
         }
 
         this.cache = new UniqueIdCache(new YamlStorageFile(this.directory, CACHE_NAME), instance.getLogger());
-
         this.chatters = new HashMap<>();
-        this.offlines = new MapMaker().weakValues().makeMap();
     }
 
     @Override
@@ -109,8 +105,6 @@ public final class ChatterManager implements IChatterManager {
         final StandardChatter chatter = new StandardChatter(this.instance, storage, player);
 
         this.chatters.put(player.getUniqueId(), chatter);
-        this.offlines.remove(player.getUniqueId());
-
         this.instance.runStorageTask(() -> this.cache.update(player.getName(), player.getUniqueId()));
 
         return chatter;
@@ -150,15 +144,7 @@ public final class ChatterManager implements IChatterManager {
                     continue;
                 }
 
-                if (this.offlines.containsKey(uniqueId)) {
-                    offlines.add(this.offlines.get(uniqueId));
-                }
-
-                final OfflineChatter offline = new OfflineChatter(this.instance, new YamlStorageFile(file), uniqueId);
-
-                this.offlines.put(uniqueId, offline);
-
-                offlines.add(offline);
+                offlines.add(new OfflineChatter(this.instance, new YamlStorageFile(file), uniqueId));
             } catch (IllegalArgumentException ignored) {
                 // Directory can contain invalid storage files, just ignore them.
             }
@@ -190,16 +176,10 @@ public final class ChatterManager implements IChatterManager {
             return this.chatters.get(uniqueId);
         }
 
-        if (this.offlines.containsKey(uniqueId)) {
-            return this.offlines.get(uniqueId);
-        }
-
         final YamlStorageFile storage = new YamlStorageFile(this.directory, uniqueId.toString());
 
         if (storage.getFile().exists()) {
             final OfflineChatter offline = new OfflineChatter(this.instance, storage, uniqueId);
-
-            this.offlines.put(uniqueId, offline);
 
             try {
                 this.instance.runStorageTask(offline::load).get();
