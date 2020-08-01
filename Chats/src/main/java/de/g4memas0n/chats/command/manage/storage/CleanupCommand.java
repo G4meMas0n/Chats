@@ -55,6 +55,8 @@ public final class CleanupCommand extends BasicCommand {
             final Set<IOfflineChatter> cleanup = this.getInstance().getChatterManager().getOfflineChatters();
 
             if (cleanup.isEmpty()) {
+                this.getInstance().getLogger().info("Aborted cleanup. No storage files has been found.");
+
                 sender.sendMessage(tl("cleanupNobody"));
                 return true;
             }
@@ -80,6 +82,8 @@ public final class CleanupCommand extends BasicCommand {
                 }
 
                 if (cleanup.isEmpty()) {
+                    this.getInstance().getLogger().info("Aborted cleanup. No old storage files has been found");
+
                     sender.sendMessage(tl("cleanupNobody"));
                     return true;
                 }

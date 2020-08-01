@@ -56,7 +56,7 @@ public final class ReloadCommand extends BasicCommand {
             }
 
             if (sender.canReload(type)) {
-                if (type == Type.ALL && input.getLength() == this.getMinArgs()) {
+                if (type == Type.ALL && input.getLength() != this.getMaxArgs()) {
                     this.getInstance().reloadConfig();
                     this.getInstance().getChannelManager().load();
                     this.getInstance().getChatterManager().load();
@@ -91,7 +91,7 @@ public final class ReloadCommand extends BasicCommand {
                     throw new InvalidArgumentException("channelNotPersist", channel.getFullName());
                 }
 
-                if (type == Type.CHANNEL && input.getLength() == this.getMinArgs()) {
+                if (type == Type.CHANNEL && input.getLength() != this.getMaxArgs()) {
                     this.getInstance().getChannelManager().load();
                     this.getInstance().getChatterManager().load();
 
@@ -121,14 +121,14 @@ public final class ReloadCommand extends BasicCommand {
                     return true;
                 }
 
-                if (type == Type.CHATTER && input.getLength() == this.getMinArgs()) {
+                if (type == Type.CHATTER && input.getLength() != this.getMaxArgs()) {
                     this.getInstance().getChatterManager().load();
 
                     sender.sendMessage(tl("reloadComplete", tl("chatters")));
                     return true;
                 }
 
-                if (type == Type.CONFIG && input.getLength() == this.getMinArgs()) {
+                if (type == Type.CONFIG && input.getLength() != this.getMaxArgs()) {
                     this.getInstance().reloadConfig();
 
                     sender.sendMessage(tl("reloadComplete", tl("config")));

@@ -35,7 +35,7 @@ public final class SaveCommand extends BasicCommand {
     private static final int STORAGE = 1;
 
     public SaveCommand() {
-        super("save", 0, 2);
+        super("save", 1, 2);
 
         this.setPermission(Permission.RELOAD.getNode());
     }
@@ -125,13 +125,6 @@ public final class SaveCommand extends BasicCommand {
                     this.getInstance().getChatterManager().save();
 
                     sender.sendMessage(tl("saveComplete", tl("chatters")));
-                    return true;
-                }
-
-                if (type == Type.CONFIG && input.getLength() == this.getMinArgs()) {
-                    this.getInstance().saveConfig();
-
-                    sender.sendMessage(tl("saveComplete", tl("config")));
                     return true;
                 }
 

@@ -20,10 +20,12 @@ import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
 import static de.g4memas0n.chats.messaging.Messages.tlState;
@@ -547,15 +549,16 @@ public final class ModifyCommand extends BasicCommand {
                 if (modification == Modification.COLOR) {
                     try {
                         final ChatColor color = input.getChatColor(VALUE);
+                        final String name = color + Arrays.stream(color.name().split("_"))
+                                .map(part -> part.charAt(0) + part.substring(1).toLowerCase())
+                                .collect(Collectors.joining(" "));
 
                         if (channel.setColor(color)) {
-                            sender.sendMessage(tl("modifySet", tl("color"), channel.getFullName(),
-                                    color.toString() + color.name().charAt(0) + color.name().substring(1).toLowerCase()));
+                            sender.sendMessage(tl("modifySet", tl("color"), channel.getFullName(), name));
                             return true;
                         }
 
-                        sender.sendMessage(tl("modifySetAlready", tl("color"), channel.getFullName(),
-                                color.toString() + color.name().charAt(0) + color.name().substring(1).toLowerCase()));
+                        sender.sendMessage(tl("modifySetAlready", tl("color"), channel.getFullName(), name));
                         return true;
                     } catch (IllegalArgumentException ex) {
                         throw new InvalidArgumentException(ex, "invalidColor");

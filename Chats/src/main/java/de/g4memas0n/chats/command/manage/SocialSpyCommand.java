@@ -73,7 +73,7 @@ public final class SocialSpyCommand extends BasicCommand {
             }
 
             sender.sendMessage(this.getDescription());
-            sender.sendMessage(this.getUsage().replaceAll("\\[(.*)]", "$1"));
+            sender.sendMessage(this.getUsage().replace("[", "").replace("]", ""));
             return true;
         }
 

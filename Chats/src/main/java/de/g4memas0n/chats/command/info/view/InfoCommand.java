@@ -13,8 +13,10 @@ import de.g4memas0n.chats.permission.Permission;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static de.g4memas0n.chats.messaging.Messages.tl;
 import static de.g4memas0n.chats.messaging.Messages.tlBool;
@@ -74,7 +76,11 @@ public final class InfoCommand extends BasicCommand {
                 }
 
                 if (sender.canView(channel, Information.COLOR)) {
-                    sender.sendMessage(tl("infoColor", channel.getColor() + channel.getColor().name().toLowerCase()));
+                    final String name = channel.getColor() + Arrays.stream(channel.getColor().name().split("_"))
+                            .map(part -> part.charAt(0) + part.substring(1).toLowerCase())
+                            .collect(Collectors.joining(" "));
+
+                    sender.sendMessage(tl("infoColor", name));
                 }
 
                 if (sender.canView(channel, Information.PASSWORD) && channel.getPassword() != null) {
