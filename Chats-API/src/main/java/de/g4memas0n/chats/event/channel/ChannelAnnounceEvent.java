@@ -3,6 +3,7 @@ package de.g4memas0n.chats.event.channel;
 import de.g4memas0n.chats.channel.IChannel;
 import de.g4memas0n.chats.messaging.Placeholder;
 import de.g4memas0n.chats.storage.configuration.ISettings;
+import org.bukkit.ChatColor;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,7 @@ public final class ChannelAnnounceEvent extends ChannelEvent implements Cancella
             throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
-        this.format = format;
+        this.format = ChatColor.translateAlternateColorCodes('&', format);
     }
 
     /**

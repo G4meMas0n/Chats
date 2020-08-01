@@ -4,6 +4,7 @@ import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.messaging.Placeholder;
 import de.g4memas0n.chats.storage.configuration.ISettings;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +82,7 @@ public final class ChatterChatConversationEvent extends ChatterEvent implements 
             throw new IllegalArgumentException("Format is missing {message} placeholder: " + format);
         }
 
-        this.format = format;
+        this.format = ChatColor.translateAlternateColorCodes('&', format);
     }
 
     /**

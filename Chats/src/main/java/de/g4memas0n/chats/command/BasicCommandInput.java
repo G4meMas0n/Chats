@@ -56,17 +56,6 @@ public final class BasicCommandInput implements ICommandInput {
     }
 
     @Override
-    public @NotNull String getFormat(final int start) {
-        final StringBuilder format = new StringBuilder();
-
-        for (int index = start; index < this.arguments.length; index++) {
-            format.append(this.arguments[index]).append(" ");
-        }
-
-        return ChatColor.translateAlternateColorCodes('&', format.toString().trim());
-    }
-
-    @Override
     public @NotNull String getMessage(final int start) {
         final StringBuilder message = new StringBuilder();
 

@@ -52,14 +52,6 @@ public interface ICommandInput {
     @NotNull ChatColor getChatColor(final int index) throws InvalidArgumentException;
 
     /**
-     * Gets the requested format that starts by the given argument index, replacing all {@code &} to {@code §}.
-     *
-     * @param start the start index of the argument.
-     * @return the format starting from the given index.
-     */
-    @NotNull String getFormat(final int start);
-
-    /**
      * Gets the requested message that starts by the given argument index.
      *
      * @param start the start index of the argument.

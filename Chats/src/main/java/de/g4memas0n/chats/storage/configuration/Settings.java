@@ -5,6 +5,7 @@ import de.g4memas0n.chats.messaging.Placeholder;
 import de.g4memas0n.chats.storage.InvalidStorageFileException;
 import de.g4memas0n.chats.storage.MissingStorageFileException;
 import de.g4memas0n.chats.storage.YamlStorageFile;
+import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
@@ -180,7 +181,7 @@ public final class Settings implements ISettings {
             throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
-        this.formatAnnounce = format;
+        this.formatAnnounce = ChatColor.translateAlternateColorCodes('&', format);
     }
 
     protected @NotNull String _getBroadcastFormat() {
@@ -211,7 +212,7 @@ public final class Settings implements ISettings {
             throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
-        this.formatBroadcast = format;
+        this.formatBroadcast = ChatColor.translateAlternateColorCodes('&', format);
     }
 
     protected @NotNull String _getChatFormat() {
@@ -246,7 +247,7 @@ public final class Settings implements ISettings {
             throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
-        this.formatChat = format;
+        this.formatChat = ChatColor.translateAlternateColorCodes('&', format);
     }
 
     protected @NotNull String _getConversationFormat() {
@@ -285,7 +286,7 @@ public final class Settings implements ISettings {
             throw new IllegalArgumentException(String.format("Format '%s' is missing {message} placeholder", format));
         }
 
-        this.formatConversation = format;
+        this.formatConversation = ChatColor.translateAlternateColorCodes('&', format);
     }
 
     // Default Channel Setting:

@@ -278,7 +278,7 @@ public class StandardChannel implements IChannel {
             return false;
         }
 
-        this.announceFormat = format;
+        this.announceFormat = ChatColor.translateAlternateColorCodes('&', format);
         return true;
     }
 
@@ -306,7 +306,7 @@ public class StandardChannel implements IChannel {
             return false;
         }
 
-        this.broadcastFormat = format;
+        this.broadcastFormat = ChatColor.translateAlternateColorCodes('&', format);
         return true;
     }
 
@@ -338,7 +338,7 @@ public class StandardChannel implements IChannel {
             return false;
         }
 
-        this.chatFormat = format;
+        this.chatFormat = ChatColor.translateAlternateColorCodes('&', format);
         return true;
     }
 
