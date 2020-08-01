@@ -24,7 +24,7 @@ format:
 
   # Sets the default broadcast format: (Type: String, Default: "{color}[{nick}][§aBroadcast§r{color}] {message}")
   # Note: Must include the {message} placeholder.
-  broadcast: "{color}[{nick}][§aBroadcast§r{color}] {message}"
+  broadcast: "{color}[{nick}][§aBroadcast{color}] {message}"
 
   # Sets the default chat format: (Type: String, Default: "{color}[{nick}]§r{sender}{color}: {message}")
   # Note: Must include the {sender} or {sender-plain} placeholder and the {message} placeholder.

@@ -74,9 +74,8 @@ public class OfflineChatter extends StorageChatter implements IOfflineChatter {
 
         if (!this.uniqueId.equals(uniqueId)) {
             if (this.storage.getFile().exists()) {
-                this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter: %s",
-                        uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(),
-                        this.name != null ? this.name : this.uniqueId.toString()));
+                this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file: %s",
+                        uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName()));
             }
 
             this._setUniqueId(this.uniqueId);
@@ -84,8 +83,8 @@ public class OfflineChatter extends StorageChatter implements IOfflineChatter {
         }
 
         if (this.name == null && this.storage.getFile().exists()) {
-            this.instance.getLogger().warning(String.format("Detected missing name in storage file '%s' of chatter: %s",
-                    this.storage.getFile().getName(), this.name != null ? this.name : this.uniqueId.toString()));
+            this.instance.getLogger().warning(String.format("Detected missing name in storage file: %s",
+                    this.storage.getFile().getName()));
         }
     }
 

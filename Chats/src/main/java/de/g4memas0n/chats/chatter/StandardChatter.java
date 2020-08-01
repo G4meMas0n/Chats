@@ -99,8 +99,8 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
 
         if (!this.player.getUniqueId().equals(uniqueId)) {
             if (this.storage.getFile().exists()) {
-                this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file '%s' of chatter: %s",
-                        uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName(), this.player.getName()));
+                this.instance.getLogger().warning(String.format("Detected %s unique-id in storage file: %s",
+                        uniqueId != null ? "invalid" : "missing", this.storage.getFile().getName()));
             }
 
             this._setUniqueId(this.player.getUniqueId());
@@ -111,8 +111,8 @@ public class StandardChatter extends StorageChatter implements IChatter, IComman
 
         if (!this.player.getName().equals(name)) {
             if (this.storage.getFile().exists()) {
-                this.instance.getLogger().warning(String.format("Detected %s name in storage file '%s' of chatter: %s",
-                        name != null ? "old" : "missing", this.storage.getFile().getName(), this.player.getName()));
+                this.instance.getLogger().warning(String.format("Detected %s name in storage file: %s",
+                        name != null ? "old" : "missing", this.storage.getFile().getName()));
             }
 
             this._setLastName(this.player.getName());

@@ -74,8 +74,8 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         final String fullName = this._getFullName();
 
         if (!this.getFullName().equals(fullName)) {
-            this.instance.getLogger().warning(String.format("Detected %s full-name in storage file '%s' of channel: %s",
-                    fullName != null ? "invalid" : "missing", this.storage.getFile().getName(), this.getFullName()));
+            this.instance.getLogger().warning(String.format("Detected %s full-name in storage file: %s",
+                    fullName != null ? "invalid" : "missing", this.storage.getFile().getName()));
 
             this._setFullName(this.getFullName());
             this._delayedSave();
@@ -86,8 +86,8 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         try {
             super.setColor(this._getColor());
         } catch (IllegalArgumentException ex) {
-            this.instance.getLogger().warning(String.format("Detected invalid color in storage file '%s' of channel '%s': %s",
-                    this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
+            this.instance.getLogger().warning(String.format("Detected invalid color in storage file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
         }
 
         super.setPassword(this._getPassword());
@@ -99,22 +99,22 @@ public class PersistChannel extends StandardChannel implements IStorageHolder {
         try {
             super.setAnnounceFormat(this._getAnnounceFormat());
         } catch (IllegalArgumentException ex) {
-            this.instance.getLogger().warning(String.format("Detected invalid announce-format in storage file '%s' of channel '%s': %s",
-                    this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
+            this.instance.getLogger().warning(String.format("Detected invalid announce-format in storage file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
         }
 
         try {
             super.setBroadcastFormat(this._getBroadcastFormat());
         } catch (IllegalArgumentException ex) {
-            this.instance.getLogger().warning(String.format("Detected invalid broadcast-format in storage file '%s' of channel '%s': %s",
-                    this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
+            this.instance.getLogger().warning(String.format("Detected invalid broadcast-format in storage file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
         }
 
         try {
             super.setChatFormat(this._getChatFormat());
         } catch (IllegalArgumentException ex) {
-            this.instance.getLogger().warning(String.format("Detected invalid chat-format in storage file '%s' of channel '%s': %s",
-                    this.storage.getFile().getName(), this.getFullName(), ex.getMessage()));
+            this.instance.getLogger().warning(String.format("Detected invalid chat-format in storage file '%s': %s",
+                    this.storage.getFile().getName(), ex.getMessage()));
         }
 
         super.setBans(this._getBans());

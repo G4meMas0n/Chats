@@ -28,7 +28,7 @@ public interface ISettings extends IStorageHolder {
     /**
      * The default value of the broadcast format setting.
      */
-    @NotNull String BROADCAST_FORMAT = "{color}[{nick}][§aBroadcast§r{color}] {message}";
+    @NotNull String BROADCAST_FORMAT = "{color}[{nick}][§aBroadcast{color}] {message}";
 
     /**
      * Returns the configured broadcast format from the config file.
