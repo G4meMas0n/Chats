@@ -49,12 +49,12 @@ public interface IStorageHolder {
         /**
          * Represents the channel storage-holder.
          */
-        CHANNEL("channel"),
+        CHANNEL("channel", "channels"),
 
         /**
          * Represents the chatter storage-holder.
          */
-        CHATTER("chatter"),
+        CHATTER("chatter", "chatters"),
 
         /**
          * Represents the config storage-holder.
@@ -62,9 +62,16 @@ public interface IStorageHolder {
         CONFIG("config");
 
         private final String identifier;
+        private final String key;
 
         Type(@NotNull final String identifier) {
             this.identifier = identifier;
+            this.key = null;
+        }
+
+        Type(@NotNull final String identifier, @NotNull final String key) {
+            this.identifier = identifier;
+            this.key = key;
         }
 
         @Override
@@ -74,12 +81,12 @@ public interface IStorageHolder {
 
         @Override
         public @NotNull String getKey() {
-            return this.identifier;
+            return this.key != null ? this.key : this.identifier;
         }
 
         @Override
         public final @NotNull String toString() {
-            return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.identifier + "}";
+            return this.getClass().getSimpleName() + "{identifier=" + this.identifier + ";key=" + this.getKey() + "}";
         }
 
         /**

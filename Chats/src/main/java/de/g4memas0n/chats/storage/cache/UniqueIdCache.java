@@ -24,7 +24,8 @@ public final class UniqueIdCache implements ICache<String, UUID>, IStorageHolder
     private final YamlStorageFile storage;
     private final BasicLogger logger;
 
-    public UniqueIdCache(@NotNull final YamlStorageFile storage, @NotNull final BasicLogger logger) {
+    public UniqueIdCache(@NotNull final YamlStorageFile storage,
+                         @NotNull final BasicLogger logger) {
         this.storage = storage;
         this.logger = logger;
     }

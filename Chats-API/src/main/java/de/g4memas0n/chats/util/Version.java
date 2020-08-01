@@ -174,9 +174,9 @@ public class Version implements Comparable<Version> {
 
         if (matcher.groupCount() == 4) {
             final int patch = Integer.parseUnsignedInt(matcher.group("patch"));
-            final int build = Integer.parseUnsignedInt(matcher.group("release"));
+            final int release = Integer.parseUnsignedInt(matcher.group("release"));
 
-            return new Version(major, minor, patch, build);
+            return new Version(major, minor, patch, release);
         }
 
         final String patch = matcher.group("patch");
