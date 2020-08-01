@@ -6,6 +6,7 @@ import de.g4memas0n.chats.command.BasicPluginCommand;
 import de.g4memas0n.chats.command.ICommandInput;
 import de.g4memas0n.chats.command.ICommandSource;
 import de.g4memas0n.chats.command.InputException;
+import de.g4memas0n.chats.command.InvalidArgumentException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,7 +115,7 @@ public abstract class DelegateCommand extends BasicPluginCommand {
             final BasicCommand delegate = this.getCommand(input.get(DELEGATE));
 
             if (delegate == null) {
-                return false;
+                throw new InvalidArgumentException("commandNotFound", input.get(DELEGATE));
             }
 
             if (sender.hasPermission(delegate.getPermission())) {
@@ -122,10 +123,9 @@ public abstract class DelegateCommand extends BasicPluginCommand {
                     return true;
                 }
 
-                // Invalid command usage. Send command help:
-                sender.sendMessage(tl("helpHeader", delegate.getName()));
-                sender.sendMessage(tl("helpDescription", delegate.getDescription()));
-                sender.sendMessage(tl("helpUsage", delegate.getUsage()));
+                // Invalid command usage. Send syntax help:
+                sender.sendMessage(delegate.getDescription());
+                sender.sendMessage(delegate.getUsage());
                 return true;
             }
 

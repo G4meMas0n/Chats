@@ -72,9 +72,8 @@ public final class SocialSpyCommand extends BasicCommand {
                 return true;
             }
 
-            sender.sendMessage(tl("helpHeader", this.getName()));
-            sender.sendMessage(tl("helpDescription", this.getDescription()));
-            sender.sendMessage(tl("helpUsage", this.getUsage().replaceAll("\\[(.*)]", "$1")));
+            sender.sendMessage(this.getDescription());
+            sender.sendMessage(this.getUsage().replaceAll("\\[(.*)]", "$1"));
             return true;
         }
 

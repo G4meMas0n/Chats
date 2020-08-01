@@ -132,10 +132,9 @@ public abstract class BasicPluginCommand extends BasicCommand implements TabExec
                     return true;
                 }
 
-                // Invalid command usage. Send command help:
-                source.sendMessage(tl("helpHeader", this.getName()));
-                source.sendMessage(tl("helpDescription", this.getDescription()));
-                source.sendMessage(tl("helpUsage", this.getUsage()));
+                // Invalid command usage. Send syntax help:
+                source.sendMessage(this.getDescription());
+                source.sendMessage(this.getUsage());
             } catch (InvalidArgumentException ex) {
                 source.sendMessage(tl("prefixError") + " " + tl(ex.getKey(), ex.getArguments()));
             } catch (InputException ex) {
