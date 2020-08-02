@@ -49,9 +49,9 @@ public final class SaveCommand extends BasicCommand {
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
-            final Type type = input.getLength() == this.getMaxArgs() ? Type.getType(input.get(TYPE)) : Type.getDefault();
+            final Type type = Type.getType(input.get(TYPE));
 
-            if (type == null) {
+            if (type == null || type == Type.CONFIG) {
                 return false;
             }
 
@@ -145,6 +145,10 @@ public final class SaveCommand extends BasicCommand {
             final List<String> completion = new ArrayList<>();
 
             for (final Type type : Type.values()) {
+                if (type == Type.CONFIG) {
+                    continue;
+                }
+
                 if (sender.canSave(type)) {
                     if (StringUtil.startsWithIgnoreCase(type.getIdentifier(), input.get(TYPE))) {
                         completion.add(type.getIdentifier());
@@ -158,7 +162,7 @@ public final class SaveCommand extends BasicCommand {
         if (input.getLength() == STORAGE + 1) {
             final Type type = Type.getType(input.get(TYPE));
 
-            if (type == null) {
+            if (type == null || type == Type.ALL || type == Type.CONFIG) {
                 return Collections.emptyList();
             }
 

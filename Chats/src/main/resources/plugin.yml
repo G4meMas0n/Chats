@@ -11,7 +11,7 @@ loadbefore:
   - Herochat
 
 commands:
-  # Basic plugin commands:
+  # General plugin commands:
   channel:
     aliases: [ch]
     description: Manages the channels.
@@ -104,10 +104,10 @@ permissions:
       chats.modify.type.cross-world: true
       chats.modify.type.custom-format: true
       chats.modify.type.distance: true
-      chats.modify.type.moderator: true
       chats.modify.type.owner: true
       chats.modify.type.password: true
       chats.modify.type.short-name: true
+      chats.modify.type.verbose: true
 
   chats.view.type.*:
     description: Allows to view all info types.
@@ -117,12 +117,12 @@ permissions:
       chats.view.type.cross-world: true
       chats.view.type.distance: true
       chats.view.type.format: true
-      chats.view.type.moderators: true
       chats.view.type.mutes: true
       chats.view.type.owner: true
       chats.view.type.password: true
       chats.view.type.short-name: true
       chats.view.type.type: true
+      chats.view.type.verbose: true
 
   chats.view.*:
     description: Allows to view all channel informations.
@@ -152,4 +152,3 @@ permissions:
       chats.save.type.all: true
       chats.save.type.channels: true
       chats.save.type.chatters: true
-      chats.save.type.config: true
