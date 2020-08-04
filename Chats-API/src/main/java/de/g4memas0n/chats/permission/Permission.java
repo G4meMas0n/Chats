@@ -241,6 +241,13 @@ public enum Permission {
     RELOAD("reload", true),
 
     /**
+     * Permission for resetting storage files.
+     *
+     * <p>Allows to access the "reset" command.</p>
+     */
+    RESET("reset", false),
+
+    /**
      * Permission for saving the plugin.
      *
      * <p>Available save permissions:<br>

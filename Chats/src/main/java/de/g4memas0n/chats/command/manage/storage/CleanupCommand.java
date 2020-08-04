@@ -1,5 +1,6 @@
 package de.g4memas0n.chats.command.manage.storage;
 
+import de.g4memas0n.chats.chatter.IChatter;
 import de.g4memas0n.chats.chatter.IOfflineChatter;
 import de.g4memas0n.chats.command.BasicCommand;
 import de.g4memas0n.chats.command.ICommandInput;
@@ -42,6 +43,7 @@ public final class CleanupCommand extends BasicCommand {
         return false;
     }
 
+    @Override
     public boolean execute(@NotNull final ICommandSource sender,
                            @NotNull final ICommandInput input) throws InputException {
         if (this.argsInRange(input.getLength())) {
@@ -54,8 +56,10 @@ public final class CleanupCommand extends BasicCommand {
 
             final Set<IOfflineChatter> cleanup = this.getInstance().getChatterManager().getOfflineChatters();
 
+            cleanup.removeIf(target -> target instanceof IChatter);
+
             if (cleanup.isEmpty()) {
-                this.getInstance().getLogger().info("Aborted cleanup. No storage files has been found.");
+                this.getInstance().getLogger().info("Aborted cleanup. No offline chatters has been found.");
 
                 sender.sendMessage(tl("cleanupNobody"));
                 return true;
@@ -69,8 +73,8 @@ public final class CleanupCommand extends BasicCommand {
                         + "milliseconds.", cleanup.size(), System.currentTimeMillis() - loadTime));
 
                 for (final Iterator<IOfflineChatter> iterator = cleanup.iterator(); iterator.hasNext();) {
-                    final IOfflineChatter chatter = iterator.next();
-                    final long lastPlayed = chatter.getLastPlayed();
+                    final IOfflineChatter target = iterator.next();
+                    final long lastPlayed = target.getLastPlayed();
 
                     if (lastPlayed < 0) {
                         continue;

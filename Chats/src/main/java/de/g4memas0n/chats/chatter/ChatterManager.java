@@ -141,10 +141,10 @@ public final class ChatterManager implements IChatterManager {
                 final UUID uniqueId = UUID.fromString(file.getName().substring(0, file.getName().lastIndexOf(".")));
 
                 if (this.chatters.containsKey(uniqueId)) {
-                    continue;
+                    offlines.add(this.chatters.get(uniqueId));
+                } else {
+                    offlines.add(new OfflineChatter(this.instance, new YamlStorageFile(file), uniqueId));
                 }
-
-                offlines.add(new OfflineChatter(this.instance, new YamlStorageFile(file), uniqueId));
             } catch (IllegalArgumentException ignored) {
                 // Directory can contain invalid storage files, just ignore them.
             }
@@ -238,12 +238,8 @@ public final class ChatterManager implements IChatterManager {
             }
 
             this.instance.getLogger().info("Online chatters has been loaded.");
-
-            if (this.instance.getSettings().isInform()) {
-                this.instance.scheduleSyncTask(() -> this.chatters.values().forEach(chatter -> chatter.sendMessage(
-                        Messages.tl("focusCurrent", chatter.getFocus().getColoredName()))),
-                        this.instance.getSettings().getInformDelay());
-            }
+            this.instance.runSyncTask(() -> this.chatters.values().forEach(chatter -> chatter.sendMessage(
+                    Messages.tl("focusChannel", chatter.getFocus().getColoredName()))));
         }
     }
 

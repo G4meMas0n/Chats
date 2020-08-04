@@ -87,7 +87,6 @@ public interface IChatterManager extends IStorageContainer {
      *
      * @return the offline chatters in this chatter manager.
      */
-    @SuppressWarnings("unused")
     @NotNull Set<IOfflineChatter> getOfflineChatters();
 
     /**
