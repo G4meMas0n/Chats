@@ -55,10 +55,8 @@ public class YamlStorageFile extends YamlConfiguration implements IStorageFile {
 
     @Override
     public synchronized void clear() {
-        try {
-            this.loadFromString(BLANK_CONFIG);
-        } catch (InvalidConfigurationException ignored) {
-            // A blank config can not be invalid.
+        for (final String key : this.getKeys(false)) {
+            this.set(key, null);
         }
     }
 

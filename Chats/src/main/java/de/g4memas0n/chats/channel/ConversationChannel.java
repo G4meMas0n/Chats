@@ -283,9 +283,9 @@ public final class ConversationChannel extends StandardChannel {
      */
     static @NotNull String buildName(@NotNull final IChatter first, @NotNull final IChatter second) {
         if (first.getUniqueId().compareTo(second.getUniqueId()) >= 0) {
-            return first.getUniqueId() + "_" + second.getUniqueId();
-        } else {
             return second.getUniqueId() + "_" + first.getUniqueId();
+        } else {
+            return first.getUniqueId() + "_" + second.getUniqueId();
         }
     }
 
@@ -302,10 +302,10 @@ public final class ConversationChannel extends StandardChannel {
      * @return the short name of the conversation for the given chatters.
      */
     static @NotNull String buildShort(@NotNull final IChatter first, @NotNull final IChatter second) {
-        if (first.getName().compareTo(second.getName()) >= 0) {
-            return first.getName() + "_" + second.getName();
-        } else {
+        if (first.getName().compareToIgnoreCase(second.getName()) >= 0) {
             return second.getName() + "_" + first.getName();
+        } else {
+            return first.getName() + "_" + second.getName();
         }
     }
 }
