@@ -52,9 +52,9 @@ public final class Settings implements ISettings {
         try {
             this.storage.delete();
 
-            this.instance.getLogger().debug("Deleted config file: " + this.storage.getFile().getName());
+            this.instance.getLogger().debug("Deleted configuration file: " + this.storage.getFile().getName());
         } catch (IOException ex) {
-            this.instance.getLogger().warning(String.format("Unable to delete config file '%s': %s",
+            this.instance.getLogger().warning(String.format("Unable to delete configuration file '%s': %s",
                     this.storage.getFile().getName(), ex.getMessage()));
         }
     }
@@ -64,26 +64,26 @@ public final class Settings implements ISettings {
         try {
             this.storage.load();
 
-            this.instance.getLogger().debug("Loaded config file: " + this.storage.getFile().getName());
+            this.instance.getLogger().debug("Loaded configuration file: " + this.storage.getFile().getName());
         } catch (MissingStorageFileException ex) {
-            this.instance.getLogger().warning(String.format("Unable to find config file '%s'. "
+            this.instance.getLogger().warning(String.format("Unable to find configuration file '%s'. "
                     + "Saving default configuration...", this.storage.getFile().getName()));
 
             this.instance.saveResource(FILE_CONFIG + ".yml", true);
             this.instance.getLogger().info(String.format("Saved default configuration from template: %s.yml", FILE_CONFIG));
             this.load();
         } catch (InvalidStorageFileException ex) {
-            this.instance.getLogger().severe(String.format("Unable to load config file '%s', because it is broken. "
+            this.instance.getLogger().severe(String.format("Unable to load configuration file '%s', because it is broken. "
                     + "Renaming it and saving default configuration...", this.storage.getFile().getName()));
 
             final File broken = new File(this.instance.getDataFolder(), FILE_CONFIG + ".broken.yml");
 
             if (broken.exists() && broken.delete()) {
-                this.instance.getLogger().debug("Deleted old broken config file: " + broken.getName());
+                this.instance.getLogger().debug("Deleted old broken configuration file: " + broken.getName());
             }
 
             if (this.storage.getFile().renameTo(broken)) {
-                this.instance.getLogger().info(String.format("Renamed broken config file '%s' to: %s",
+                this.instance.getLogger().info(String.format("Renamed broken configuration file '%s' to: %s",
                         this.storage.getFile().getName(), broken.getName()));
             }
 
@@ -91,7 +91,7 @@ public final class Settings implements ISettings {
             this.instance.getLogger().info(String.format("Saved default configuration from template: %s.yml", FILE_CONFIG));
             this.load();
         } catch (IOException ex) {
-            this.instance.getLogger().warning(String.format("Unable to load config file '%s'. "
+            this.instance.getLogger().warning(String.format("Unable to load configuration file '%s'. "
                     + "Loading default configuration...", this.storage.getFile().getName()));
 
             this.storage.clear();
@@ -100,28 +100,28 @@ public final class Settings implements ISettings {
         try {
             this.setAnnounceFormat(this._getAnnounceFormat());
         } catch (IllegalArgumentException ex) {
-            this.instance.getLogger().warning(String.format("Detected invalid announce-format in config file '%s': %s",
+            this.instance.getLogger().warning(String.format("Detected invalid announce-format in configuration file '%s': %s",
                     this.storage.getFile().getName(), ex.getMessage()));
         }
 
         try {
             this.setBroadcastFormat(this._getBroadcastFormat());
         } catch (IllegalArgumentException ex) {
-            this.instance.getLogger().warning(String.format("Detected invalid broadcast-format in config file '%s': %s",
+            this.instance.getLogger().warning(String.format("Detected invalid broadcast-format in configuration file '%s': %s",
                     this.storage.getFile().getName(), ex.getMessage()));
         }
 
         try {
             this.setChatFormat(this._getChatFormat());
         } catch (IllegalArgumentException ex) {
-            this.instance.getLogger().warning(String.format("Detected invalid chat-format in config file '%s': %s",
+            this.instance.getLogger().warning(String.format("Detected invalid chat-format in configuration file '%s': %s",
                     this.storage.getFile().getName(), ex.getMessage()));
         }
 
         try {
             this.setConversationFormat(this._getConversationFormat());
         } catch (IllegalArgumentException ex) {
-            this.instance.getLogger().warning(String.format("Detected invalid conversation-format in config file '%s': %s",
+            this.instance.getLogger().warning(String.format("Detected invalid conversation-format in configuration file '%s': %s",
                     this.storage.getFile().getName(), ex.getMessage()));
         }
 
@@ -144,9 +144,9 @@ public final class Settings implements ISettings {
         try {
             this.storage.save();
 
-            this.instance.getLogger().debug("Saved config file: " + this.storage.getFile().getName());
+            this.instance.getLogger().debug("Saved configuration file: " + this.storage.getFile().getName());
         } catch (IOException ex) {
-            this.instance.getLogger().warning(String.format("Unable to save config file '%s': %s",
+            this.instance.getLogger().warning(String.format("Unable to save configuration file '%s': %s",
                     this.storage.getFile().getName(), ex.getMessage()));
         }
          */
